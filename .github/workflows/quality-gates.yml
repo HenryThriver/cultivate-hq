@@ -25,7 +25,7 @@ jobs:
       run: npm ci
       
     - name: TypeScript check
-      run: npx tsc --noEmit --exclude "**/*.test.tsx" --exclude "**/*.spec.ts"
+      run: npx tsc --noEmit --project tsconfig.ci.json
       
     - name: Lint check
       run: npm run lint

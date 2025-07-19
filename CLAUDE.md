@@ -168,3 +168,6 @@ export const ComponentName = ({ prop1, prop2 }: ComponentProps) => {
 - Search for test files or scripts in package.json to understand testing setup
 - Write unit tests for utilities and hooks
 - Test user interactions, not implementation details
+
+### Vendor Documentation Reference
+**IMPORTANT**: After 2+ failed attempts with vendor CLI commands or APIs, consult `documentation/VENDOR-DOCS.md` for correct syntax and documentation links. This prevents repeated API/CLI misuse (e.g., incorrect Vercel logs syntax, Vitest command patterns, etc.).

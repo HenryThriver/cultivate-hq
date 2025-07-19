@@ -1,0 +1,108 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [ develop, staging, main ]
+  push:
+    branches: [ develop, staging, main ]
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    name: Code Quality & Security
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: TypeScript check
+      run: npx tsc --noEmit
+      
+    - name: Lint check
+      run: npm run lint
+      
+    - name: Run tests
+      run: npm run test -- --run
+      
+    - name: Build check
+      run: npm run build
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+        RAPIDAPI_HOST: ${{ secrets.RAPIDAPI_HOST }}
+        NEXTAUTH_SECRET: "test-secret-for-build"
+        NEXTAUTH_URL: "http://localhost:3000"
+        
+    - name: Security audit
+      run: npm audit --audit-level moderate
+      continue-on-error: true
+
+  documentation-check:
+    runs-on: ubuntu-latest
+    name: Documentation Validation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check required documentation files
+      run: |
+        echo "Checking for required documentation files..."
+        
+        # Check for essential docs
+        test -f "CLAUDE.md" || (echo "❌ Missing CLAUDE.md" && exit 1)
+        test -f "documentation/DATABASE.md" || (echo "❌ Missing documentation/DATABASE.md" && exit 1)
+        test -f "documentation/CHANGELOG.md" || (echo "❌ Missing documentation/CHANGELOG.md" && exit 1)
+        
+        echo "✅ All required documentation files present"
+        
+    - name: Validate commit message format
+      if: github.event_name == 'pull_request'
+      run: |
+        # Check if PR title follows conventional commit format
+        if [[ "${{ github.event.pull_request.title }}" =~ ^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+ ]]; then
+          echo "✅ PR title follows conventional commit format"
+        else
+          echo "❌ PR title should follow conventional commit format (feat: description)"
+          exit 1
+        fi
+
+  environment-specific-checks:
+    runs-on: ubuntu-latest
+    name: Environment-Specific Validations
+    if: contains(github.base_ref, 'main') || contains(github.ref, 'main')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Production deployment safety checks
+      run: |
+        echo "Running production deployment safety checks..."
+        
+        # Check for any TODO/FIXME comments in critical files
+        if grep -r "TODO\|FIXME" src/ --include="*.ts" --include="*.tsx" | head -10; then
+          echo "⚠️  Found TODO/FIXME comments. Review before production deployment."
+        fi
+        
+        # Check for console.log statements
+        if grep -r "console\.log" src/ --include="*.ts" --include="*.tsx" | head -5; then
+          echo "⚠️  Found console.log statements. Consider removing for production."
+        fi
+        
+        echo "✅ Production safety checks completed"

@@ -13,7 +13,7 @@ export const getStripe = () => {
 
 // Initialize Stripe server-side
 export const stripe = new StripeServer(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-06-30.basil',
 });
 
 // Price configurations

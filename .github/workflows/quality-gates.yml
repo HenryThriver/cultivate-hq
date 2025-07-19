@@ -32,7 +32,6 @@ jobs:
       
     - name: Run tests
       run: npx vitest run
-      continue-on-error: true
       
     - name: Build check
       run: npm run build
@@ -46,11 +45,22 @@ jobs:
         GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         RAPIDAPI_HOST: ${{ secrets.RAPIDAPI_HOST }}
-        NEXTAUTH_SECRET: "test-secret-for-build"
-        NEXTAUTH_URL: "http://localhost:3000"
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_CI_SECRET }}
+        NEXTAUTH_URL: ${{ secrets.NEXTAUTH_CI_URL }}
         
     - name: Security audit
       run: npm audit --audit-level high
+      
+    - name: Dependency vulnerability check
+      run: |
+        # Check for high/critical vulnerabilities
+        npm audit --audit-level high --production
+        
+        # Check for license compliance issues
+        npx license-checker --summary --production || echo "License check completed"
+        
+        # Check for outdated dependencies with security issues
+        npm outdated --depth=0 || echo "Dependency check completed"
 
   documentation-check:
     runs-on: ubuntu-latest

@@ -37,12 +37,12 @@ export const useStripeCheckout = () => {
 
       // Redirect to Stripe Checkout
       const stripe = await getStripe();
-      const { error: stripeError } = await stripe?.redirectToCheckout({
+      const result = await stripe?.redirectToCheckout({
         sessionId: data.sessionId,
       });
 
-      if (stripeError) {
-        throw new Error(stripeError.message);
+      if (result?.error) {
+        throw new Error(result.error.message);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

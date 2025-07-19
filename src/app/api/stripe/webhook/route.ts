@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
         
-        // Update user's subscription status
+        // Update user's subscription status in contacts table (self-contact)
         const { error: updateError } = await supabase
-          .from('profiles')
+          .from('contacts')
           .update({
             subscription_status: 'active',
             subscription_plan: session.metadata?.priceType || 'monthly',
@@ -35,7 +35,8 @@ export async function POST(request: NextRequest) {
             stripe_subscription_id: session.subscription as string,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', session.metadata?.userId);
+          .eq('user_id', session.metadata?.userId || '')
+          .eq('is_self_contact', true);
 
         if (updateError) {
           console.error('Error updating user subscription:', updateError);
@@ -45,13 +46,11 @@ export async function POST(request: NextRequest) {
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
-            user_id: session.metadata?.userId,
+            user_id: session.metadata?.userId || '',
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
             status: 'active',
             plan_type: session.metadata?.priceType || 'monthly',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
           });
 
         if (subscriptionError) {
@@ -76,14 +75,15 @@ export async function POST(request: NextRequest) {
           console.error('Error updating subscription:', subscriptionUpdateError);
         }
 
-        // Update user profile
+        // Update user profile (self-contact)
         const { error: profileUpdateError } = await supabase
-          .from('profiles')
+          .from('contacts')
           .update({
             subscription_status: subscription.status,
             updated_at: new Date().toISOString(),
           })
-          .eq('stripe_subscription_id', subscription.id);
+          .eq('stripe_subscription_id', subscription.id)
+          .eq('is_self_contact', true);
 
         if (profileUpdateError) {
           console.error('Error updating profile subscription:', profileUpdateError);
@@ -107,14 +107,15 @@ export async function POST(request: NextRequest) {
           console.error('Error canceling subscription:', cancelError);
         }
 
-        // Update user profile
+        // Update user profile (self-contact)
         const { error: profileCancelError } = await supabase
-          .from('profiles')
+          .from('contacts')
           .update({
             subscription_status: 'canceled',
             updated_at: new Date().toISOString(),
           })
-          .eq('stripe_subscription_id', deletedSubscription.id);
+          .eq('stripe_subscription_id', deletedSubscription.id)
+          .eq('is_self_contact', true);
 
         if (profileCancelError) {
           console.error('Error updating profile on cancel:', profileCancelError);
@@ -123,37 +124,48 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'invoice.payment_succeeded':
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object as Stripe.Invoice & { subscription?: string | Stripe.Subscription };
         
-        // Update payment status
-        const { error: paymentError } = await supabase
-          .from('subscriptions')
-          .update({
-            last_payment_date: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('stripe_subscription_id', invoice.subscription as string);
+        // Only process if invoice has a subscription
+        if (invoice.subscription) {
+          const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription.id;
+          
+          // Update payment status
+          const { error: paymentError } = await supabase
+            .from('subscriptions')
+            .update({
+              last_payment_date: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('stripe_subscription_id', subscriptionId);
 
-        if (paymentError) {
-          console.error('Error updating payment status:', paymentError);
+          if (paymentError) {
+            console.error('Error updating payment status:', paymentError);
+          }
         }
 
         break;
 
       case 'invoice.payment_failed':
-        const failedInvoice = event.data.object as Stripe.Invoice;
+        const failedInvoice = event.data.object as Stripe.Invoice & { subscription?: string | Stripe.Subscription };
         
-        // Handle failed payment
-        const { error: failedPaymentError } = await supabase
-          .from('profiles')
-          .update({
-            subscription_status: 'past_due',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('stripe_subscription_id', failedInvoice.subscription as string);
+        // Only process if invoice has a subscription
+        if (failedInvoice.subscription) {
+          const subscriptionId = typeof failedInvoice.subscription === 'string' ? failedInvoice.subscription : failedInvoice.subscription.id;
+          
+          // Handle failed payment
+          const { error: failedPaymentError } = await supabase
+            .from('contacts')
+            .update({
+              subscription_status: 'past_due',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('stripe_subscription_id', subscriptionId)
+            .eq('is_self_contact', true);
 
-        if (failedPaymentError) {
-          console.error('Error updating failed payment status:', failedPaymentError);
+          if (failedPaymentError) {
+            console.error('Error updating failed payment status:', failedPaymentError);
+          }
         }
 
         break;

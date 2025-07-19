@@ -52,7 +52,8 @@ export const AddContactActionCard: React.FC<AddContactActionCardProps> = ({
   const [email, setEmail] = useState('');
   const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
-  // const [voiceMemo, setVoiceMemo] = useState<File | null>(null);
+  const [voiceMemo, setVoiceMemo] = useState<File | null>(null);
+  // Using voiceMemo state for future voice recording functionality
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submissionMethod, setSubmissionMethod] = useState<'linkedin' | 'voice' | null>(null);

@@ -40,6 +40,7 @@ This document centralizes all vendor API documentation and CLI command reference
 - **Database**: https://supabase.com/docs/guides/database
 - **Row Level Security**: https://supabase.com/docs/guides/auth/row-level-security
 - **Edge Functions**: https://supabase.com/docs/guides/functions
+- **Stripe Wrapper Extension**: https://supabase.com/docs/guides/database/extensions/wrappers/stripe
 
 ## Node.js & Testing
 

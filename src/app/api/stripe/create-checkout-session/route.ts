@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       mode: 'subscription',
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
-      customer_email: userData.email,
+      customer_email: userData.email || undefined,
       metadata: {
         userId: userId,
         priceType: priceType,

@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ develop, staging, main ]
   push:
-    branches: [ develop, staging, main ]
+    branches: [ develop ]
 
 jobs:
   quality-checks:
@@ -31,7 +31,7 @@ jobs:
       run: npm run lint
       
     - name: Run tests
-      run: npm run test -- --run
+      run: npm run test --run
       
     - name: Build check
       run: npm run build
@@ -49,8 +49,7 @@ jobs:
         NEXTAUTH_URL: "http://localhost:3000"
         
     - name: Security audit
-      run: npm audit --audit-level moderate
-      continue-on-error: true
+      run: npm audit --audit-level high
 
   documentation-check:
     runs-on: ubuntu-latest

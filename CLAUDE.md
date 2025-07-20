@@ -12,6 +12,12 @@ npm run dev          # Start development server with Turbopack
 npm run build        # Build for production
 npm run start        # Start production server
 npm run lint         # Run ESLint
+
+# Development Server Management
+npm run dev:clean    # Kill all instances and start fresh dev server
+npm run dev:check    # Interactive port/process checker with options
+npm run dev:kill     # Kill all Next.js development processes
+npm run dev:ports    # Check which ports are occupied by development servers
 ```
 
 ### Database Operations
@@ -58,6 +64,30 @@ supabase gen types typescript --linked > src/lib/supabase/database.types.ts
 #
 # Manual override (if needed):
 # supabase link --project-ref zepawphplcisievcdugz && supabase db push --linked
+```
+
+### Development Workflow Best Practices
+
+```bash
+# Starting a new development session
+npm run dev:ports    # Check what's currently running
+npm run dev:clean    # Clean start if needed (kills all instances)
+
+# Quick status check during development
+npm run dev:check    # Interactive tool with options:
+                     # - Show current processes
+                     # - Kill specific processes
+                     # - Start fresh server
+                     # - Check port availability
+
+# Ending development session
+npm run dev:kill     # Kill all Next.js processes when done
+
+# Common development issues
+# - Port conflicts: Use npm run dev:clean to resolve
+# - Multiple instances: Use npm run dev:check to manage
+# - Auth context errors: Check .env.local for missing API keys
+# - Build errors: Run npm run build to identify issues early
 ```
 
 ## Architecture Overview

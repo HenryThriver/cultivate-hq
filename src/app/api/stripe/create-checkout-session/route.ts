@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, PRICE_CONFIG, PRODUCT_CONFIG } from '@/lib/stripe';
+import { getServerStripe, PRICE_CONFIG, PRODUCT_CONFIG } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const priceConfig = PRICE_CONFIG[priceType as keyof typeof PRICE_CONFIG];
+    const stripe = getServerStripe();
     
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({

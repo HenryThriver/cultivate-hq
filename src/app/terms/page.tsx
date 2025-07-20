@@ -24,7 +24,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           1. Acceptance of Terms
         </Typography>
         <Typography variant="body1" paragraph>
-          By accessing and using Relationship OS (&quot;the Service&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+          By accessing and using Cultivate HQ (&quot;the Service&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
         </Typography>
 
         <Divider sx={{ my: 4 }} />

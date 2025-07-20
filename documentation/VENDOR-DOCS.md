@@ -130,6 +130,23 @@ This document centralizes all vendor API documentation and CLI command reference
 - ✅ `supabase gen types typescript --linked` (generate types)
 - ❌ `npx supabase` (never use npx with Supabase - CLI installed globally)
 
+### Supabase Environment Management
+- **Environment Strategy**: https://supabase.com/docs/guides/deployment/managing-environments
+- **Multiple Projects Approach**: Separate Supabase projects for staging (~$10/month) and production (~$25+/month)
+- **Migration Workflow**: local → staging → production (schema only, keep data separate)
+- **Project Linking**: `supabase link --project-ref <project-id>`
+- **Environment Switching**: Use `--linked` flag or specify project explicitly
+- ✅ `supabase db push --linked` (push to currently linked project)
+- ✅ `supabase db diff -f migration_name --linked` (create migration for linked project)
+- ✅ `supabase gen types typescript --linked > src/lib/supabase/database.types.ts` (generate types from linked project)
+
+### Supabase CI/CD Best Practices
+- **Schema Migrations Only**: Don't copy production data to staging for every deploy
+- **Test Data Strategy**: Use synthetic/anonymized test data in staging
+- **Database Safety**: Always use WHERE clauses for UPDATE/DELETE operations
+- **Migration Testing**: Test migrations in staging before production deployment
+- **Data Isolation**: Each environment maintains its own dataset for safety
+
 ## Quick Reference Notes
 
 1. **Always check vendor CLI help first**: `<tool> --help` or `<tool> <command> --help`

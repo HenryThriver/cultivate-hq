@@ -18,10 +18,21 @@ npm run lint         # Run ESLint
 **CRITICAL: Never use npx with Supabase - CLI is installed globally**
 
 ```bash
-# Connect to database (established working pattern)
-CONNECTION_STRING="postgresql://postgres.zepawphplcisievcdugz:fzm_BEJ7agw5ehz6tcj@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
+# Environment Management - Production vs Staging
+# Production project: zepawphplcisievcdugz (cultivate-hq)
+# Staging project: oogajqshbhnjdrwqlffa (cultivate-hq-staging)
 
-# Common queries
+# Switch between environments
+supabase link --project-ref zepawphplcisievcdugz                    # Link to production
+supabase link --project-ref oogajqshbhnjdrwqlffa --password "..."   # Link to staging (requires password)
+
+# Connect to database (established working pattern)
+# Production
+CONNECTION_STRING="postgresql://postgres.zepawphplcisievcdugz:fzm_BEJ7agw5ehz6tcj@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
+# Staging  
+CONNECTION_STRING_STAGING="postgresql://postgres:wxSdplHrc8NTvrZy@db.oogajqshbhnjdrwqlffa.supabase.co:5432/postgres"
+
+# Common queries (use appropriate CONNECTION_STRING)
 psql "$CONNECTION_STRING" -c "\dt"  # List tables
 psql "$CONNECTION_STRING" -c "\d contacts"  # Describe table
 psql "$CONNECTION_STRING" -c "SELECT id, name FROM contacts WHERE name ILIKE '%search%';"
@@ -29,13 +40,29 @@ psql "$CONNECTION_STRING" -c "SELECT id, name FROM contacts WHERE name ILIKE '%s
 # Migration workflow
 TIMESTAMP=$(python3 -c 'import datetime; print(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))')
 touch "supabase/migrations/${TIMESTAMP}_migration_name.sql"
-echo "Y" | supabase db push
+echo "Y" | supabase db push --linked  # Apply to currently linked project
 supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+
+# CI/CD Migration Flow: GitHub Integration (MODERN APPROACH)
+# GitHub integration creates automatic branch databases - no manual staging setup needed!
+# 
+# Workflow:
+# 1. Create feature branch: git checkout -b feature/new-feature
+# 2. Develop locally and create migration
+# 3. Push branch: git push origin feature/new-feature
+# 4. GitHub Actions automatically:
+#    - Creates branch-specific Supabase database
+#    - Applies all migrations to branch database
+#    - Vercel preview deployment uses branch database
+# 5. Merge to main: Applies migrations to production database
+#
+# Manual override (if needed):
+# supabase link --project-ref zepawphplcisievcdugz && supabase db push --linked
 ```
 
 ## Architecture Overview
 
-**Relationship OS** is a comprehensive relationship intelligence system built around four core pillars: Strategic Connection Architecture, Proactive Relationship Nurturing, Strategic Ask Management, and Sustainable Systems Design.
+**Cultivate HQ** is a comprehensive relationship intelligence system built around four core pillars: Strategic Connection Architecture, Proactive Relationship Nurturing, Strategic Ask Management, and Sustainable Systems Design.
 
 ### Core Architecture Patterns
 

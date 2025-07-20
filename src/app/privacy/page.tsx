@@ -24,7 +24,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           1. Introduction
         </Typography>
         <Typography variant="body1" paragraph>
-          Relationship OS (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our relationship intelligence platform.
+          Cultivate HQ (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our relationship intelligence platform.
         </Typography>
 
         <Divider sx={{ my: 4 }} />

@@ -1,10 +1,10 @@
-# Relationship OS
+# Cultivate HQ
 
-A **Relationship Intelligence System** that transforms networking from overwhelming to systematic. Relationship OS helps high-achievers build meaningful relationship capital through structured artifact capture, loop management, and intelligent automation.
+A **Relationship Intelligence System** that transforms networking from overwhelming to systematic. Cultivate HQ helps high-achievers build meaningful relationship capital through structured artifact capture, loop management, and intelligent automation.
 
-## What is Relationship OS?
+## What is Cultivate HQ?
 
-Relationship OS is not a CRM or contact manager—it's a comprehensive relationship operating system designed around four core pillars:
+Cultivate HQ is not a CRM or contact manager—it's a comprehensive relationship operating system designed around four core pillars:
 
 1. **Strategic Connection Architecture**: Identify and connect with the right people aligned to your goals
 2. **Proactive Relationship Nurturing**: Transform passive networking into active relationship tending

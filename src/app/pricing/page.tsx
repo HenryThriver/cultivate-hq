@@ -502,7 +502,7 @@ export default function PricingPage() {
                     icon: <TrendingUp />,
                     title: 'Strategic ROI',
                     description: 'One strategic connection can generate opportunities worth thousands of times your investment.',
-                    color: 'primary.main'
+                    color: theme.palette.primary.main
                   },
                   {
                     icon: <Speed />,

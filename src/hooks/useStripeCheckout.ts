@@ -35,9 +35,17 @@ export const useStripeCheckout = () => {
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
+      if (!data.sessionId) {
+        throw new Error('No session ID returned from server');
+      }
+
       // Redirect to Stripe Checkout
       const stripe = await getStripe();
-      const result = await stripe?.redirectToCheckout({
+      if (!stripe) {
+        throw new Error('Failed to load Stripe');
+      }
+
+      const result = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
       });
 
@@ -45,7 +53,8 @@ export const useStripeCheckout = () => {
         throw new Error(result.error.message);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Stripe checkout error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during checkout');
     } finally {
       setLoading(false);
     }

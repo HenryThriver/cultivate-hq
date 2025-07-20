@@ -27,7 +27,7 @@ export const Footer = (): React.JSX.Element => {
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            © {new Date().getFullYear()} Relationship OS. All rights reserved.
+            © {new Date().getFullYear()} Cultivate HQ. All rights reserved.
           </Typography>
           
           <Box
@@ -37,41 +37,41 @@ export const Footer = (): React.JSX.Element => {
               alignItems: 'center',
             }}
           >
-            <Link href="/terms" passHref>
-              <MuiLink
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  textDecoration: 'none',
-                  '&:hover': {
-                    textDecoration: 'underline',
-                    color: 'primary.main',
-                  },
-                }}
-              >
-                Terms of Service
-              </MuiLink>
-            </Link>
+            <MuiLink
+              component={Link}
+              href="/terms"
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline',
+                  color: 'primary.main',
+                },
+              }}
+            >
+              Terms of Service
+            </MuiLink>
             
             <Typography variant="body2" color="text.secondary">
               •
             </Typography>
             
-            <Link href="/privacy" passHref>
-              <MuiLink
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  textDecoration: 'none',
-                  '&:hover': {
-                    textDecoration: 'underline',
-                    color: 'primary.main',
-                  },
-                }}
-              >
-                Privacy Policy
-              </MuiLink>
-            </Link>
+            <MuiLink
+              component={Link}
+              href="/privacy"
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline',
+                  color: 'primary.main',
+                },
+              }}
+            >
+              Privacy Policy
+            </MuiLink>
           </Box>
         </Box>
       </Container>

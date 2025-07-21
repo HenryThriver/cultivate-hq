@@ -11,22 +11,22 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('OAuth error:', error);
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/success?error=oauth_denied`);
+      return NextResponse.redirect(`${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?error=oauth_denied`);
     }
 
     if (!code || !state) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/success?error=invalid_callback`);
+      return NextResponse.redirect(`${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?error=invalid_callback`);
     }
 
     const [userId, source] = state.split('|');
     if (!userId) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/success?error=invalid_state`);
+      return NextResponse.redirect(`${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?error=invalid_state`);
     }
 
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/google/combined-callback`
+      `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/api/google/combined-callback`
     );
 
     // Exchange code for tokens
@@ -97,13 +97,13 @@ export async function GET(request: NextRequest) {
 
     // Redirect based on source
     const redirectUrl = source === 'success' 
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/success?connected=gmail_calendar`
-      : `${process.env.NEXT_PUBLIC_SITE_URL}/onboarding?connected=gmail_calendar`;
+      ? `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?connected=gmail_calendar`
+      : `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/onboarding?connected=gmail_calendar`;
 
     return NextResponse.redirect(redirectUrl);
 
   } catch (error) {
     console.error('Error in combined OAuth callback:', error);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/success?error=callback_error`);
+    return NextResponse.redirect(`${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?error=callback_error`);
   }
 }

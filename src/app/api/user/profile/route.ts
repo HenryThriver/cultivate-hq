@@ -15,27 +15,24 @@ export async function GET(): Promise<NextResponse> {
       );
     }
 
-    // Get user's self-contact (profile)
+    // Get user profile data (from users table with self-contact info)
     const { data: profile, error: profileError } = await supabase
-      .from('contacts')
+      .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .eq('is_self_contact', true)
       .single();
 
     if (profileError) {
-      // If no self-contact exists, create one
+      // If no user record exists, this should have been created by the trigger
+      // but we can create it manually as a fallback
       if (profileError.code === 'PGRST116') {
-        // Create self-contact manually
-        const { data: createdProfile, error: createError } = await supabase
-          .from('contacts')
+        // Create user record manually (this triggers self-contact creation)
+        const { data: createdUser, error: createError } = await supabase
+          .from('users')
           .insert({
-            user_id: user.id,
+            id: user.id,
+            email: user.email || '',
             name: user.user_metadata?.full_name || user.email || 'My Profile',
-            email: user.email,
-            linkedin_url: '', // Required field
-            is_self_contact: true,
-            relationship_score: 6,
             profile_completion_score: 0,
             ways_to_help_others: [],
             introduction_opportunities: [],
@@ -47,7 +44,7 @@ export async function GET(): Promise<NextResponse> {
           .single();
 
         if (createError) {
-          console.error('Error creating self-contact:', createError);
+          console.error('Error creating user record:', createError);
           return NextResponse.json(
             { error: 'Failed to create user profile' },
             { status: 500 }
@@ -72,7 +69,8 @@ export async function GET(): Promise<NextResponse> {
           console.warn('Warning: Could not create onboarding state:', onboardingError);
         }
 
-        return NextResponse.json({ profile: createdProfile });
+        // Return the created user as profile (the trigger should have created self-contact)
+        return NextResponse.json({ profile: createdUser });
       }
 
       console.error('Error fetching user profile:', profileError);
@@ -162,16 +160,15 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
       // Also update the user profile to maintain consistency
       const { error: profileUpdateError } = await supabase
-        .from('contacts')
+        .from('users')
         .update({
           primary_goal: title,
           goal_description: description
         })
-        .eq('user_id', user.id)
-        .eq('is_self_contact', true);
+        .eq('id', user.id);
 
       if (profileUpdateError) {
-        console.warn('Warning: Failed to update profile with goal changes:', profileUpdateError);
+        console.warn('Warning: Failed to update user profile with goal changes:', profileUpdateError);
         // Don't fail the operation since the goal update succeeded
       }
 
@@ -274,31 +271,59 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     }
 
     // Existing profile update logic
-    const updates: Record<string, any> = {};
+    const userUpdates: Record<string, any> = {};
+    const contactUpdates: Record<string, any> = {};
 
-    // Handle profile updates
+    // Handle user-level updates
     if (body.primary_goal !== undefined) {
-      updates.primary_goal = body.primary_goal;
+      userUpdates.primary_goal = body.primary_goal;
     }
     if (body.goal_description !== undefined) {
-      updates.goal_description = body.goal_description;
-    }
-    if (body.linkedin_url !== undefined) {
-      updates.linkedin_url = body.linkedin_url;
+      userUpdates.goal_description = body.goal_description;
     }
 
-    // Update self-contact profile
-    const { data: updatedProfile, error: updateError } = await supabase
-      .from('contacts')
-      .update(updates)
+    // Handle contact-level updates (linkedin_url goes to self-contact)
+    if (body.linkedin_url !== undefined) {
+      contactUpdates.linkedin_url = body.linkedin_url;
+    }
+
+    // Update user profile if there are user-level changes
+    if (Object.keys(userUpdates).length > 0) {
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update(userUpdates)
+        .eq('id', user.id);
+
+      if (userUpdateError) {
+        console.error('Error updating user profile:', userUpdateError);
+        return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
+      }
+    }
+
+    // Update self-contact if there are contact-level changes
+    if (Object.keys(contactUpdates).length > 0) {
+      const { error: contactUpdateError } = await supabase
+        .from('contacts')
+        .update(contactUpdates)
+        .eq('user_id', user.id)
+        .eq('is_self_contact', true);
+
+      if (contactUpdateError) {
+        console.error('Error updating self-contact:', contactUpdateError);
+        return NextResponse.json({ error: 'Failed to update contact info' }, { status: 500 });
+      }
+    }
+
+    // Get the updated profile data
+    const { data: updatedProfile, error: fetchError } = await supabase
+      .from('user_profiles')
+      .select('*')
       .eq('user_id', user.id)
-      .eq('is_self_contact', true)
-      .select()
       .single();
 
-    if (updateError) {
-      console.error('Error updating profile:', updateError);
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+    if (fetchError) {
+      console.error('Error fetching updated profile:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch updated profile' }, { status: 500 });
     }
 
     return NextResponse.json({ profile: updatedProfile });

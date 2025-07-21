@@ -37,41 +37,39 @@ export const Footer = (): React.JSX.Element => {
               alignItems: 'center',
             }}
           >
-            <MuiLink
-              component={Link}
-              href="/terms"
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline',
-                  color: 'primary.main',
-                },
-              }}
-            >
-              Terms of Service
-            </MuiLink>
+            <Link href="/terms" style={{ textDecoration: 'none' }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  '&:hover': {
+                    textDecoration: 'underline',
+                    color: 'primary.main',
+                  },
+                }}
+              >
+                Terms of Service
+              </Typography>
+            </Link>
             
             <Typography variant="body2" color="text.secondary">
               •
             </Typography>
             
-            <MuiLink
-              component={Link}
-              href="/privacy"
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline',
-                  color: 'primary.main',
-                },
-              }}
-            >
-              Privacy Policy
-            </MuiLink>
+            <Link href="/privacy" style={{ textDecoration: 'none' }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  '&:hover': {
+                    textDecoration: 'underline',
+                    color: 'primary.main',
+                  },
+                }}
+              >
+                Privacy Policy
+              </Typography>
+            </Link>
           </Box>
         </Box>
       </Container>

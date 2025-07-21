@@ -21,50 +21,93 @@ npm run dev:ports    # Check which ports are occupied by development servers
 ```
 
 ### Database Operations
-**CRITICAL: Never use npx with Supabase - CLI is installed globally**
+**CRITICAL: PRODUCTION DATABASE PROTECTION - READ BEFORE ANY DATABASE OPERATIONS**
+
+#### PRODUCTION SAFETY PROTOCOL ⚠️
+
+**MANDATORY: Check environment BEFORE any database command**
+```bash
+# ALWAYS run this first - look for ● symbol
+supabase projects list
+
+# If ● is next to zepawphplcisievcdugz (production), STOP IMMEDIATELY!
+# NEVER run database modifications on production directly
+```
+
+#### Environment Management
+```bash
+# Production project: zepawphplcisievcdugz (cultivate-hq) ⚠️ PROTECTED
+
+# Link to staging for development work:
+supabase link --project-ref oogajqshbhnjdrwqlffa --password "..."
+
+# FORBIDDEN: Direct production linking for migrations
+# supabase link --project-ref zepawphplcisievcdugz  # ❌ NEVER DO THIS FOR DEVELOPMENT
+```
+
+#### PREFERRED: CI/CD Migration Flow (GitHub Integration)
+**Use this approach for ALL database changes**
 
 ```bash
-# Environment Management - Production vs Staging
-# Production project: zepawphplcisievcdugz (cultivate-hq)
-# Staging project: oogajqshbhnjdrwqlffa (cultivate-hq-staging)
+# 1. Create feature branch (REQUIRED)
+git checkout -b feature/your-feature
 
-# Switch between environments
-supabase link --project-ref zepawphplcisievcdugz                    # Link to production
-supabase link --project-ref oogajqshbhnjdrwqlffa --password "..."   # Link to staging (requires password)
-
-# Connect to database (established working pattern)
-# Production
-CONNECTION_STRING="postgresql://postgres.zepawphplcisievcdugz:fzm_BEJ7agw5ehz6tcj@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
-# Staging  
-CONNECTION_STRING_STAGING="postgresql://postgres:wxSdplHrc8NTvrZy@db.oogajqshbhnjdrwqlffa.supabase.co:5432/postgres"
-
-# Common queries (use appropriate CONNECTION_STRING)
-psql "$CONNECTION_STRING" -c "\dt"  # List tables
-psql "$CONNECTION_STRING" -c "\d contacts"  # Describe table
-psql "$CONNECTION_STRING" -c "SELECT id, name FROM contacts WHERE name ILIKE '%search%';"
-
-# Migration workflow
+# 2. Create migration files locally (SAFE)
 TIMESTAMP=$(python3 -c 'import datetime; print(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))')
 touch "supabase/migrations/${TIMESTAMP}_migration_name.sql"
-echo "Y" | supabase db push --linked  # Apply to currently linked project
-supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+# Edit the migration file with your changes
 
-# CI/CD Migration Flow: GitHub Integration (MODERN APPROACH)
-# GitHub integration creates automatic branch databases - no manual staging setup needed!
-# 
-# Workflow:
-# 1. Create feature branch: git checkout -b feature/new-feature
-# 2. Develop locally and create migration
-# 3. Push branch: git push origin feature/new-feature
-# 4. GitHub Actions automatically:
-#    - Creates branch-specific Supabase database
-#    - Applies all migrations to branch database
-#    - Vercel preview deployment uses branch database
-# 5. Merge to main: Applies migrations to production database
-#
-# Manual override (if needed):
-# supabase link --project-ref zepawphplcisievcdugz && supabase db push --linked
+# 3. Commit and push (SAFE - triggers automated branch database)
+git add supabase/migrations/ supabase/config.toml
+git commit -m "feat: your database changes"
+git push origin feature/your-feature
+
+# 4. Supabase GitHub Integration automatically:
+#    - Detects supabase/ directory changes
+#    - Creates branch-specific Supabase database (e.g., feature-stripe-abc123)
+#    - Applies all migrations to isolated branch database
+#    - Posts preview environment URL as PR comment
+#    - GitHub Actions validate the preview environment
+
+# 5. Vercel preview deployment automatically uses branch database
+# 6. Only after testing: merge to main applies to production
+
+# VERIFICATION: Check PR comments for Supabase preview environment URL
 ```
+
+#### Emergency Manual Migration (REQUIRES EXPLICIT APPROVAL)
+```bash
+# ONLY use if CI/CD is broken and user explicitly authorizes
+
+# 1. VERIFY you're NOT on production:
+supabase projects list  # Confirm ● is NOT next to zepawphplcisievcdugz
+
+# 2. Apply migration:
+echo "Y" | supabase db push --linked
+
+# 3. Generate types:
+supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+```
+
+#### ABSOLUTE PROHIBITIONS ❌
+```bash
+# NEVER run these commands when linked to production:
+supabase db push --linked           # ❌ Can corrupt production data
+supabase db reset --linked          # ❌ Destroys production database
+supabase db dump --linked --data    # ❌ Can impact production performance
+
+# NEVER link to production for development:
+supabase link --project-ref zepawphplcisievcdugz  # ❌ FORBIDDEN
+```
+
+#### AI Assistant Safety Rules
+If you are Claude Code or any AI assistant:
+
+1. **ALWAYS check `supabase projects list` BEFORE any database operation**
+2. **NEVER run `supabase db push` unless user explicitly confirms current environment**
+3. **ALWAYS prefer CI/CD workflow over direct database modifications**
+4. **ASK user to confirm environment if unclear**
+5. **REFUSE to execute database commands if linked to production without explicit user override**
 
 ### Development Workflow Best Practices
 

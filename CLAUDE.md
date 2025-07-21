@@ -20,6 +20,31 @@ npm run dev:kill     # Kill all Next.js development processes
 npm run dev:ports    # Check which ports are occupied by development servers
 ```
 
+### Pre-Commit Quality Gates ⚡
+**CRITICAL: Run these checks locally BEFORE pushing to PR to avoid wasting PR cycles**
+
+```bash
+# Complete Quality Gates verification (run ALL before pushing):
+
+# 1. TypeScript compilation check
+npx tsc --noEmit --project tsconfig.ci.json
+
+# 2. ESLint check  
+npm run lint
+
+# 3. Next.js build check (catches Suspense, hydration, and build issues)
+npm run build
+
+# 4. Database migration validation (if migrations changed)
+supabase start  # Ensure local database is running
+supabase db push --local  # Test migrations locally first
+
+# If ALL checks pass ✅, then push to PR:
+git push origin feature/your-branch
+```
+
+**Why this matters:** These are the EXACT same checks that GitHub Actions Quality Gates run. Running them locally catches issues before they waste PR cycles and prevents frustrating build failures.
+
 ### Database Operations
 **CRITICAL: PRODUCTION DATABASE PROTECTION - READ BEFORE ANY DATABASE OPERATIONS**
 

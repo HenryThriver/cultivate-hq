@@ -25,23 +25,57 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
-        
-        // Validate required metadata
-        if (!session.metadata?.userId) {
-          console.error('Missing userId in checkout session metadata:', session.id);
-          return NextResponse.json({ error: 'Invalid session metadata' }, { status: 400 });
+
+        if (!session.subscription || !session.customer || !session.customer_email) {
+          console.error('Missing required session data:', {
+            subscription: !!session.subscription,
+            customer: !!session.customer,
+            customer_email: !!session.customer_email,
+            session_id: session.id
+          });
+          return NextResponse.json({ error: 'Invalid session data' }, { status: 400 });
         }
 
-        if (!session.subscription || !session.customer) {
-          console.error('Missing subscription or customer in checkout session:', session.id);
-          return NextResponse.json({ error: 'Invalid session data' }, { status: 400 });
+        let userId = session.metadata?.userId;
+        
+        // If no userId in metadata (unauthenticated checkout), create user from customer email
+        if (!userId) {
+          // Check if user already exists with this email
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', session.customer_email)
+            .single();
+            
+          if (existingUser) {
+            userId = existingUser.id;
+          } else {
+            // Create new user record with customer email
+            const { data: newUser, error: userError } = await supabase
+              .from('users')
+              .insert({
+                email: session.customer_email,
+                name: session.customer_details?.name || session.customer_email,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .select('id')
+              .single();
+
+            if (userError || !newUser) {
+              console.error('Error creating user from Stripe checkout:', userError);
+              return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+            }
+            
+            userId = newUser.id;
+          }
         }
         
         // Create subscription record (main source of truth)
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
-            user_id: session.metadata.userId,
+            user_id: userId,
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
             status: 'active',

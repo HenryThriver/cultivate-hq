@@ -84,19 +84,13 @@ BEGIN
     email,
     name,
     created_at,
-    updated_at,
-    subscription_status,
-    preferences,
-    notification_settings
+    updated_at
   ) VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
     NOW(),
-    NOW(),
-    'free', -- Default status
-    '{}',
-    '{}'
+    NOW()
   ) ON CONFLICT (id) DO NOTHING;
   
   -- Create self-contact (relationship intelligence data)

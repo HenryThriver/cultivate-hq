@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/lib/contexts/AuthContext';
 import confetti from 'canvas-confetti';
 
-export default function SuccessPage() {
+function SuccessPageContent() {
   const { user, signInWithGoogle } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -266,5 +266,24 @@ export default function SuccessPage() {
         </Box>
       </Container>
     </Box>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
+    }>
+      <SuccessPageContent />
+    </Suspense>
   );
 }

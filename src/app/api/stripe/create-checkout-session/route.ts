@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerStripe } from '@/lib/stripe-server';
 import { PRICE_CONFIG, PRODUCT_CONFIG } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
+import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     const stripe = getServerStripe();
     
     // Create Stripe checkout session
-    const sessionConfig: Record<string, unknown> = {
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ['card'],
       line_items: [
         {
@@ -83,8 +84,12 @@ export async function POST(request: NextRequest) {
     // Add customer info if user is authenticated
     if (userData?.email) {
       sessionConfig.customer_email = userData.email;
-      sessionConfig.metadata.userId = userId;
-      sessionConfig.subscription_data.metadata.userId = userId;
+      if (sessionConfig.metadata) {
+        sessionConfig.metadata.userId = userId;
+      }
+      if (sessionConfig.subscription_data?.metadata) {
+        sessionConfig.subscription_data.metadata.userId = userId;
+      }
     }
     // Note: For unauthenticated users, Stripe will automatically collect email
     // during subscription checkout - no need for customer_creation in subscription mode

@@ -20,6 +20,9 @@ import {
   CheckCircle, 
   ArrowForward,
   Google as GoogleIcon,
+  Email as EmailIcon,
+  CalendarToday as CalendarIcon,
+  SkipNext as SkipIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import confetti from 'canvas-confetti';
@@ -33,6 +36,8 @@ function SuccessPageContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  const [showEnhancement, setShowEnhancement] = useState(false);
+  const [enhancementLoading, setEnhancementLoading] = useState(false);
 
   const sessionId = searchParams.get('session_id');
 
@@ -55,12 +60,20 @@ function SuccessPageContent() {
     }
   }, [hasTriggeredConfetti, isMobile]);
 
-  // If user is already authenticated, redirect to onboarding
+  // If user is already authenticated, show enhancement option or redirect
   useEffect(() => {
     if (user && sessionId) {
-      router.push(`/onboarding?session_id=${sessionId}`);
+      // Check if they just connected integrations
+      const connected = searchParams.get('connected');
+      if (connected === 'gmail_calendar') {
+        // They just connected, redirect to onboarding with success
+        router.push(`/onboarding?session_id=${sessionId}&connected=true`);
+      } else {
+        // Show enhancement option instead of immediate redirect
+        setShowEnhancement(true);
+      }
     }
-  }, [user, sessionId, router]);
+  }, [user, sessionId, router, searchParams]);
 
   const handleSignIn = async () => {
     try {
@@ -76,6 +89,8 @@ function SuccessPageContent() {
       
       if (error) {
         setError(error.message);
+      } else {
+        // After successful authentication, the useEffect will show enhancement option
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -85,7 +100,158 @@ function SuccessPageContent() {
     }
   };
 
-  if (user) {
+  const handleConnectServices = async () => {
+    try {
+      setEnhancementLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/google/combined-auth?source=success');
+      const data = await response.json();
+
+      if (data.error) {
+        setError(data.error);
+      } else {
+        // Redirect to Google OAuth
+        window.location.href = data.authUrl;
+      }
+    } catch (err) {
+      setError('Failed to connect services. Please try again.');
+      console.error('Connect services error:', err);
+    } finally {
+      setEnhancementLoading(false);
+    }
+  };
+
+  const handleSkipEnhancement = () => {
+    if (sessionId) {
+      router.push(`/onboarding?session_id=${sessionId}`);
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
+  // Show enhancement option for authenticated users
+  if (user && showEnhancement) {
+    return (
+      <Box 
+        sx={{ 
+          minHeight: '100vh', 
+          display: 'flex', 
+          alignItems: 'center',
+          background: `linear-gradient(135deg, ${alpha('#2196F3', 0.015)} 0%, ${alpha('#7C3AED', 0.02)} 100%)`,
+          py: { xs: 3, md: 5 }
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            px: { xs: 2, sm: 3, md: 0 }
+          }}>
+            <Card sx={{ maxWidth: { xs: '100%', md: 640 }, width: '100%', p: { xs: 3, md: '39px' }, borderRadius: 3 }}>
+              <CardContent sx={{ p: 0 }}>
+                <Stack spacing={6} alignItems="center" textAlign="center">
+                  
+                  {/* Success Header */}
+                  <Stack spacing={3} alignItems="center" textAlign="center">
+                    <CheckCircle sx={{ fontSize: 64, color: 'success.main' }} />
+                    <Typography variant="h3" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                      You&apos;re all set!
+                    </Typography>
+                    <Typography variant="h5" sx={{ color: 'text.secondary', maxWidth: '500px' }}>
+                      Want to supercharge your experience? Connect your Gmail and Calendar now.
+                    </Typography>
+                  </Stack>
+
+                  {/* Enhancement Benefits */}
+                  <Stack spacing={3} sx={{ maxWidth: '520px' }}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <EmailIcon sx={{ color: 'primary.main', fontSize: 32 }} />
+                      <Box textAlign="left">
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                          Smart Email Analysis
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Automatically track conversations and relationship context
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <CalendarIcon sx={{ color: 'primary.main', fontSize: 32 }} />
+                      <Box textAlign="left">
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                          Meeting Intelligence
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Sync meetings and get insights on your networking patterns
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Stack>
+
+                  {/* Action Buttons */}
+                  <Stack spacing={3} sx={{ width: '100%', maxWidth: '400px' }}>
+                    <Button
+                      onClick={handleConnectServices}
+                      variant="contained"
+                      size="large"
+                      disabled={enhancementLoading}
+                      startIcon={enhancementLoading ? <CircularProgress size={20} color="inherit" /> : <GoogleIcon />}
+                      sx={{
+                        minHeight: 52,
+                        fontSize: '1.0625rem',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                        }
+                      }}
+                    >
+                      {enhancementLoading ? 'Connecting...' : 'Connect Gmail & Calendar'}
+                    </Button>
+
+                    <Button
+                      onClick={handleSkipEnhancement}
+                      variant="outlined"
+                      size="large"
+                      startIcon={<SkipIcon />}
+                      disabled={enhancementLoading}
+                      sx={{
+                        minHeight: 52,
+                        fontSize: '1.0625rem',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        borderRadius: 2,
+                      }}
+                    >
+                      Skip for now
+                    </Button>
+                  </Stack>
+
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                    You can always connect these services later in your settings
+                  </Typography>
+
+                  {/* Error Alert */}
+                  {error && (
+                    <Alert severity="error" sx={{ borderRadius: 2, width: '100%' }}>
+                      {error}
+                    </Alert>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
+
+  // Show loading state while authenticated but enhancement not yet shown
+  if (user && !showEnhancement) {
     return (
       <Container maxWidth="sm">
         <Box
@@ -99,7 +265,7 @@ function SuccessPageContent() {
           }}
         >
           <CircularProgress />
-          <Typography>Redirecting to onboarding...</Typography>
+          <Typography>Setting up your experience...</Typography>
         </Box>
       </Container>
     );

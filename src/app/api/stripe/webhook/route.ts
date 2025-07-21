@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerStripe } from '@/lib/stripe-server';
 import { createClient } from '@/lib/supabase/server';
 import Stripe from 'stripe';
+import { randomUUID } from 'crypto';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -50,10 +51,14 @@ export async function POST(request: NextRequest) {
           if (existingUser) {
             userId = existingUser.id;
           } else {
+            // Generate UUID for new user
+            const newUserId = randomUUID();
+            
             // Create new user record with customer email
             const { data: newUser, error: userError } = await supabase
               .from('users')
               .insert({
+                id: newUserId,
                 email: session.customer_email,
                 name: session.customer_details?.name || session.customer_email,
                 created_at: new Date().toISOString(),

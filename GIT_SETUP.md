@@ -1,4 +1,4 @@
-# Git & GitHub Setup Guide for Relationship OS
+# Git & GitHub Setup Guide for Cultivate HQ
 
 This guide provides all the commands needed to set up Git, GitHub, and establish a proper development workflow.
 

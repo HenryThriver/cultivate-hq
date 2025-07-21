@@ -12,30 +12,155 @@ npm run dev          # Start development server with Turbopack
 npm run build        # Build for production
 npm run start        # Start production server
 npm run lint         # Run ESLint
+
+# Development Server Management
+npm run dev:clean    # Kill all instances and start fresh dev server
+npm run dev:check    # Interactive port/process checker with options
+npm run dev:kill     # Kill all Next.js development processes
+npm run dev:ports    # Check which ports are occupied by development servers
 ```
 
-### Database Operations
-**CRITICAL: Never use npx with Supabase - CLI is installed globally**
+### Pre-Commit Quality Gates ⚡
+**CRITICAL: Run these checks locally BEFORE pushing to PR to avoid wasting PR cycles**
 
 ```bash
-# Connect to database (established working pattern)
-CONNECTION_STRING="postgresql://postgres.zepawphplcisievcdugz:fzm_BEJ7agw5ehz6tcj@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
+# Complete Quality Gates verification (run ALL before pushing):
 
-# Common queries
-psql "$CONNECTION_STRING" -c "\dt"  # List tables
-psql "$CONNECTION_STRING" -c "\d contacts"  # Describe table
-psql "$CONNECTION_STRING" -c "SELECT id, name FROM contacts WHERE name ILIKE '%search%';"
+# 1. TypeScript compilation check
+npx tsc --noEmit --project tsconfig.ci.json
 
-# Migration workflow
+# 2. ESLint check  
+npm run lint
+
+# 3. Next.js build check (catches Suspense, hydration, and build issues)
+npm run build
+
+# 4. Database migration validation (if migrations changed)
+supabase start  # Ensure local database is running
+supabase db push --local  # Test migrations locally first
+
+# If ALL checks pass ✅, then push to PR:
+git push origin feature/your-branch
+```
+
+**Why this matters:** These are the EXACT same checks that GitHub Actions Quality Gates run. Running them locally catches issues before they waste PR cycles and prevents frustrating build failures.
+
+### Database Operations
+**CRITICAL: PRODUCTION DATABASE PROTECTION - READ BEFORE ANY DATABASE OPERATIONS**
+
+#### PRODUCTION SAFETY PROTOCOL ⚠️
+
+**MANDATORY: Check environment BEFORE any database command**
+```bash
+# ALWAYS run this first - look for ● symbol
+supabase projects list
+
+# If ● is next to zepawphplcisievcdugz (production), STOP IMMEDIATELY!
+# NEVER run database modifications on production directly
+```
+
+#### Environment Management
+```bash
+# Production project: zepawphplcisievcdugz (cultivate-hq) ⚠️ PROTECTED
+
+# Link to staging for development work:
+supabase link --project-ref oogajqshbhnjdrwqlffa --password "..."
+
+# FORBIDDEN: Direct production linking for migrations
+# supabase link --project-ref zepawphplcisievcdugz  # ❌ NEVER DO THIS FOR DEVELOPMENT
+```
+
+#### PREFERRED: CI/CD Migration Flow (GitHub Integration)
+**Use this approach for ALL database changes**
+
+```bash
+# 1. Create feature branch (REQUIRED)
+git checkout -b feature/your-feature
+
+# 2. Create migration files locally (SAFE)
 TIMESTAMP=$(python3 -c 'import datetime; print(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))')
 touch "supabase/migrations/${TIMESTAMP}_migration_name.sql"
-echo "Y" | supabase db push
+# Edit the migration file with your changes
+
+# 3. Commit and push (SAFE - triggers automated branch database)
+git add supabase/migrations/ supabase/config.toml
+git commit -m "feat: your database changes"
+git push origin feature/your-feature
+
+# 4. Supabase GitHub Integration automatically:
+#    - Detects supabase/ directory changes
+#    - Creates branch-specific Supabase database (e.g., feature-stripe-abc123)
+#    - Applies all migrations to isolated branch database
+#    - Posts preview environment URL as PR comment
+#    - GitHub Actions validate the preview environment
+
+# 5. Vercel preview deployment automatically uses branch database
+# 6. Only after testing: merge to main applies to production
+
+# VERIFICATION: Check PR comments for Supabase preview environment URL
+```
+
+#### Emergency Manual Migration (REQUIRES EXPLICIT APPROVAL)
+```bash
+# ONLY use if CI/CD is broken and user explicitly authorizes
+
+# 1. VERIFY you're NOT on production:
+supabase projects list  # Confirm ● is NOT next to zepawphplcisievcdugz
+
+# 2. Apply migration:
+echo "Y" | supabase db push --linked
+
+# 3. Generate types:
 supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+```
+
+#### ABSOLUTE PROHIBITIONS ❌
+```bash
+# NEVER run these commands when linked to production:
+supabase db push --linked           # ❌ Can corrupt production data
+supabase db reset --linked          # ❌ Destroys production database
+supabase db dump --linked --data    # ❌ Can impact production performance
+
+# NEVER link to production for development:
+supabase link --project-ref zepawphplcisievcdugz  # ❌ FORBIDDEN
+```
+
+#### AI Assistant Safety Rules
+If you are Claude Code or any AI assistant:
+
+1. **ALWAYS check `supabase projects list` BEFORE any database operation**
+2. **NEVER run `supabase db push` unless user explicitly confirms current environment**
+3. **ALWAYS prefer CI/CD workflow over direct database modifications**
+4. **ASK user to confirm environment if unclear**
+5. **REFUSE to execute database commands if linked to production without explicit user override**
+
+### Development Workflow Best Practices
+
+```bash
+# Starting a new development session
+npm run dev:ports    # Check what's currently running
+npm run dev:clean    # Clean start if needed (kills all instances)
+
+# Quick status check during development
+npm run dev:check    # Interactive tool with options:
+                     # - Show current processes
+                     # - Kill specific processes
+                     # - Start fresh server
+                     # - Check port availability
+
+# Ending development session
+npm run dev:kill     # Kill all Next.js processes when done
+
+# Common development issues
+# - Port conflicts: Use npm run dev:clean to resolve
+# - Multiple instances: Use npm run dev:check to manage
+# - Auth context errors: Check .env.local for missing API keys
+# - Build errors: Run npm run build to identify issues early
 ```
 
 ## Architecture Overview
 
-**Relationship OS** is a comprehensive relationship intelligence system built around four core pillars: Strategic Connection Architecture, Proactive Relationship Nurturing, Strategic Ask Management, and Sustainable Systems Design.
+**Cultivate HQ** is a comprehensive relationship intelligence system built around four core pillars: Strategic Connection Architecture, Proactive Relationship Nurturing, Strategic Ask Management, and Sustainable Systems Design.
 
 ### Core Architecture Patterns
 

@@ -27,7 +27,7 @@ export const Footer = (): React.JSX.Element => {
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            © {new Date().getFullYear()} Relationship OS. All rights reserved.
+            © {new Date().getFullYear()} Cultivate HQ. All rights reserved.
           </Typography>
           
           <Box
@@ -37,12 +37,11 @@ export const Footer = (): React.JSX.Element => {
               alignItems: 'center',
             }}
           >
-            <Link href="/terms" passHref>
-              <MuiLink
+            <Link href="/terms" style={{ textDecoration: 'none' }}>
+              <Typography
                 variant="body2"
                 color="text.secondary"
                 sx={{
-                  textDecoration: 'none',
                   '&:hover': {
                     textDecoration: 'underline',
                     color: 'primary.main',
@@ -50,19 +49,18 @@ export const Footer = (): React.JSX.Element => {
                 }}
               >
                 Terms of Service
-              </MuiLink>
+              </Typography>
             </Link>
             
             <Typography variant="body2" color="text.secondary">
               •
             </Typography>
             
-            <Link href="/privacy" passHref>
-              <MuiLink
+            <Link href="/privacy" style={{ textDecoration: 'none' }}>
+              <Typography
                 variant="body2"
                 color="text.secondary"
                 sx={{
-                  textDecoration: 'none',
                   '&:hover': {
                     textDecoration: 'underline',
                     color: 'primary.main',
@@ -70,7 +68,7 @@ export const Footer = (): React.JSX.Element => {
                 }}
               >
                 Privacy Policy
-              </MuiLink>
+              </Typography>
             </Link>
           </Box>
         </Box>

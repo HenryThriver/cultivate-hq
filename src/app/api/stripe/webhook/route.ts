@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { getServerStripe } from '@/lib/stripe-server';
 import { createClient } from '@/lib/supabase/server';
 import Stripe from 'stripe';
+import { randomUUID } from 'crypto';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const sig = request.headers.get('stripe-signature');
+  const stripe = getServerStripe();
 
   let event: Stripe.Event;
 
@@ -24,29 +26,61 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
-        
-        // Update user's subscription status in contacts table (self-contact)
-        const { error: updateError } = await supabase
-          .from('contacts')
-          .update({
-            subscription_status: 'active',
-            subscription_plan: session.metadata?.priceType || 'monthly',
-            stripe_customer_id: session.customer as string,
-            stripe_subscription_id: session.subscription as string,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', session.metadata?.userId || '')
-          .eq('is_self_contact', true);
 
-        if (updateError) {
-          console.error('Error updating user subscription:', updateError);
+        if (!session.subscription || !session.customer || !session.customer_email) {
+          console.error('Missing required session data:', {
+            subscription: !!session.subscription,
+            customer: !!session.customer,
+            customer_email: !!session.customer_email,
+            session_id: session.id
+          });
+          return NextResponse.json({ error: 'Invalid session data' }, { status: 400 });
         }
 
-        // Create subscription record
+        let userId = session.metadata?.userId;
+        
+        // If no userId in metadata (unauthenticated checkout), create user from customer email
+        if (!userId) {
+          // Check if user already exists with this email
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', session.customer_email)
+            .single();
+            
+          if (existingUser) {
+            userId = existingUser.id;
+          } else {
+            // Generate UUID for new user
+            const newUserId = randomUUID();
+            
+            // Create new user record with customer email
+            const { data: newUser, error: userError } = await supabase
+              .from('users')
+              .insert({
+                id: newUserId,
+                email: session.customer_email,
+                name: session.customer_details?.name || session.customer_email,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .select('id')
+              .single();
+
+            if (userError || !newUser) {
+              console.error('Error creating user from Stripe checkout:', userError);
+              return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+            }
+            
+            userId = newUser.id;
+          }
+        }
+        
+        // Create subscription record (main source of truth)
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
-            user_id: session.metadata?.userId || '',
+            user_id: userId,
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
             status: 'active',
@@ -55,14 +89,18 @@ export async function POST(request: NextRequest) {
 
         if (subscriptionError) {
           console.error('Error creating subscription record:', subscriptionError);
+          return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
         }
+
+        // Note: User subscription status is now tracked via the subscriptions table
+        // No need to update users table directly as the subscription relationship handles this
 
         break;
 
       case 'customer.subscription.updated':
         const subscription = event.data.object as Stripe.Subscription;
         
-        // Update subscription status
+        // Update subscription status (main source of truth)
         const { error: subscriptionUpdateError } = await supabase
           .from('subscriptions')
           .update({
@@ -75,26 +113,12 @@ export async function POST(request: NextRequest) {
           console.error('Error updating subscription:', subscriptionUpdateError);
         }
 
-        // Update user profile (self-contact)
-        const { error: profileUpdateError } = await supabase
-          .from('contacts')
-          .update({
-            subscription_status: subscription.status,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('stripe_subscription_id', subscription.id)
-          .eq('is_self_contact', true);
-
-        if (profileUpdateError) {
-          console.error('Error updating profile subscription:', profileUpdateError);
-        }
-
         break;
 
       case 'customer.subscription.deleted':
         const deletedSubscription = event.data.object as Stripe.Subscription;
         
-        // Mark subscription as canceled
+        // Mark subscription as canceled (main source of truth)
         const { error: cancelError } = await supabase
           .from('subscriptions')
           .update({
@@ -105,20 +129,6 @@ export async function POST(request: NextRequest) {
 
         if (cancelError) {
           console.error('Error canceling subscription:', cancelError);
-        }
-
-        // Update user profile (self-contact)
-        const { error: profileCancelError } = await supabase
-          .from('contacts')
-          .update({
-            subscription_status: 'canceled',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('stripe_subscription_id', deletedSubscription.id)
-          .eq('is_self_contact', true);
-
-        if (profileCancelError) {
-          console.error('Error updating profile on cancel:', profileCancelError);
         }
 
         break;
@@ -153,15 +163,14 @@ export async function POST(request: NextRequest) {
         if (failedInvoice.subscription) {
           const subscriptionId = typeof failedInvoice.subscription === 'string' ? failedInvoice.subscription : failedInvoice.subscription.id;
           
-          // Handle failed payment
+          // Handle failed payment (update subscription status)
           const { error: failedPaymentError } = await supabase
-            .from('contacts')
+            .from('subscriptions')
             .update({
-              subscription_status: 'past_due',
+              status: 'past_due',
               updated_at: new Date().toISOString(),
             })
-            .eq('stripe_subscription_id', subscriptionId)
-            .eq('is_self_contact', true);
+            .eq('stripe_subscription_id', subscriptionId);
 
           if (failedPaymentError) {
             console.error('Error updating failed payment status:', failedPaymentError);

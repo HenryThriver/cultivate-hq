@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render, mockHooks, simulateVoiceRecording } from './test-utils';
+import { render, mockHooks } from './test-utils';
 import ChallengesScreen from '../1_Challenges_1.0_Share';
 
 // Mock the hooks and APIs
@@ -9,8 +9,13 @@ vi.mock('@/lib/hooks/useOnboardingState', () => ({
   useOnboardingState: vi.fn(),
 }));
 
+interface VoiceRecorderProps {
+  onRecordingComplete: (blob: Blob) => void;
+  disabled: boolean;
+}
+
 vi.mock('../OnboardingVoiceRecorder', () => ({
-  default: ({ onRecordingComplete, disabled }: any) => (
+  default: ({ onRecordingComplete, disabled }: VoiceRecorderProps) => (
     <div data-testid="voice-recorder">
       <button 
         data-testid="record-button"

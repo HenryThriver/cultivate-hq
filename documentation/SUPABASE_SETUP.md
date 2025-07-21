@@ -1,6 +1,6 @@
-# Supabase Setup Guide for Relationship OS
+# Supabase Setup Guide for Cultivate HQ
 
-This guide will help you set up Supabase for your Relationship OS project.
+This guide will help you set up Supabase for your Cultivate HQ project.
 
 ## 1. Create Supabase Project
 

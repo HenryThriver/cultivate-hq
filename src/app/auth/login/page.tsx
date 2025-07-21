@@ -29,6 +29,19 @@ export default function LoginPage(): React.JSX.Element {
 
   useEffect(() => {
     if (user) {
+      // Check for post-auth redirect (from success page)
+      try {
+        const redirectUrl = localStorage.getItem('postAuthRedirect');
+        if (redirectUrl) {
+          localStorage.removeItem('postAuthRedirect');
+          router.push(redirectUrl);
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking post-auth redirect:', error);
+      }
+      
+      // Default redirect to dashboard
       router.push('/dashboard');
     }
   }, [user, router]);

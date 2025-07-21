@@ -20,9 +20,6 @@ import {
   CheckCircle, 
   ArrowForward,
   Google as GoogleIcon,
-  Email as EmailIcon,
-  CalendarToday as CalendarIcon,
-  SkipNext as SkipIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import confetti from 'canvas-confetti';

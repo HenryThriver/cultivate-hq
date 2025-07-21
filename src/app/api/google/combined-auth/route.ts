@@ -22,6 +22,24 @@ export async function GET(request: NextRequest) {
       userId = user.id;
     }
 
+    // Debug OAuth credentials
+    console.log('OAuth Debug:', {
+      hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      hasSiteUrl: !!(process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL),
+      siteUrl: process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL
+    });
+
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return NextResponse.json({ 
+        error: 'Google OAuth credentials not configured',
+        details: {
+          hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+          hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET
+        }
+      }, { status: 500 });
+    }
+
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -44,6 +62,7 @@ export async function GET(request: NextRequest) {
       state: `${userId}|${source}`,
     });
 
+    console.log('Generated auth URL successfully for user:', userId);
     return NextResponse.json({ authUrl });
   } catch (error) {
     console.error('Error generating combined auth URL:', error);

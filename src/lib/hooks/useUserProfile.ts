@@ -9,26 +9,10 @@ import type {
   GoalData,
   ProfileCompletionMetrics
 } from '@/types/userProfile';
-import type { Contact } from '@/types/contact';
-import { Json } from '@/lib/supabase/types_db';
 
 // Note: DatabaseContact type removed since we now use API endpoints
 
-// Helper function to safely cast Json to typed array
-const castChallengeMappings = (jsonData: Json | null): UserProfile['challenge_feature_mappings'] => {
-  if (!jsonData) return undefined;
-  
-  try {
-    if (Array.isArray(jsonData)) {
-      return jsonData as UserProfile['challenge_feature_mappings'];
-    }
-    return undefined;
-  } catch {
-    return undefined;
-  }
-};
-
-// Note: Casting functions removed since we now use API endpoints
+// Note: Helper functions removed since we now use API endpoints for data transformation
 // which handle proper table routing between users and contacts tables
 
 export const useUserProfile = () => {

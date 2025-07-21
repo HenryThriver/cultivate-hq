@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
@@ -25,7 +25,7 @@ export const useUser = (): UseUserResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     if (!authUser?.id) {
       setUser(null);
       setLoading(false);
@@ -92,13 +92,13 @@ export const useUser = (): UseUserResult => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authUser?.id]);
 
   useEffect(() => {
     if (!authLoading) {
       fetchUser();
     }
-  }, [authUser?.id, authLoading]);
+  }, [authUser?.id, authLoading, fetchUser]);
 
   // Set up optimized real-time subscription for user data changes
   useEffect(() => {
@@ -138,7 +138,7 @@ export const useUser = (): UseUserResult => {
     return () => {
       supabase.removeChannel(userDataChannel);
     };
-  }, [authUser?.id]);
+  }, [authUser?.id, fetchUser]);
 
   return {
     user,

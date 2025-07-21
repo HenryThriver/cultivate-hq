@@ -20,9 +20,6 @@ import {
   CheckCircle, 
   ArrowForward,
   Google as GoogleIcon,
-  TrendingUp,
-  Psychology,
-  AutoAwesome
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import confetti from 'canvas-confetti';
@@ -246,7 +243,7 @@ export default function SuccessPage() {
                       maxWidth: '520px'
                     }}
                   >
-                    After logging in, you'll onboard then begin your first strategic <b>relationship building session</b>.
+                    After logging in, you&apos;ll onboard then begin your first strategic <b>relationship building session</b>.
                   </Typography>
                 </Stack>
 

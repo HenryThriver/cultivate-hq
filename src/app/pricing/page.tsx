@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
 import { 
   Box, 
   Container, 
@@ -26,8 +25,8 @@ import {
 } from '@mui/material';
 import { 
   Check,
-  TrendingUp,
   Speed,
+  TrendingUp,
   Psychology,
   AutoAwesome
 } from '@mui/icons-material';
@@ -36,9 +35,7 @@ import { useStripeCheckout } from '@/hooks/useStripeCheckout';
 import Link from 'next/link';
 
 export default function PricingPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { loading } = useAuth();
   const theme = useTheme();
   const [isAnnual, setIsAnnual] = useState(false);
   const { createCheckoutSession, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();

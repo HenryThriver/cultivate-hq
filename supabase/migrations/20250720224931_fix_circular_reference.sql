@@ -1,7 +1,10 @@
 -- Fix circular reference between users and contacts tables
 -- Issue: users.self_contact_id -> contacts.id AND contacts.user_id -> users.id creates circular dependency
 
--- Remove the self_contact_id column from users table to break circular reference
+-- First drop the user_profiles view that depends on self_contact_id column
+DROP VIEW IF EXISTS public.user_profiles;
+
+-- Now remove the self_contact_id column from users table to break circular reference
 ALTER TABLE public.users DROP COLUMN IF EXISTS self_contact_id;
 
 -- Add missing indexes identified in code review

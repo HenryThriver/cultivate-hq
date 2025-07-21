@@ -21,6 +21,18 @@ export default function AuthCallbackPage(): React.JSX.Element {
         }
 
         if (data.session) {
+          // Check for post-auth redirect
+          try {
+            const redirectUrl = localStorage.getItem('postAuthRedirect');
+            if (redirectUrl) {
+              localStorage.removeItem('postAuthRedirect');
+              router.push(redirectUrl);
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking post-auth redirect:', error);
+          }
+          
           // Successfully authenticated, redirect to dashboard
           router.push('/dashboard');
         } else {

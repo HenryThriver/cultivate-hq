@@ -16,11 +16,8 @@ extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-enabled = true
 # Port to use for the local database URL.
 port = 54322
-# External port is the port that clients connect to. Defaults to 5432.
-external_port = 5432
 # The database major version to use. This has to be the same as your remote database's. Run `SHOW
 # server_version_num;` on the remote database to check.
 major_version = 15
@@ -307,8 +304,3 @@ backend = "postgres"
 [experimental]
 # Configures Postgres storage-engine to use OrioleDB (S3)
 orioledb_version = ""
-# Configures Postgres search-engine to use ParadeDB (Elasticsearch)
-s3host = "env(S3_HOST)"
-s3region = "env(S3_REGION)"
-s3accesskeyid = "env(S3_ACCESS_KEY_ID)"
-s3secretaccesskey = "env(S3_SECRET_ACCESS_KEY)"

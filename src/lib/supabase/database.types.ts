@@ -154,8 +154,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "artifacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
             foreignKeyName: "artifacts_initiator_contact_id_fkey"
             columns: ["initiator_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_initiator_contact_id_fkey"
+            columns: ["initiator_contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
+            foreignKeyName: "artifacts_recipient_contact_id_fkey"
+            columns: ["recipient_contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
@@ -164,8 +185,8 @@ export type Database = {
             foreignKeyName: "artifacts_recipient_contact_id_fkey"
             columns: ["recipient_contact_id"]
             isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -247,6 +268,13 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contact_emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
         ]
       }
       contact_specific_sync_jobs: {
@@ -290,6 +318,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_specific_sync_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -360,12 +395,18 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contact_update_suggestions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
         ]
       }
       contacts: {
         Row: {
           added_via_session_id: string | null
-          challenge_feature_mappings: Json | null
           company: string | null
           connection_cadence_days: number | null
           created_at: string
@@ -373,13 +414,8 @@ export type Database = {
           email_addresses: string[] | null
           field_sources: Json | null
           gmail_labels: string[] | null
-          goal_description: string | null
-          goal_success_criteria: string | null
-          goal_timeline: string | null
           id: string
-          introduction_opportunities: string[] | null
           is_self_contact: boolean | null
-          knowledge_to_share: string[] | null
           last_interaction_date: string | null
           linkedin_analysis_completed_at: string | null
           linkedin_data: Json | null
@@ -388,28 +424,16 @@ export type Database = {
           linkedin_url: string
           location: string | null
           name: string | null
-          networking_challenges: string[] | null
           notes: string | null
-          onboarding_completed_at: string | null
-          onboarding_voice_memo_ids: string[] | null
           personal_context: Json | null
-          primary_goal: string | null
           professional_context: Json | null
-          profile_completion_score: number | null
-          profile_picture: string | null
           relationship_score: number | null
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          subscription_plan: string | null
-          subscription_status: string | null
           title: string | null
           updated_at: string
           user_id: string
-          ways_to_help_others: string[] | null
         }
         Insert: {
           added_via_session_id?: string | null
-          challenge_feature_mappings?: Json | null
           company?: string | null
           connection_cadence_days?: number | null
           created_at?: string
@@ -417,13 +441,8 @@ export type Database = {
           email_addresses?: string[] | null
           field_sources?: Json | null
           gmail_labels?: string[] | null
-          goal_description?: string | null
-          goal_success_criteria?: string | null
-          goal_timeline?: string | null
           id?: string
-          introduction_opportunities?: string[] | null
           is_self_contact?: boolean | null
-          knowledge_to_share?: string[] | null
           last_interaction_date?: string | null
           linkedin_analysis_completed_at?: string | null
           linkedin_data?: Json | null
@@ -432,28 +451,16 @@ export type Database = {
           linkedin_url: string
           location?: string | null
           name?: string | null
-          networking_challenges?: string[] | null
           notes?: string | null
-          onboarding_completed_at?: string | null
-          onboarding_voice_memo_ids?: string[] | null
           personal_context?: Json | null
-          primary_goal?: string | null
           professional_context?: Json | null
-          profile_completion_score?: number | null
-          profile_picture?: string | null
           relationship_score?: number | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
-          ways_to_help_others?: string[] | null
         }
         Update: {
           added_via_session_id?: string | null
-          challenge_feature_mappings?: Json | null
           company?: string | null
           connection_cadence_days?: number | null
           created_at?: string
@@ -461,13 +468,8 @@ export type Database = {
           email_addresses?: string[] | null
           field_sources?: Json | null
           gmail_labels?: string[] | null
-          goal_description?: string | null
-          goal_success_criteria?: string | null
-          goal_timeline?: string | null
           id?: string
-          introduction_opportunities?: string[] | null
           is_self_contact?: boolean | null
-          knowledge_to_share?: string[] | null
           last_interaction_date?: string | null
           linkedin_analysis_completed_at?: string | null
           linkedin_data?: Json | null
@@ -476,24 +478,13 @@ export type Database = {
           linkedin_url?: string
           location?: string | null
           name?: string | null
-          networking_challenges?: string[] | null
           notes?: string | null
-          onboarding_completed_at?: string | null
-          onboarding_voice_memo_ids?: string[] | null
           personal_context?: Json | null
-          primary_goal?: string | null
           professional_context?: Json | null
-          profile_completion_score?: number | null
-          profile_picture?: string | null
           relationship_score?: number | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
-          ways_to_help_others?: string[] | null
         }
         Relationships: [
           {
@@ -567,6 +558,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sync_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -662,6 +660,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
           {
             foreignKeyName: "goal_contacts_goal_id_fkey"
@@ -845,6 +850,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "loop_analytics_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
             foreignKeyName: "loop_analytics_loop_artifact_id_fkey"
             columns: ["loop_artifact_id"]
             isOneToOne: false
@@ -894,6 +906,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_suggestions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
           {
             foreignKeyName: "loop_suggestions_created_loop_id_fkey"
@@ -1006,6 +1025,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "next_connections_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -1221,6 +1247,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "session_actions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
             foreignKeyName: "session_actions_goal_id_fkey"
             columns: ["goal_id"]
             isOneToOne: false
@@ -1384,6 +1417,87 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          challenge_feature_mappings: Json | null
+          created_at: string
+          email: string
+          goal_description: string | null
+          goal_success_criteria: string | null
+          goal_timeline: string | null
+          id: string
+          introduction_opportunities: string[] | null
+          knowledge_to_share: string[] | null
+          name: string | null
+          networking_challenges: string[] | null
+          onboarding_completed_at: string | null
+          onboarding_voice_memo_ids: string[] | null
+          primary_goal: string | null
+          profile_completion_score: number | null
+          profile_picture: string | null
+          self_contact_id: string | null
+          updated_at: string
+          ways_to_help_others: string[] | null
+        }
+        Insert: {
+          challenge_feature_mappings?: Json | null
+          created_at?: string
+          email: string
+          goal_description?: string | null
+          goal_success_criteria?: string | null
+          goal_timeline?: string | null
+          id: string
+          introduction_opportunities?: string[] | null
+          knowledge_to_share?: string[] | null
+          name?: string | null
+          networking_challenges?: string[] | null
+          onboarding_completed_at?: string | null
+          onboarding_voice_memo_ids?: string[] | null
+          primary_goal?: string | null
+          profile_completion_score?: number | null
+          profile_picture?: string | null
+          self_contact_id?: string | null
+          updated_at?: string
+          ways_to_help_others?: string[] | null
+        }
+        Update: {
+          challenge_feature_mappings?: Json | null
+          created_at?: string
+          email?: string
+          goal_description?: string | null
+          goal_success_criteria?: string | null
+          goal_timeline?: string | null
+          id?: string
+          introduction_opportunities?: string[] | null
+          knowledge_to_share?: string[] | null
+          name?: string | null
+          networking_challenges?: string[] | null
+          onboarding_completed_at?: string | null
+          onboarding_voice_memo_ids?: string[] | null
+          primary_goal?: string | null
+          profile_completion_score?: number | null
+          profile_picture?: string | null
+          self_contact_id?: string | null
+          updated_at?: string
+          ways_to_help_others?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_self_contact_id_fkey"
+            columns: ["self_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_self_contact_id_fkey"
+            columns: ["self_contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+        ]
+      }
     }
     Views: {
       profiles: {
@@ -1397,25 +1511,41 @@ export type Database = {
           subscription_status: string | null
           updated_at: string | null
         }
-        Insert: {
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
-          updated_at?: string | null
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          challenge_feature_mappings: Json | null
+          company: string | null
+          connection_cadence_days: number | null
+          contact_id: string | null
+          contact_name: string | null
+          contact_notes: string | null
+          email: string | null
+          goal_description: string | null
+          goal_success_criteria: string | null
+          goal_timeline: string | null
+          introduction_opportunities: string[] | null
+          knowledge_to_share: string[] | null
+          last_interaction_date: string | null
+          linkedin_analysis_completed_at: string | null
+          linkedin_data: Json | null
+          linkedin_url: string | null
+          location: string | null
+          networking_challenges: string[] | null
+          onboarding_completed_at: string | null
+          personal_context: Json | null
+          primary_goal: string | null
+          professional_context: Json | null
+          profile_completion_score: number | null
+          profile_picture: string | null
+          relationship_score: number | null
+          title: string | null
+          user_created_at: string | null
+          user_id: string | null
+          user_name: string | null
+          user_updated_at: string | null
+          ways_to_help_others: string[] | null
         }
         Relationships: []
       }

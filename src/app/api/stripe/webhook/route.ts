@@ -26,11 +26,22 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
         
+        // Validate required metadata
+        if (!session.metadata?.userId) {
+          console.error('Missing userId in checkout session metadata:', session.id);
+          return NextResponse.json({ error: 'Invalid session metadata' }, { status: 400 });
+        }
+
+        if (!session.subscription || !session.customer) {
+          console.error('Missing subscription or customer in checkout session:', session.id);
+          return NextResponse.json({ error: 'Invalid session data' }, { status: 400 });
+        }
+        
         // Create subscription record (main source of truth)
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
-            user_id: session.metadata?.userId || '',
+            user_id: session.metadata.userId,
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
             status: 'active',
@@ -39,6 +50,20 @@ export async function POST(request: NextRequest) {
 
         if (subscriptionError) {
           console.error('Error creating subscription record:', subscriptionError);
+          return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
+        }
+
+        // Update user subscription status
+        const { error: userUpdateError } = await supabase
+          .from('users')
+          .update({
+            subscription_status: 'active',
+            subscription_plan: session.metadata?.priceType || 'monthly'
+          })
+          .eq('id', session.metadata.userId);
+
+        if (userUpdateError) {
+          console.error('Error updating user subscription status:', userUpdateError);
         }
 
         break;

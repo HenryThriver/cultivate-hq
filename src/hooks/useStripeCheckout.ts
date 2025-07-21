@@ -8,16 +8,11 @@ export const useStripeCheckout = () => {
   const { user } = useAuth();
 
   const createCheckoutSession = async (priceType: 'monthly' | 'yearly') => {
-    if (!user) {
-      setError('You must be logged in to subscribe');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      // Create checkout session
+      // Create checkout session (works for both authenticated and unauthenticated users)
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -25,7 +20,7 @@ export const useStripeCheckout = () => {
         },
         body: JSON.stringify({
           priceType,
-          userId: user.id,
+          userId: user?.id, // Optional - will be null for unauthenticated users
         }),
       });
 

@@ -36,20 +36,43 @@ export const useUser = (): UseUserResult => {
       setLoading(true);
       setError(null);
 
-      // Fetch user data with subscription
+      // Fetch user data with subscription using inner join for better performance
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select(`
           *,
-          subscription:subscriptions(*)
+          subscription:subscriptions!inner(*)
         `)
         .eq('id', authUser.id)
         .single();
 
       if (userError) {
-        console.error('Error fetching user data:', userError);
-        setError('Failed to fetch user data');
-        setUser(null);
+        // If inner join fails (no subscription), fall back to left join
+        const { data: userDataFallback, error: fallbackError } = await supabase
+          .from('users')
+          .select(`
+            *,
+            subscription:subscriptions(*)
+          `)
+          .eq('id', authUser.id)
+          .single();
+
+        if (fallbackError) {
+          console.error('Error fetching user data:', fallbackError);
+          setError('Failed to fetch user data');
+          setUser(null);
+          return;
+        }
+
+        // Transform the fallback data
+        const userWithSubscription: UserWithSubscription = {
+          ...userDataFallback,
+          subscription: Array.isArray(userDataFallback.subscription) 
+            ? userDataFallback.subscription[0] || null 
+            : userDataFallback.subscription
+        };
+        
+        setUser(userWithSubscription);
         return;
       }
 
@@ -77,12 +100,13 @@ export const useUser = (): UseUserResult => {
     }
   }, [authUser?.id, authLoading]);
 
-  // Set up real-time subscription for user data changes
+  // Set up optimized real-time subscription for user data changes
   useEffect(() => {
     if (!authUser?.id) return;
 
-    const userChannel = supabase
-      .channel(`user-${authUser.id}`)
+    // Single channel with multiple table listeners for better performance
+    const userDataChannel = supabase
+      .channel(`user-data-${authUser.id}`)
       .on(
         'postgres_changes',
         {
@@ -91,7 +115,8 @@ export const useUser = (): UseUserResult => {
           table: 'users',
           filter: `id=eq.${authUser.id}`,
         },
-        () => {
+        (payload) => {
+          console.log('User data changed:', payload);
           fetchUser();
         }
       )
@@ -103,14 +128,15 @@ export const useUser = (): UseUserResult => {
           table: 'subscriptions',
           filter: `user_id=eq.${authUser.id}`,
         },
-        () => {
+        (payload) => {
+          console.log('Subscription data changed:', payload);
           fetchUser();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(userChannel);
+      supabase.removeChannel(userDataChannel);
     };
   }, [authUser?.id]);
 

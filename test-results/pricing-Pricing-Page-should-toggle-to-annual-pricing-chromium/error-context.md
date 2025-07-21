@@ -1,0 +1,59 @@
+# Page snapshot
+
+```yaml
+- 'heading "Application error: a client-side exception has occurred while loading localhost (see the browser console for more information)." [level=2]'
+- button "Open Next.js Dev Tools":
+  - img
+- button "Open issues overlay": 1 Issue
+- button "Collapse issues badge":
+  - img
+- navigation:
+  - button "previous" [disabled]:
+    - img "previous"
+  - text: 1/1
+  - button "next" [disabled]:
+    - img "next"
+- img
+- link "Next.js 15.3.5 (stale) Turbopack":
+  - /url: https://nextjs.org/docs/messages/version-staleness
+  - img
+  - text: Next.js 15.3.5 (stale) Turbopack
+- img
+- dialog "Runtime Error":
+  - text: Runtime Error
+  - button "Copy Stack Trace":
+    - img
+  - button "No related documentation found" [disabled]:
+    - img
+  - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools":
+    - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+    - img
+  - paragraph: "Error: Neither apiKey nor config.authenticator provided"
+  - paragraph:
+    - img
+    - text: src/lib/stripe.ts (15:23) @ [project]/src/lib/stripe.ts [app-client] (ecmascript)
+    - button "Open in editor":
+      - img
+  - text: "13 | 14 | // Initialize Stripe server-side > 15 | export const stripe = new StripeServer(process.env.STRIPE_SECRET_KEY!, { | ^ 16 | apiVersion: '2025-06-30.basil', 17 | }); 18 |"
+  - paragraph: Call Stack 24
+  - button "Show 21 ignore-listed frame(s)":
+    - text: Show 21 ignore-listed frame(s)
+    - img
+  - text: "[project]/src/lib/stripe.ts [app-client] (ecmascript)"
+  - button:
+    - img
+  - text: src/lib/stripe.ts (15:23) [project]/src/hooks/useStripeCheckout.ts [app-client] (ecmascript)
+  - button:
+    - img
+  - text: src/hooks/useStripeCheckout.ts (2:1) [project]/src/app/pricing/page.tsx [app-client] (ecmascript)
+  - button:
+    - img
+  - text: src/app/pricing/page.tsx (35:1)
+- contentinfo:
+  - region "Error feedback":
+    - paragraph:
+      - link "Was this helpful?":
+        - /url: https://nextjs.org/telemetry#error-feedback
+    - button "Mark as helpful"
+    - button "Mark as not helpful"
+```

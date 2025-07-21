@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Box, 
   Container, 
@@ -38,16 +38,13 @@ import Link from 'next/link';
 export default function PricingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const theme = useTheme();
   const [isAnnual, setIsAnnual] = useState(false);
   const { createCheckoutSession, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
 
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, loading, router]);
+  // Allow all users (authenticated and unauthenticated) to view pricing page
+  // No redirects needed - users can access checkout directly
 
   if (loading) {
     return (
@@ -92,11 +89,7 @@ export default function PricingPage() {
   ];
 
   const handleGetStarted = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
+    // Always go directly to checkout - Stripe will handle auth if needed
     const priceType = isAnnual ? 'yearly' : 'monthly';
     await createCheckoutSession(priceType);
   };
@@ -400,7 +393,7 @@ export default function PricingPage() {
                         }
                       }}
                     >
-                      {checkoutLoading ? 'Processing...' : user ? 'Begin strategic analysis' : 'Sign in to get started'}
+                      {checkoutLoading ? 'Processing...' : 'Get started today'}
                     </Button>
 
                     {/* Features */}
@@ -621,7 +614,7 @@ export default function PricingPage() {
                     minWidth: 200
                   }}
                 >
-                  {checkoutLoading ? 'Processing...' : user ? 'Get started today' : 'Sign in to get started'}
+                  {checkoutLoading ? 'Processing...' : 'Get started today'}
                 </Button>
                 <Typography
                   variant="body2"

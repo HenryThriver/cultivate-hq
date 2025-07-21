@@ -24,21 +24,20 @@ export async function GET(): Promise<NextResponse> {
 
     if (profileError) {
       // If no user record exists, this should have been created by the trigger
-      // but we can create it manually as a fallback
+      // but we can create it manually as a fallback using upsert to prevent race conditions
       if (profileError.code === 'PGRST116') {
-        // Create user record manually (this triggers self-contact creation)
+        // Use upsert to handle race conditions
         const { data: createdUser, error: createError } = await supabase
           .from('users')
-          .insert({
+          .upsert({
             id: user.id,
             email: user.email || '',
             name: user.user_metadata?.full_name || user.email || 'My Profile',
-            profile_completion_score: 0,
-            ways_to_help_others: [],
-            introduction_opportunities: [],
-            knowledge_to_share: [],
-            networking_challenges: [],
-            onboarding_voice_memo_ids: []
+            subscription_status: 'free',
+            preferences: {},
+            notification_settings: {}
+          }, {
+            onConflict: 'id'
           })
           .select()
           .single();
@@ -105,6 +104,15 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     // Handle initial goal creation at category selection
     if (body.create_initial_goal) {
       const { goal_category } = body;
+
+      // Validate goal category
+      const VALID_GOAL_CATEGORIES = ['career', 'business', 'personal', 'learning', 'networking', 'health'];
+      if (!goal_category || !VALID_GOAL_CATEGORIES.includes(goal_category)) {
+        return NextResponse.json(
+          { error: 'Invalid goal category. Must be one of: ' + VALID_GOAL_CATEGORIES.join(', ') },
+          { status: 400 }
+        );
+      }
 
       // Create initial goal record with just category
       const { data: newGoal, error: goalError } = await supabase

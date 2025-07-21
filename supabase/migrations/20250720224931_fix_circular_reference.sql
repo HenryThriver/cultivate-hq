@@ -12,17 +12,25 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(use
 DROP VIEW IF EXISTS public.user_profiles;
 CREATE VIEW public.user_profiles AS
 SELECT 
-  -- User administrative data
+  -- User administrative data (from users table)
   u.id as user_id,
   u.email,
   u.name as user_name,
   u.created_at as user_created_at,
   u.updated_at as user_updated_at,
-  u.subscription_status,
-  u.subscription_plan,
-  u.last_login_at,
-  u.preferences,
-  u.notification_settings,
+  u.onboarding_completed_at,
+  u.profile_completion_score,
+  u.onboarding_voice_memo_ids,
+  u.primary_goal,
+  u.goal_description,
+  u.goal_timeline,
+  u.goal_success_criteria,
+  u.ways_to_help_others,
+  u.introduction_opportunities,
+  u.knowledge_to_share,
+  u.networking_challenges,
+  u.challenge_feature_mappings,
+  u.profile_picture,
   
   -- Self-contact relationship data (found via is_self_contact flag)
   c.id as contact_id,
@@ -37,21 +45,7 @@ SELECT
   c.professional_context,
   c.personal_context,
   c.linkedin_data,
-  c.connection_cadence_days,
-  c.profile_picture,
-  c.ways_to_help_others,
-  c.introduction_opportunities,
-  c.knowledge_to_share,
-  c.networking_challenges,
-  c.challenge_feature_mappings,
-  c.primary_goal,
-  c.goal_description,
-  c.goal_timeline,
-  c.goal_success_criteria,
-  c.profile_completion_score,
-  c.onboarding_completed_at,
-  c.onboarding_voice_memo_ids,
-  c.linkedin_analysis_completed_at
+  c.connection_cadence_days
 FROM public.users u
 LEFT JOIN public.contacts c ON u.id = c.user_id AND c.is_self_contact = true;
 

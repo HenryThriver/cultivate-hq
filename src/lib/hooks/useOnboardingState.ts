@@ -295,12 +295,11 @@ export const useOnboardingState = () => {
 
       // Update user profile to mark onboarding as complete
       await supabase
-        .from('contacts')
+        .from('users')
         .update({
           onboarding_completed_at: new Date().toISOString(),
         })
-        .eq('user_id', user.id)
-        .eq('is_self_contact', true);
+        .eq('id', user.id);
 
       // Invalidate user profile cache
       queryClient.invalidateQueries({ queryKey: ['userProfile', user.id] });

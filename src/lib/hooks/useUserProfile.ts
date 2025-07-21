@@ -12,10 +12,7 @@ import type {
 import type { Contact } from '@/types/contact';
 import { Json } from '@/lib/supabase/types_db';
 
-// Database row type for contacts table that can be cast to UserProfile
-type DatabaseContact = Contact & {
-  challenge_feature_mappings: Json;
-};
+// Note: DatabaseContact type removed since we now use API endpoints
 
 // Helper function to safely cast Json to typed array
 const castChallengeMappings = (jsonData: Json | null): UserProfile['challenge_feature_mappings'] => {
@@ -31,15 +28,8 @@ const castChallengeMappings = (jsonData: Json | null): UserProfile['challenge_fe
   }
 };
 
-// Helper function to cast database contact to UserProfile
-const castToUserProfile = (contact: DatabaseContact): UserProfile => {
-  const userProfile = contact as unknown as UserProfile;
-  return {
-    ...userProfile,
-    challenge_feature_mappings: castChallengeMappings(contact.challenge_feature_mappings),
-    is_self_contact: true,
-  };
-};
+// Note: Casting functions removed since we now use API endpoints
+// which handle proper table routing between users and contacts tables
 
 export const useUserProfile = () => {
   const { user } = useAuth();
@@ -74,19 +64,21 @@ export const useUserProfile = () => {
     mutationFn: async (updates: UserProfileUpdate): Promise<UserProfile> => {
       if (!user || !profile) throw new Error('User not authenticated or profile not loaded');
 
-      const { data, error } = await supabase
-        .from('contacts')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+      // Use the API endpoint which handles proper table routing
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
 
-      if (error) throw error;
-      return castToUserProfile(data);
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
+      const result = await response.json();
+      return result.profile;
     },
     onSuccess: (updatedProfile) => {
       queryClient.setQueryData(['userProfile', user?.id], updatedProfile);
@@ -99,22 +91,26 @@ export const useUserProfile = () => {
     mutationFn: async (goalData: GoalData): Promise<UserProfile> => {
       if (!user || !profile) throw new Error('User not authenticated or profile not loaded');
 
-      const { data, error } = await supabase
-        .from('contacts')
-        .update({
+      // Use the API endpoint which handles proper table routing
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           primary_goal: goalData.primary_goal,
           goal_description: goalData.description,
           goal_timeline: goalData.timeline,
           goal_success_criteria: goalData.success_criteria,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) throw error;
-      return castToUserProfile(data);
+      if (!response.ok) {
+        throw new Error('Failed to update goal data');
+      }
+
+      const result = await response.json();
+      return result.profile;
     },
     onSuccess: (updatedProfile) => {
       queryClient.setQueryData(['userProfile', user?.id], updatedProfile);

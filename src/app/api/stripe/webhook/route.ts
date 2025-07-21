@@ -53,18 +53,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
         }
 
-        // Update user subscription status
-        const { error: userUpdateError } = await supabase
-          .from('users')
-          .update({
-            subscription_status: 'active',
-            subscription_plan: session.metadata?.priceType || 'monthly'
-          })
-          .eq('id', session.metadata.userId);
-
-        if (userUpdateError) {
-          console.error('Error updating user subscription status:', userUpdateError);
-        }
+        // Note: User subscription status is now tracked via the subscriptions table
+        // No need to update users table directly as the subscription relationship handles this
 
         break;
 

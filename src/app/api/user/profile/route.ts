@@ -32,10 +32,7 @@ export async function GET(): Promise<NextResponse> {
           .upsert({
             id: user.id,
             email: user.email || '',
-            name: user.user_metadata?.full_name || user.email || 'My Profile',
-            subscription_status: 'free',
-            preferences: {},
-            notification_settings: {}
+            name: user.user_metadata?.full_name || user.email || 'My Profile'
           }, {
             onConflict: 'id'
           })

@@ -105,7 +105,7 @@ function SuccessPageContent() {
       setEnhancementLoading(true);
       setError(null);
 
-      const response = await fetch('/api/google/combined-auth?source=success');
+      const response = await fetch(`/api/google/combined-auth?source=success&user_id=${user?.id}`);
       const data = await response.json();
 
       if (data.error) {

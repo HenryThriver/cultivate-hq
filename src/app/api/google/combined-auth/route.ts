@@ -8,10 +8,18 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const source = searchParams.get('source') || 'success';
 
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
+    // Get user ID from query params or session
+    const userIdParam = searchParams.get('user_id');
+    let userId = userIdParam;
+    
+    // If no user ID provided, try to get from session
+    if (!userId) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('Auth error in combined-auth:', authError, 'User:', !!user);
+        return NextResponse.json({ error: 'User not authenticated. Please try again.' }, { status: 401 });
+      }
+      userId = user.id;
     }
 
     const oauth2Client = new google.auth.OAuth2(
@@ -33,7 +41,7 @@ export async function GET(request: NextRequest) {
       access_type: 'offline',
       scope: scopes,
       prompt: 'consent',
-      state: `${user.id}|${source}`,
+      state: `${userId}|${source}`,
     });
 
     return NextResponse.json({ authUrl });

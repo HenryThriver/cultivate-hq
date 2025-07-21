@@ -126,35 +126,85 @@ This document centralizes all vendor API documentation and CLI command reference
 - ✅ `gh run list --workflow="workflow-name.yml"` (list workflow runs)
 - ✅ `gh pr view <pr-number> --comments` (view PR with comments)
 
-### Supabase CLI Patterns
-- ✅ `supabase db push` (apply migrations)
-- ✅ `supabase gen types typescript --linked` (generate types)
+### Supabase CLI Patterns (UPDATED 2025-07-20)
+- ✅ `supabase gen types typescript --linked > src/lib/supabase/database.types.ts` (safe - generate types)
+- ✅ `supabase projects list` (check current linked project - ALWAYS run first)
+- ⚠️ `supabase db push --linked` (DANGEROUS - only for emergency manual operations)
 - ❌ `npx supabase` (never use npx with Supabase - CLI installed globally)
+- ❌ Direct production database operations during development (use GitHub integration instead)
 
-### Supabase Environment Management
+### Supabase GitHub Integration Patterns (PREFERRED)
+- ✅ Create feature branch with `supabase/` changes
+- ✅ Push branch to trigger automatic database creation
+- ✅ Check PR comments for Supabase preview environment URL
+- ✅ Test migrations in isolated branch database
+- ✅ Merge to main only after branch database validation
+- ✅ `gh pr create` to trigger automated Supabase branch database
+- ✅ `gh pr view <pr-number> --comments` to see Supabase preview environment details
+
+### Critical Incident Resolution (2025-07-20)
+**BEFORE** (Dangerous pattern that caused production incident):
+- ❌ `supabase db push --linked` without checking environment
+- ❌ Assuming manual staging workflow when GitHub integration was available
+- ❌ No environment verification before database operations
+
+**AFTER** (Current safe patterns):
+- ✅ Always `supabase projects list` first to verify environment
+- ✅ Use GitHub integration for ALL database changes
+- ✅ Automated branch databases prevent production exposure
+- ✅ Manual database operations only for emergency with explicit approval
+
+### Supabase Environment Management (UPDATED 2025-07-20)
 - **Environment Strategy**: https://supabase.com/docs/guides/deployment/managing-environments
-- **Multiple Projects Approach**: Separate Supabase projects for staging (~$10/month) and production (~$25+/month)
-- **Migration Workflow**: local → staging → production (schema only, keep data separate)
-- **Project Linking**: `supabase link --project-ref <project-id>`
-- **Environment Switching**: Use `--linked` flag or specify project explicitly
-- ✅ `supabase db push --linked` (push to currently linked project)
-- ✅ `supabase db diff -f migration_name --linked` (create migration for linked project)
-- ✅ `supabase gen types typescript --linked > src/lib/supabase/database.types.ts` (generate types from linked project)
+- **GitHub Integration Strategy**: https://supabase.com/docs/guides/deployment/branching/github-integration
+- **Automated Branch Databases**: GitHub integration creates isolated databases per feature branch
+- **Environment Flow**: local → automated branch database → production (no manual staging needed)
+- **Project Linking**: Only for emergency manual operations (avoid for development)
+- ⚠️ `supabase db push --linked` (DANGEROUS - use only with explicit user approval for emergency fixes)
+- ✅ `supabase gen types typescript --linked > src/lib/supabase/database.types.ts` (safe - only generates types)
 
-### Supabase CI/CD Best Practices
-- **Schema Migrations Only**: Don't copy production data to staging for every deploy
-- **Test Data Strategy**: Use synthetic/anonymized test data in staging
-- **Database Safety**: Always use WHERE clauses for UPDATE/DELETE operations
-- **Migration Testing**: Test migrations in staging before production deployment
-- **Data Isolation**: Each environment maintains its own dataset for safety
+### Supabase GitHub Integration Workflow (PREFERRED METHOD)
+- **Automatic Branch Detection**: Supabase detects changes to `supabase/` directory in PRs
+- **Isolated Database Creation**: Each feature branch gets its own database (e.g., `feature-stripe-abc123`)
+- **Migration Application**: All migrations applied automatically to branch database
+- **Preview Environment**: Vercel preview deployments connect to branch database
+- **Safety**: Zero risk to production data during development and testing
+- **Cleanup**: Branch databases automatically cleaned up when PR is closed/merged
 
-## Quick Reference Notes
+### Supabase CI/CD Best Practices (UPDATED)
+- **GitHub Integration First**: Always use automated branch databases for testing migrations
+- **No Manual Staging**: Automated branch databases replace manual staging workflow
+- **Migration Safety**: All migrations tested in complete isolation before production
+- **Data Protection**: Branch databases start empty - no production data exposure
+- **Database Safety**: Always use WHERE clauses for UPDATE/DELETE operations (still critical)
+- **Emergency Manual Override**: Only use manual commands if GitHub integration fails
+
+### Expected Supabase GitHub Integration Behavior
+When a PR contains changes to `supabase/` directory:
+1. **Automatic Detection**: Supabase GitHub integration detects changes
+2. **Branch Database Creation**: Creates isolated database with pattern `feature-<branch>-<hash>`
+3. **Migration Application**: Applies all migrations from `supabase/migrations/` to branch database
+4. **Bot Comment**: `supabase[bot]` comments on PR with preview environment details
+5. **GitHub Actions**: Our workflows validate the preview environment is ready
+6. **Vercel Integration**: Preview deployments automatically use branch database URL
+
+### Troubleshooting Supabase GitHub Integration
+- **No bot comment after 5 minutes**: Check Supabase dashboard GitHub integration settings
+- **Migration failures**: Check GitHub Actions logs and Supabase dashboard for error details  
+- **Missing preview environment**: Verify `supabase/config.toml` exists and is properly configured
+- **Wrong database connection**: Ensure Vercel preview deployments use branch-specific environment variables
+- **Manual fallback**: Only use `supabase db push --linked` if GitHub integration is completely broken
+
+## Quick Reference Notes (UPDATED 2025-07-20)
 
 1. **Always check vendor CLI help first**: `<tool> --help` or `<tool> <command> --help`
 2. **Consult this document after 2+ command failures** to find correct vendor documentation
 3. **Update this document** when discovering new vendor API patterns or fixing command issues
 4. **Environment variables** often follow vendor-specific naming conventions - check their docs
 5. **Authentication patterns** vary significantly between vendors - reference their auth docs
+6. **Supabase Safety Protocol**: Always run `supabase projects list` before ANY database operations
+7. **GitHub Integration First**: Use automated branch databases instead of manual staging for Supabase
+8. **Production Protection**: See CLAUDE.md for critical database safety protocols after 2025-07-20 incident
 
 ## Vendor-Specific Environment Variable Patterns
 
@@ -165,3 +215,13 @@ This document centralizes all vendor API documentation and CLI command reference
 - **Anthropic**: Uses `ANTHROPIC_API_KEY`
 - **OpenAI**: Uses `OPENAI_API_KEY`
 - **NextAuth**: Uses `NEXTAUTH_*` prefix for auth configuration
+
+---
+
+## Document History
+
+- **2025-07-20**: Major update to Supabase patterns after critical production incident
+  - Added GitHub integration workflow as preferred method
+  - Updated environment management to reflect automated branch databases
+  - Added safety protocols and incident resolution documentation
+  - Marked manual database operations as dangerous/emergency-only

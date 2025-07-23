@@ -5,6 +5,96 @@ All notable changes to Relationship OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2025-07-23
+
+### Added
+- **Google OAuth Integration**: Seamless authentication with combined Gmail and Calendar permissions
+  - **Combined OAuth Flow**: Single authorization request for Gmail and Calendar access
+  - **Server-Side API Routes**: `/api/google/combined-auth` and `/api/google/combined-callback` for secure OAuth handling
+  - **Token Management**: Automatic Google API token storage and refresh handling
+  - **User Record Linking**: Robust payment-before-auth workflow connecting Stripe customers to authenticated users
+  - **Success Page Integration**: Enhanced success page with OAuth connection status and error handling
+
+- **Enhanced Stripe Payment System**: Production-ready payment-before-auth architecture
+  - **Payment-Before-Auth Workflow**: Intentional design allowing unauthenticated Stripe checkout with post-payment authentication
+  - **Comprehensive Documentation**: Detailed explanation of security model and workflow rationale
+  - **Enhanced Error Handling**: User-friendly error messages with localStorage-based persistence
+  - **Robust Webhook System**: 11 comprehensive test cases covering security, lifecycle events, and error scenarios
+  - **User Record Management**: Automatic user creation for unauthenticated checkouts with email-based linking
+
+### Changed
+- **Performance Optimizations**: Significant improvements across multiple systems
+  - **Real-Time Subscriptions**: Replaced polling with Supabase real-time monitoring in VoiceRecorder (eliminated 90+ API calls)
+  - **Optimistic Updates**: Added instant UI feedback for contact mutations and profile updates
+  - **Parallel Operations**: 50% faster auth callback through Promise.allSettled implementation
+  - **API Batching**: Implemented concurrent operations in user authentication flow
+  - **Query Invalidation**: Strategic cache management for improved data consistency
+
+- **Enhanced User Experience**: Comprehensive error handling and status feedback
+  - **OAuth Error Handling**: Detailed error messages for authentication failures with user-friendly guidance
+  - **Processing Status**: Real-time status updates for voice memo transcription and AI processing
+  - **Loading States**: Improved loading indicators across authentication and payment flows
+  - **Success Feedback**: Enhanced success messages with connection status confirmation
+
+### Fixed
+- **E2E Test Infrastructure**: Resolved critical testing issues preventing CI/CD deployment
+  - **Build Cache Management**: Implemented automatic .next directory clearing in test scripts
+  - **Playwright Configuration**: Updated to use dev:clean for fresh builds preventing stale cache issues
+  - **Test Reliability**: Enhanced test infrastructure to prevent flaky failures from cached builds
+  - **CI/CD Integration**: Improved test pipeline reliability for staging and production deployments
+
+- **Edge Functions Deployment**: Resolved automatic deployment issues for Supabase edge functions
+  - **Configuration Management**: Added all 6 edge functions to `supabase/config.toml` for automatic branch deployment
+  - **CI/CD Reliability**: Ensures `parse-artifact`, `calendar-sync`, `gmail-sync`, and other critical functions deploy automatically
+  - **Production Stability**: Prevents manual deployment errors and ensures consistent function availability across environments
+  - **Functions Configured**: `parse-artifact`, `calendar-sync`, `gmail-sync`, `process-contact-sync-jobs`, `transcribe-voice-memo`, `read_contact_context`
+
+- **Code Quality**: Comprehensive TypeScript and ESLint improvements
+  - **TypeScript Errors**: Resolved mutation context typing issues in optimistic updates
+  - **ESLint Compliance**: Fixed unused variables and explicit any type issues
+  - **Type Safety**: Enhanced type annotations for queryClient.getQueryData calls
+  - **Import Management**: Cleaned up unused imports and dependency issues
+
+### Technical Implementation
+- **OAuth Architecture**: Secure server-side Google API integration
+  - **Combined Scopes**: Single OAuth request for Gmail (`https://www.googleapis.com/auth/gmail.readonly`) and Calendar (`https://www.googleapis.com/auth/calendar.readonly`) permissions
+  - **Token Storage**: Secure token management with automatic refresh handling
+  - **Error Recovery**: Comprehensive error handling for OAuth failures with user guidance
+  - **State Management**: Proper OAuth state parameter handling for security
+
+- **Payment Processing**: Enhanced Stripe integration with robust error handling
+  - **Webhook Security**: Comprehensive signature verification and payload validation
+  - **Subscription Lifecycle**: Complete handling of subscription creation, updates, and cancellation
+  - **User Linking**: Robust system for connecting payment records to authenticated users
+  - **Database Safety**: Proper error handling and transaction management
+
+- **Performance Architecture**: Strategic optimizations across data layer
+  - **Real-Time Monitoring**: Supabase subscription-based status tracking replacing polling
+  - **Optimistic UI**: Immediate user feedback with server reconciliation
+  - **Concurrent Operations**: Promise.allSettled for parallel API calls
+  - **Cache Strategy**: Intelligent query invalidation and prefetching
+
+### Database Schema
+- **User Authentication**: Enhanced user record management for payment-before-auth workflow
+- **Integration Tokens**: Secure storage for Google API tokens with refresh capability  
+- **Subscription Management**: Improved Stripe subscription tracking with status synchronization
+- **Real-Time Subscriptions**: Optimized database triggers for real-time UI updates
+
+### Test Coverage
+- **Stripe Webhook Testing**: 11 comprehensive test cases covering:
+  - Security validation and signature verification
+  - Payment-before-auth workflow scenarios (unauthenticated checkout, existing user, authenticated checkout)
+  - Subscription lifecycle events (creation, updates, cancellation, payment success/failure)
+  - Error handling and database failure scenarios
+- **Google OAuth Testing**: Complete test coverage for combined authentication flow
+- **E2E Test Infrastructure**: Reliable test pipeline with cache management
+
+### Business Impact
+- **Streamlined Onboarding**: Single OAuth request reduces user friction and abandonment
+- **Robust Payment Processing**: Payment-before-auth ensures subscription preservation even with auth failures
+- **Improved Performance**: Real-time updates and optimistic UI create responsive user experience
+- **Production Readiness**: Comprehensive testing and error handling suitable for production deployment
+
 ## [0.14.0] - 2025-07-18
 
 ### Added

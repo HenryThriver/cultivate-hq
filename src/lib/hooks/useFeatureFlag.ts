@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 /**
@@ -51,7 +51,7 @@ export function useFeatureFlag(flagName: string): FeatureFlagState {
           return;
         }
 
-        const supabase = createClient();
+        // Use the imported supabase client
 
         // Get the feature flag global setting
         const { data: flagData, error: flagError } = await supabase
@@ -131,7 +131,7 @@ export function useIsAdmin(): { isAdmin: boolean; loading: boolean; error: strin
 
     const checkAdminStatus = async () => {
       try {
-        const supabase = createClient();
+        // Use the imported supabase client
         
         const { data, error } = await supabase
           .from('users')
@@ -195,7 +195,7 @@ export function useAllFeatureFlags(): {
 
     const fetchAllFlags = async () => {
       try {
-        const supabase = createClient();
+        // Use the imported supabase client
 
         // Get all feature flags with user overrides
         const { data, error } = await supabase
@@ -234,7 +234,7 @@ export function useAllFeatureFlags(): {
           });
         }
 
-        const result = allFlags.map(flag => {
+        const result = allFlags.map((flag: any) => {
           const override = flagsWithOverrides.get(flag.id);
           return {
             ...flag,

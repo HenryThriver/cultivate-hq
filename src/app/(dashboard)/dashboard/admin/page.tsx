@@ -5,7 +5,7 @@ import {
   Box,
   Container,
   Typography,
-  Grid2 as Grid,
+  Grid,
   Card,
   CardContent,
   CardActionArea,
@@ -122,7 +122,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
       {/* Admin Options Grid */}
       <Grid container spacing={3}>
         {adminOptions.map((option) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={option.title}>
+          <Grid item xs={12} sm={6} md={4} key={option.title}>
             <Card sx={{ height: '100%', transition: 'transform 0.2s' }}>
               <CardActionArea 
                 onClick={() => router.push(option.href)}
@@ -155,7 +155,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
           Quick Stats
         </Typography>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="primary" gutterBottom>
@@ -167,7 +167,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="secondary" gutterBottom>
@@ -179,7 +179,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="success.main" gutterBottom>
@@ -191,7 +191,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="warning.main" gutterBottom>

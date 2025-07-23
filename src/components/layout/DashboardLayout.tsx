@@ -25,9 +25,11 @@ import {
   Logout as LogoutIcon,
   AccountCircle as AccountCircleIcon,
   Settings as SettingsIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useIsAdmin } from '@/lib/hooks/useFeatureFlag';
 
 const DRAWER_WIDTH = 240;
 
@@ -39,6 +41,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const router = useRouter();
 
   const handleDrawerToggle = (): void => {
@@ -63,7 +66,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     handleProfileMenuClose();
   };
 
-  const navigationItems = [
+  const baseNavigationItems = [
     {
       text: 'Dashboard',
       icon: <DashboardIcon />,
@@ -85,6 +88,18 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       path: '/dashboard/settings',
     },
   ];
+
+  // Add admin navigation if user is admin
+  const navigationItems = isAdmin 
+    ? [
+        ...baseNavigationItems,
+        { 
+          text: 'Admin', 
+          icon: <AdminIcon />, 
+          path: '/dashboard/admin' 
+        }
+      ]
+    : baseNavigationItems;
 
   const drawer = (
     <Box>

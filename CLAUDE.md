@@ -118,6 +118,8 @@ supabase link --project-ref oogajqshbhnjdrwqlffa --password "..."
 #### PREFERRED: CI/CD Migration Flow (GitHub Integration)
 **Use this approach for ALL database changes**
 
+At the beginning of each coding session, confirm what environment we are working in (local, dev, or staging) and then open the repo for the branch in focus. If this is a net new feature, create a new branch with an appropriate title.
+
 ```bash
 # 1. Create feature branch (REQUIRED)
 git checkout -b feature/your-feature

@@ -115,11 +115,9 @@ test.describe('Onboarding Flow - Complete User Journey', () => {
     });
 
     // Wait for processing to complete or skip
-    await page.waitForTimeout(2000);
     const processingNextButton = page.getByRole('button', { name: /continue|next/i });
-    if (await processingNextButton.isVisible()) {
-      await processingNextButton.click();
-    }
+    await expect(processingNextButton).toBeVisible({ timeout: 10000 });
+    await processingNextButton.click();
 
     // Screen 11: Profile Review
     await utils.waitForPageLoad();

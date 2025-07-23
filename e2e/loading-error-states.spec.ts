@@ -10,18 +10,16 @@ test.describe('Loading States & Error Handling', () => {
   });
 
   test('should show loading states during AI processing', async ({ page }) => {
-    // Mock slow AI processing
-    await page.route('**/api/voice-memo/**', route => {
-      // Delay response to show loading state
-      setTimeout(() => {
-        route.fulfill({
-          status: 200,
-          body: JSON.stringify({
-            id: 'voice-memo-1',
-            status: 'processing'
-          })
-        });
-      }, 2000);
+    // Mock slow AI processing with proper delay
+    await page.route('**/api/voice-memo/**', async route => {
+      // Use Playwright's built-in delay instead of setTimeout
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          id: 'voice-memo-1',
+          status: 'processing'
+        })
+      }, { delay: 1000 });
     });
 
     await utils.navigateToPage('/dashboard/timeline');
@@ -48,17 +46,15 @@ test.describe('Loading States & Error Handling', () => {
   });
 
   test('should show loading states during contact import', async ({ page }) => {
-    // Mock slow contact import
-    await page.route('**/api/contacts/import**', route => {
-      setTimeout(() => {
-        route.fulfill({
-          status: 200,
-          body: JSON.stringify([{
-            id: 'contact-1',
-            name: 'John Doe'
-          }])
-        });
-      }, 2000);
+    // Mock slow contact import with proper delay
+    await page.route('**/api/contacts/import**', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify([{
+          id: 'contact-1',
+          name: 'John Doe'
+        }])
+      }, { delay: 1000 });
     });
 
     await utils.navigateToPage('/dashboard/contacts');
@@ -86,18 +82,16 @@ test.describe('Loading States & Error Handling', () => {
   });
 
   test('should show loading states during session creation', async ({ page }) => {
-    // Mock slow session creation
-    await page.route('**/api/relationship-sessions', route => {
+    // Mock slow session creation with proper delay
+    await page.route('**/api/relationship-sessions', async route => {
       if (route.request().method() === 'POST') {
-        setTimeout(() => {
-          route.fulfill({
-            status: 200,
-            body: JSON.stringify({
-              id: 'session-1',
-              status: 'active'
-            })
-          });
-        }, 2000);
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({
+            id: 'session-1',
+            status: 'active'
+          })
+        }, { delay: 1000 });
       } else {
         route.continue();
       }
@@ -143,15 +137,21 @@ test.describe('Loading States & Error Handling', () => {
 
 test.describe('Error Boundary Testing', () => {
   let utils: ReturnType<typeof createTestUtils>;
+  let consoleErrors: string[] = [];
 
   test.beforeEach(async ({ page }) => {
     utils = createTestUtils(page);
     await utils.mockAuthenticatedUser();
+    consoleErrors = []; // Reset errors array
+  });
+
+  test.afterEach(async ({ page }) => {
+    // Clean up event listeners to prevent memory leaks
+    await page.removeAllListeners('console');
   });
 
   test('should handle JavaScript errors gracefully', async ({ page }) => {
-    // Listen for console errors
-    const consoleErrors: string[] = [];
+    // Listen for console errors (using the shared array)
     page.on('console', msg => {
       if (msg.type() === 'error') {
         consoleErrors.push(msg.text());
@@ -175,8 +175,8 @@ test.describe('Error Boundary Testing', () => {
     await utils.navigateToPage('/dashboard');
     await utils.waitForPageLoad();
 
-    // Wait for potential error
-    await page.waitForTimeout(2000);
+    // Wait for potential error to be handled
+    await expect(page.getByText(/dashboard|welcome/i)).toBeVisible({ timeout: 5000 });
 
     // Page should still be functional despite errors
     await expect(page.getByText(/dashboard|welcome/i)).toBeVisible();
@@ -227,7 +227,9 @@ test.describe('Error Boundary Testing', () => {
     await utils.navigateToPage('/dashboard');
     
     // Should redirect to login or show auth error
-    await page.waitForTimeout(3000);
+    await page.waitForURL(/login|auth/, { timeout: 5000 }).catch(() => {
+      // If no redirect, check for auth error text
+    });
     
     const currentUrl = page.url();
     const isAuthError = currentUrl.includes('login') || 

@@ -145,9 +145,8 @@ test.describe('Relationship Sessions - Core Workflow', () => {
     // Should show success state
     await expect(page.getByText(/success|added|complete/i)).toBeVisible();
     
-    // Progress should update
-    await page.waitForTimeout(1000);
-    // Next action should appear or completion dialog should show
+    // Progress should update - wait for next action or completion
+    await expect(page.getByText(/next.*action|complete|finished/i)).toBeVisible({ timeout: 5000 });
   });
 
   test('should handle meeting notes action with voice memo', async ({ page }) => {
@@ -217,7 +216,7 @@ test.describe('Relationship Sessions - Core Workflow', () => {
     }
     
     // Should advance to next action or completion
-    await page.waitForTimeout(1000);
+    await expect(page.getByText(/next.*action|complete|finished/i)).toBeVisible({ timeout: 5000 });
   });
 
   test('should handle session completion', async ({ page }) => {

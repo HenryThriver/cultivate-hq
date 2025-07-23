@@ -158,8 +158,7 @@ test.describe('Core Features - Voice Memos', () => {
       }
       
       // Should show processing or completed state
-      await page.waitForTimeout(1000);
-      await expect(page.getByText(/processing|saved|complete/i)).toBeVisible();
+      await expect(page.getByText(/processing|saved|complete/i)).toBeVisible({ timeout: 5000 });
     }
   });
 

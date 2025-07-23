@@ -71,7 +71,12 @@ export const useContacts = () => {
     return data as Contact; // Cast to local Contact type if its structure is a subset or matches Row
   }, []);
 
-  const createContactMutation = useMutation<Contact, Error, ContactInsert>({
+  const createContactMutation = useMutation<
+    Contact, 
+    Error, 
+    ContactInsert,
+    { previousContacts?: Contact[]; optimisticContact: Contact }
+  >({
     mutationFn: createContactDB,
     // OPTIMIZATION: Add optimistic updates for better perceived performance
     onMutate: async (newContactData) => {
@@ -130,7 +135,12 @@ export const useContacts = () => {
     return data;
   }, []);
 
-  const updateContactMutation = useMutation<Contact, Error, Partial<Contact> & Pick<Contact, 'id'>>({
+  const updateContactMutation = useMutation<
+    Contact, 
+    Error, 
+    Partial<Contact> & Pick<Contact, 'id'>,
+    { previousContacts?: Contact[]; previousContact?: Contact; id: string }
+  >({
     mutationFn: updateContact,
     // OPTIMIZATION: Add optimistic updates for contact updates
     onMutate: async (updatedContactData) => {

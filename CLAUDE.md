@@ -4,6 +4,34 @@ My name is Handsome Hank
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Flow & CI/CD Workflow
+
+### Branch Progression Strategy
+Our repository follows a structured Git flow for continuous deployment with zero downtime:
+
+```
+local feature → feature/* (push) → develop (PR) → staging (PR) → main (PR)
+```
+
+### Development Server Note
+**IMPORTANT**: The user typically has a development server running on port 3000 in a separate terminal. DO NOT run `npm run dev` automatically. Instead, when changes need testing, simply remind: "Please ensure your dev server is running on port 3000 to test these changes."
+
+### PR Feedback Loop Workflow
+After pushing to a PR, follow this systematic approach:
+
+1. **Wait Phase (180 seconds)**: Allow all CI/CD processes to complete
+2. **Check PR Comments**: Use `gh pr view --comments` to read automated feedback
+   - **CRITICAL**: Only review comments posted AFTER the most recent push
+   - This ensures you're addressing current issues, not outdated feedback
+3. **Analyze Feedback Sources**:
+   - ❌ Vercel deployment status (build errors, env issues)
+   - ❌ Supabase preview environment (migration failures)
+   - 🔍 Claude AI code review (bugs, performance, security)
+   - ⚠️ Quality Gates (TypeScript, ESLint, tests)
+4. **Create Fix Plan**: Prioritize deployment failures → security issues → code quality
+5. **Fix Locally**: Run all quality gates before pushing again
+6. **Iterate**: Repeat until all checks pass
+
 ## Essential Commands
 
 ### Development
@@ -44,6 +72,18 @@ git push origin feature/your-branch
 ```
 
 **Why this matters:** These are the EXACT same checks that GitHub Actions Quality Gates run. Running them locally catches issues before they waste PR cycles and prevents frustrating build failures.
+
+### Post-Push PR Monitoring
+After pushing to a PR:
+
+```bash
+# Wait ~3 minutes for all CI/CD to complete, then:
+gh pr view --comments
+
+# Focus ONLY on comments after your latest push
+# Create a fix plan based on the feedback
+# Fix locally, verify with quality gates, push again
+```
 
 ### Database Operations
 **CRITICAL: PRODUCTION DATABASE PROTECTION - READ BEFORE ANY DATABASE OPERATIONS**

@@ -84,7 +84,7 @@ export const useContacts = () => {
       await queryClient.cancelQueries({ queryKey: [CONTACTS_TABLE] });
       
       // Snapshot the previous value for rollback
-      const previousContacts = queryClient.getQueryData([CONTACTS_TABLE]);
+      const previousContacts = queryClient.getQueryData<Contact[]>([CONTACTS_TABLE]);
       
       // Create optimistic contact with temporary ID
       const optimisticContact: Contact = {
@@ -151,8 +151,8 @@ export const useContacts = () => {
       await queryClient.cancelQueries({ queryKey: [CONTACTS_TABLE, id] });
       
       // Snapshot previous values for rollback
-      const previousContacts = queryClient.getQueryData([CONTACTS_TABLE]);
-      const previousContact = queryClient.getQueryData([CONTACTS_TABLE, id]);
+      const previousContacts = queryClient.getQueryData<Contact[]>([CONTACTS_TABLE]);
+      const previousContact = queryClient.getQueryData<Contact>([CONTACTS_TABLE, id]);
       
       // Optimistically update the contact in the list
       queryClient.setQueryData([CONTACTS_TABLE], (old: Contact[] | undefined) => {

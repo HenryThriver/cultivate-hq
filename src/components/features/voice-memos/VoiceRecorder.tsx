@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase/client'; // Import the shared client di
 import { useAuth } from '@/lib/contexts/AuthContext'; 
 import type { Json } from '@/lib/supabase/database.types';
 import { useQueryClient } from '@tanstack/react-query'; // Added import
+import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos'; // Added for real-time monitoring
 
 interface VoiceRecorderProps {
   contactId: string;
@@ -36,6 +37,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState(false);
+  const [currentProcessingArtifactId, setCurrentProcessingArtifactId] = useState<string | null>(null);
   
   // Refs for MediaRecorder
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -46,6 +48,55 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // supabase is now imported directly and available in the module scope
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient(); // Added queryClient
+  
+  // OPTIMIZATION: Use real-time voice memos hook for processing monitoring
+  const { voiceMemos, getProcessingStatus } = useVoiceMemos({ contact_id: contactId });
+
+  // OPTIMIZATION: Monitor processing status via real-time subscriptions instead of polling
+  useEffect(() => {
+    if (!currentProcessingArtifactId) return;
+    
+    const currentMemo = voiceMemos.find(memo => memo.id === currentProcessingArtifactId);
+    if (!currentMemo) return;
+    
+    const status = getProcessingStatus(currentProcessingArtifactId);
+    
+    // Update progress based on processing phase
+    if (currentMemo.transcription_status === 'pending' || currentMemo.transcription_status === 'processing') {
+      setUploadStatus('Transcribing audio...');
+    } else if (currentMemo.transcription_status === 'completed' && 
+               (currentMemo.ai_parsing_status === 'pending' || currentMemo.ai_parsing_status === 'processing')) {
+      setUploadStatus('Processing with AI...');
+    }
+    
+    // Handle completion
+    if (status.status === 'completed') {
+      setUploadStatus('');
+      setIsUploading(false);
+      setSuccess(true);
+      setDuration(0);
+      setCurrentProcessingArtifactId(null);
+      
+      // Invalidate related queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['contactUpdateSuggestions', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['artifacts', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contacts', contactId] });
+      
+      setTimeout(() => setSuccess(false), 5000);
+    }
+    
+    // Handle failures
+    else if (status.status === 'failed') {
+      setCurrentProcessingArtifactId(null);
+      if (currentMemo.transcription_status === 'failed') {
+        setError('We had trouble understanding your audio. Please try recording again with clear speech.');
+      } else if (currentMemo.ai_parsing_status === 'failed') {
+        setError('We had trouble processing your message. Your recording was saved, but the analysis may be incomplete. Please try again if needed.');
+      }
+      setUploadStatus('');
+      setIsUploading(false);
+    }
+  }, [currentProcessingArtifactId, voiceMemos, getProcessingStatus, contactId, queryClient]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -197,8 +248,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       setUploadStatus('Processing transcription...');
       onRecordingComplete?.(artifact);
       
-      // Start polling for transcription completion
-      pollTranscriptionStatus(artifact.id);
+      // OPTIMIZATION: Start real-time monitoring instead of polling
+      monitorProcessingStatus(artifact.id);
       
     } catch (err) { 
       console.error('Error uploading voice memo (raw):', err);
@@ -212,80 +263,27 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   };
 
-  const pollTranscriptionStatus = async (artifactId: string) => {
-    const maxAttempts = 90; // Extended to 3 minutes max (90 attempts * 2s interval) for AI processing
-    let attempts = 0;
+  // OPTIMIZATION: Replace polling with real-time subscription monitoring
+  // Instead of making 90+ API calls every 2 seconds, we monitor the artifact via useVoiceMemos hook
+  const monitorProcessingStatus = (artifactId: string) => {
+    const maxWaitTime = 180000; // 3 minutes max wait
+    const startTime = Date.now();
+    let timeoutId: NodeJS.Timeout | null = null;
     
-    const pollInterval = setInterval(async () => {
-      attempts++;
-      
-      try {
-        const { data: artifact, error: fetchError } = await supabase
-          .from('artifacts')
-          .select('transcription_status, transcription, ai_parsing_status')
-          .eq('id', artifactId)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        if (!artifact) throw new Error('Artifact not found during polling.');
-
-        // Update status based on current phase
-        if (artifact.transcription_status === 'pending') {
-          setUploadStatus(`Transcribing audio... (${Math.round((attempts / maxAttempts) * 30)}%)`);
-        } else if (artifact.transcription_status === 'completed' && artifact.ai_parsing_status === 'pending') {
-          setUploadStatus(`Processing with AI... (${Math.round(30 + (attempts / maxAttempts) * 70)}%)`);
-        } else if (artifact.ai_parsing_status === 'processing') {
-          setUploadStatus(`Analyzing your message... (${Math.round(60 + (attempts / maxAttempts) * 40)}%)`);
-        }
-        
-        // Check for completion - both transcription AND AI processing must be done
-        if (artifact.transcription_status === 'completed' && artifact.ai_parsing_status === 'completed') {
-          clearInterval(pollInterval);
-          setUploadStatus('');
-          setIsUploading(false);
-          setSuccess(true);
-          setDuration(0); // Reset duration after successful upload and processing
-          
-          // Invalidate queries
-          await queryClient.invalidateQueries({ queryKey: ['voiceMemos', contactId] });
-          await queryClient.invalidateQueries({ queryKey: ['contactUpdateSuggestions', contactId] });
-          await queryClient.invalidateQueries({ queryKey: ['artifacts', contactId] });
-          await queryClient.invalidateQueries({ queryKey: ['contacts', contactId] });
-
-          setTimeout(() => setSuccess(false), 5000);
-        } 
-        // Check for transcription failure
-        else if (artifact.transcription_status === 'failed') {
-          clearInterval(pollInterval);
-          setError('We had trouble understanding your audio. Please try recording again with clear speech.');
-          setUploadStatus('');
-          setIsUploading(false);
-        } 
-        // Check for AI processing failure
-        else if (artifact.ai_parsing_status === 'failed') {
-          clearInterval(pollInterval);
-          setError('We had trouble processing your message. Your recording was saved, but the analysis may be incomplete. Please try again if needed.');
-          setUploadStatus('');
-          setIsUploading(false);
-        } 
-        // Check for timeout
-        else if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
-          setError('Processing is taking longer than expected. Your recording was saved and will be processed shortly. Please check back in a few minutes.');
-          setUploadStatus('');
-          setIsUploading(false);
-        }
-      } catch (err) {
-        console.error('Error polling processing status:', err);
-        // Only clear interval and show error if it's a persistent issue or max attempts reached
-        if (attempts >= maxAttempts || (err instanceof Error && !err.message.includes('FetchError'))) {
-          clearInterval(pollInterval);
-          setError('Unable to check processing status. Your recording may still be processing - please check back later.');
-          setUploadStatus('');
-          setIsUploading(false);
-        }
-      }
-    }, 2000);
+    // Set up timeout as fallback
+    timeoutId = setTimeout(() => {
+      setError('Processing is taking longer than expected. Your recording was saved and will be processed shortly. Please check back in a few minutes.');
+      setUploadStatus('');
+      setIsUploading(false);
+    }, maxWaitTime);
+    
+    // The actual monitoring is handled by the real-time subscription in useVoiceMemos hook
+    // We just need to track the artifact ID for the useEffect monitoring below
+    setCurrentProcessingArtifactId(artifactId);
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   };
 
   const formatDuration = (seconds: number) => {

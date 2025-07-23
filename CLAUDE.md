@@ -46,6 +46,11 @@ npm run dev:clean    # Kill all instances and start fresh dev server
 npm run dev:check    # Interactive port/process checker with options
 npm run dev:kill     # Kill all Next.js development processes
 npm run dev:ports    # Check which ports are occupied by development servers
+
+# Testing
+npm run test         # Run unit tests with Vitest
+npm run test:e2e     # Run E2E tests (auto-clears .next cache)
+npm run test:e2e:clean  # Run E2E tests with full cache clear (includes test-results)
 ```
 
 ### Pre-Commit Quality Gates ⚡

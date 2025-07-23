@@ -14,9 +14,10 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e": "rm -rf .next && playwright test",
+    "test:e2e:headed": "rm -rf .next && playwright test --headed",
+    "test:e2e:debug": "rm -rf .next && playwright test --debug",
+    "test:e2e:clean": "rm -rf .next && rm -rf test-results && playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",

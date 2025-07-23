@@ -51,7 +51,14 @@ export async function POST(request: NextRequest) {
           if (existingUser) {
             userId = existingUser.id;
           } else {
-            // Generate UUID for new user
+            // INTENTIONAL DESIGN: Payment-Before-Auth Workflow
+            // 1. Stripe checkout creates user record (this step)
+            // 2. Payment completes, user redirected to success page
+            // 3. User clicks "Login to begin" for Google OAuth
+            // 4. Auth callback links this user record to authenticated user
+            // This ensures subscription is preserved even if auth fails
+            
+            // Generate UUID for new user (will be linked to auth user later)
             const newUserId = randomUUID();
             
             // Create new user record with customer email

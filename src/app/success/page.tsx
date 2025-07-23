@@ -35,6 +35,24 @@ function SuccessPageContent() {
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
 
   const sessionId = searchParams.get('session_id');
+  const oauthError = searchParams.get('error');
+  const errorDetails = searchParams.get('details');
+  const connected = searchParams.get('connected');
+  const warning = searchParams.get('warning');
+
+  // Check for stored errors from auth callback
+  useEffect(() => {
+    const linkingError = localStorage.getItem('userLinkingError');
+    const tokenError = localStorage.getItem('integrationTokenError');
+    
+    if (linkingError) {
+      setError(linkingError);
+      localStorage.removeItem('userLinkingError');
+    } else if (tokenError) {
+      setError(tokenError);
+      localStorage.removeItem('integrationTokenError');
+    }
+  }, []);
 
   // Sophisticated confetti celebration
   useEffect(() => {
@@ -248,7 +266,40 @@ function SuccessPageContent() {
                 </Stack>
 
 
-                {/* Error Alert */}
+                {/* OAuth Success/Warning Messages */}
+                {connected && (
+                  <Alert 
+                    severity={warning ? "warning" : "success"}
+                    sx={{ 
+                      borderRadius: 2,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {warning === 'partial_connection' ? (
+                      `✅ ${connected.includes('gmail') ? 'Gmail' : 'Calendar'} connected successfully. ${connected === 'gmail' ? 'Calendar' : 'Gmail'} connection had issues - you can reconnect later in settings.`
+                    ) : (
+                      `✅ Successfully connected ${connected.replace('_', ' and ')}! Your integrations are ready.`
+                    )}
+                  </Alert>
+                )}
+
+                {/* OAuth Error Messages */}
+                {oauthError && (
+                  <Alert 
+                    severity="warning" 
+                    sx={{ 
+                      borderRadius: 2,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {oauthError === 'oauth_denied' && 'Google authorization was cancelled. You can try connecting again later.'}
+                    {oauthError === 'integration_failed' && `Connection failed: ${errorDetails ? decodeURIComponent(errorDetails) : 'Unknown error'}. You can try again or connect later in settings.`}
+                    {oauthError === 'callback_error' && 'There was an issue processing your connection. You can try again or connect later in settings.'}
+                    {!['oauth_denied', 'integration_failed', 'callback_error'].includes(oauthError) && 'There was an issue with the connection. You can try again or connect later in settings.'}
+                  </Alert>
+                )}
+
+                {/* General Error Alert */}
                 {error && (
                   <Alert 
                     severity="error" 

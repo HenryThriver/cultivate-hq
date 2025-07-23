@@ -8,6 +8,7 @@ import type { User, Session } from '@supabase/supabase-js';
 
 /**
  * Store Gmail and Calendar tokens from Google OAuth session
+ * OPTIMIZED: Parallel upsert operations for improved performance
  */
 async function storeGoogleIntegrationTokens(session: Session): Promise<void> {
   if (!session.provider_token || !session.provider_refresh_token) {
@@ -15,42 +16,46 @@ async function storeGoogleIntegrationTokens(session: Session): Promise<void> {
     return;
   }
 
-  try {
-    const { error } = await supabase
-      .from('user_integrations')
-      .upsert({
-        user_id: session.user.id,
-        integration_type: 'gmail',
-        access_token: session.provider_token,
-        refresh_token: session.provider_refresh_token,
-        token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour from now
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,integration_type'
-      });
+  // Prepare shared token data to avoid duplication
+  const tokenData = {
+    user_id: session.user.id,
+    access_token: session.provider_token,
+    refresh_token: session.provider_refresh_token,
+    token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour from now
+    updated_at: new Date().toISOString()
+  };
 
-    if (error) {
-      console.error('Error storing Gmail integration tokens:', error);
+  try {
+    // OPTIMIZATION: Run both upserts in parallel instead of sequential
+    const [gmailResult, calendarResult] = await Promise.all([
+      supabase
+        .from('user_integrations')
+        .upsert({
+          ...tokenData,
+          integration_type: 'gmail'
+        }, {
+          onConflict: 'user_id,integration_type'
+        }),
+      
+      supabase
+        .from('user_integrations')
+        .upsert({
+          ...tokenData,
+          integration_type: 'google_calendar'
+        }, {
+          onConflict: 'user_id,integration_type'
+        })
+    ]);
+
+    // Handle results
+    if (gmailResult.error) {
+      console.error('Error storing Gmail integration tokens:', gmailResult.error);
     } else {
       console.log('Successfully stored Gmail integration tokens');
     }
 
-    // Also store for calendar (same tokens work for both)
-    const { error: calendarError } = await supabase
-      .from('user_integrations')
-      .upsert({
-        user_id: session.user.id,
-        integration_type: 'google_calendar',
-        access_token: session.provider_token,
-        refresh_token: session.provider_refresh_token,
-        token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,integration_type'
-      });
-
-    if (calendarError) {
-      console.error('Error storing Calendar integration tokens:', calendarError);
+    if (calendarResult.error) {
+      console.error('Error storing Calendar integration tokens:', calendarResult.error);
     } else {
       console.log('Successfully stored Calendar integration tokens');
     }
@@ -62,6 +67,15 @@ async function storeGoogleIntegrationTokens(session: Session): Promise<void> {
 /**
  * Handle linking of user records when Google OAuth creates new auth user
  * but subscription exists for the same email
+ * 
+ * WORKFLOW CONTEXT: Payment-Before-Auth Design
+ * 1. Stripe webhook creates user record with randomUUID() + customer email
+ * 2. Payment completes, user redirected to success page  
+ * 3. User authenticates with Google OAuth (creates Supabase auth user)
+ * 4. This function links the payment user record to the authenticated user
+ * 
+ * SECURITY: This is intentional - subscription data is preserved and properly
+ * transferred to the authenticated user account for data integrity
  */
 async function handleUserRecordLinking(authUser: User): Promise<void> {
   if (!authUser.email) return;
@@ -95,38 +109,66 @@ async function handleUserRecordLinking(authUser: User): Promise<void> {
         throw new Error('Failed to create auth user record');
       }
       
-      // Transfer subscription from existing user record to auth user
-      const { error: subscriptionError } = await supabase
-        .from('subscriptions')
-        .update({ user_id: authUser.id })
-        .eq('user_id', existingUser.id);
-        
-      if (subscriptionError) {
-        console.error('Error transferring subscription:', subscriptionError);
+      // OPTIMIZATION: Parallelize data transfer operations for better performance
+      // Critical: subscription transfer must succeed
+      // Non-critical: contacts transfer and cleanup can fail without breaking auth
+      const [subscriptionResult, contactsResult, artifactsResult] = await Promise.allSettled([
+        supabase
+          .from('subscriptions')
+          .update({ user_id: authUser.id })
+          .eq('user_id', existingUser.id),
+          
+        supabase
+          .from('contacts')
+          .update({ user_id: authUser.id })
+          .eq('user_id', existingUser.id),
+          
+        supabase
+          .from('artifacts')
+          .update({ user_id: authUser.id })
+          .eq('user_id', existingUser.id)
+      ]);
+      
+      // Handle critical subscription transfer
+      if (subscriptionResult.status === 'rejected' || 
+          (subscriptionResult.status === 'fulfilled' && subscriptionResult.value.error)) {
+        const error = subscriptionResult.status === 'rejected' 
+          ? subscriptionResult.reason 
+          : subscriptionResult.value.error;
+        console.error('Error transferring subscription:', error);
         throw new Error('Failed to transfer subscription');
       }
       
-      // Transfer other user data if needed (contacts, artifacts, etc.)
-      const { error: contactsError } = await supabase
-        .from('contacts')
-        .update({ user_id: authUser.id })
-        .eq('user_id', existingUser.id);
-        
-      if (contactsError) {
-        console.error('Error transferring contacts:', contactsError);
-        // Don't throw here - contacts transfer is less critical
+      // Log non-critical transfer errors
+      if (contactsResult.status === 'rejected' || 
+          (contactsResult.status === 'fulfilled' && contactsResult.value.error)) {
+        const error = contactsResult.status === 'rejected' 
+          ? contactsResult.reason 
+          : contactsResult.value.error;
+        console.error('Error transferring contacts:', error);
       }
       
-      // Remove the old user record only after successful transfers
-      const { error: deleteError } = await supabase
+      if (artifactsResult.status === 'rejected' || 
+          (artifactsResult.status === 'fulfilled' && artifactsResult.value.error)) {
+        const error = artifactsResult.status === 'rejected' 
+          ? artifactsResult.reason 
+          : artifactsResult.value.error;
+        console.error('Error transferring artifacts:', error);
+      }
+      
+      // OPTIMIZATION: Clean up old user record asynchronously (non-blocking)
+      // This operation can fail without affecting the auth flow
+      supabase
         .from('users')
         .delete()
-        .eq('id', existingUser.id);
-        
-      if (deleteError) {
-        console.error('Error removing old user record:', deleteError);
-        // Don't throw here - old record cleanup is less critical
-      }
+        .eq('id', existingUser.id)
+        .then(({ error: deleteError }) => {
+          if (deleteError) {
+            console.error('Error removing old user record:', deleteError);
+          } else {
+            console.log('Successfully cleaned up old user record');
+          }
+        });
       
       console.log('Successfully linked user records and transferred subscription');
     } catch (error) {
@@ -153,20 +195,25 @@ export default function AuthCallbackPage(): React.JSX.Element {
         }
 
         if (data.session) {
-          // Handle user record linking for subscription association
-          try {
-            await handleUserRecordLinking(data.session.user);
-          } catch (linkError) {
-            console.error('Error linking user records:', linkError);
-            // Continue with auth flow even if linking fails
+          // OPTIMIZATION: Run user linking and token storage in parallel
+          // These are independent operations that can be performed simultaneously
+          const [linkingResult, tokenResult] = await Promise.allSettled([
+            handleUserRecordLinking(data.session.user),
+            storeGoogleIntegrationTokens(data.session)
+          ]);
+          
+          // Handle user linking result
+          if (linkingResult.status === 'rejected') {
+            console.error('Error linking user records:', linkingResult.reason);
+            // Continue with auth flow even if linking fails, but store error for user notification
+            localStorage.setItem('userLinkingError', 'There was an issue linking your subscription. Please contact support if you experience any issues.');
           }
-
-          // Store Gmail and Calendar tokens if present
-          try {
-            await storeGoogleIntegrationTokens(data.session);
-          } catch (tokenError) {
-            console.error('Error storing Google integration tokens:', tokenError);
-            // Continue with auth flow even if token storage fails
+          
+          // Handle token storage result
+          if (tokenResult.status === 'rejected') {
+            console.error('Error storing Google integration tokens:', tokenResult.reason);
+            // Continue with auth flow even if token storage fails, but store error for user notification
+            localStorage.setItem('integrationTokenError', 'Gmail and Calendar connections may not be fully set up. You can reconnect in settings.');
           }
           
           // Check for post-auth redirect

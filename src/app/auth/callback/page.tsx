@@ -76,39 +76,64 @@ async function handleUserRecordLinking(authUser: User): Promise<void> {
     .single();
     
   if (existingUser) {
-      console.log('Found existing user record for email, linking subscription...');
+    console.log('Found existing user record for email, linking subscription...');
     
-    // Transfer subscription from existing user record to auth user
-    const { error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .update({ user_id: authUser.id })
-      .eq('user_id', existingUser.id);
+    try {
+      // Use upsert to safely create/update the auth user record first
+      const { error: upsertError } = await supabase
+        .from('users')
+        .upsert({
+          id: authUser.id,
+          email: authUser.email,
+          name: authUser.user_metadata?.full_name || authUser.email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+        
+      if (upsertError) {
+        console.error('Error creating auth user record:', upsertError);
+        throw new Error('Failed to create auth user record');
+      }
       
-    if (subscriptionError) {
-      console.error('Error transferring subscription:', subscriptionError);
-    }
-    
-    // Transfer other user data if needed (contacts, artifacts, etc.)
-    const { error: contactsError } = await supabase
-      .from('contacts')
-      .update({ user_id: authUser.id })
-      .eq('user_id', existingUser.id);
+      // Transfer subscription from existing user record to auth user
+      const { error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .update({ user_id: authUser.id })
+        .eq('user_id', existingUser.id);
+        
+      if (subscriptionError) {
+        console.error('Error transferring subscription:', subscriptionError);
+        throw new Error('Failed to transfer subscription');
+      }
       
-    if (contactsError) {
-      console.error('Error transferring contacts:', contactsError);
-    }
-    
-    // Remove the old user record (now that everything is transferred)
-    const { error: deleteError } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', existingUser.id);
+      // Transfer other user data if needed (contacts, artifacts, etc.)
+      const { error: contactsError } = await supabase
+        .from('contacts')
+        .update({ user_id: authUser.id })
+        .eq('user_id', existingUser.id);
+        
+      if (contactsError) {
+        console.error('Error transferring contacts:', contactsError);
+        // Don't throw here - contacts transfer is less critical
+      }
       
-    if (deleteError) {
-      console.error('Error removing old user record:', deleteError);
+      // Remove the old user record only after successful transfers
+      const { error: deleteError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', existingUser.id);
+        
+      if (deleteError) {
+        console.error('Error removing old user record:', deleteError);
+        // Don't throw here - old record cleanup is less critical
+      }
+      
+      console.log('Successfully linked user records and transferred subscription');
+    } catch (error) {
+      console.error('Critical error in user record linking:', error);
+      // Re-throw to be handled by caller
+      throw error;
     }
-    
-    console.log('Successfully linked user records and transferred subscription');
   }
 }
 

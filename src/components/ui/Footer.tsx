@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Typography, Link as MuiLink } from '@mui/material';
+import { Box, Container, Typography } from '@mui/material';
 import Link from 'next/link';
 
 export const Footer = (): React.JSX.Element => {

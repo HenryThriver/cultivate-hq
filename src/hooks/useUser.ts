@@ -36,47 +36,24 @@ export const useUser = (): UseUserResult => {
       setLoading(true);
       setError(null);
 
-      // Fetch user data with subscription using inner join for better performance
+      // Fetch user data with optional subscription using left join (single query)
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select(`
           *,
-          subscription:subscriptions!inner(*)
+          subscription:subscriptions(*)
         `)
         .eq('id', authUser.id)
         .single();
 
       if (userError) {
-        // If inner join fails (no subscription), fall back to left join
-        const { data: userDataFallback, error: fallbackError } = await supabase
-          .from('users')
-          .select(`
-            *,
-            subscription:subscriptions(*)
-          `)
-          .eq('id', authUser.id)
-          .single();
-
-        if (fallbackError) {
-          console.error('Error fetching user data:', fallbackError);
-          setError('Failed to fetch user data');
-          setUser(null);
-          return;
-        }
-
-        // Transform the fallback data
-        const userWithSubscription: UserWithSubscription = {
-          ...userDataFallback,
-          subscription: Array.isArray(userDataFallback.subscription) 
-            ? userDataFallback.subscription[0] || null 
-            : userDataFallback.subscription
-        };
-        
-        setUser(userWithSubscription);
+        console.error('Error fetching user data:', userError);
+        setError('Failed to fetch user data');
+        setUser(null);
         return;
       }
 
-      // Transform the data to match our interface
+      // Transform the data to match our interface (subscription is array from left join)
       const userWithSubscription: UserWithSubscription = {
         ...userData,
         subscription: Array.isArray(userData.subscription) 

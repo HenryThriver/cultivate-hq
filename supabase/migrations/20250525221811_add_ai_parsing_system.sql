@@ -73,13 +73,12 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  -- Retrieve the Edge Function base URL
-  BEGIN
-    edge_function_base_url := current_setting('app.edge_function_url');
-  EXCEPTION WHEN others THEN
-    RAISE WARNING 'app.edge_function_url not set. Error: %', SQLERRM;
-    edge_function_base_url := NULL; -- Ensure it's NULL if retrieval fails
-  END;
+  -- Retrieve the Edge Function base URL from environment
+  -- Use hardcoded URL for branch databases since environment variables aren't available
+  edge_function_base_url := COALESCE(
+    current_setting('app.supabase_url', true),
+    'https://zepawphplcisievcdugz.supabase.co'
+  ) || '/functions/v1';
 
   IF edge_function_base_url IS NULL OR edge_function_base_url = '' THEN
     RAISE WARNING 'app.edge_function_url is not configured. Skipping AI parsing trigger for artifact ID %.', NEW.id;
@@ -115,7 +114,7 @@ CREATE TRIGGER on_transcription_complete
   FOR EACH ROW
   EXECUTE FUNCTION trigger_ai_parsing();
 
--- Configuration setting for the Edge Function URL.
-ALTER DATABASE postgres SET app.edge_function_url = 'https://zepawphplcisievcdugz.supabase.co/functions/v1';
+-- Configuration setting for the Edge Function URL removed to fix permission issues.
+-- The function now uses SUPABASE_URL environment variable instead.
 
 -- Note: The app.service_role_key is now fetched from Vault within the trigger function. 

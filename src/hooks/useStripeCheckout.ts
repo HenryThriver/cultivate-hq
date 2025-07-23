@@ -8,16 +8,11 @@ export const useStripeCheckout = () => {
   const { user } = useAuth();
 
   const createCheckoutSession = async (priceType: 'monthly' | 'yearly') => {
-    if (!user) {
-      setError('You must be logged in to subscribe');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      // Create checkout session
+      // Create checkout session (works for both authenticated and unauthenticated users)
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -25,7 +20,7 @@ export const useStripeCheckout = () => {
         },
         body: JSON.stringify({
           priceType,
-          userId: user.id,
+          userId: user?.id, // Optional - will be null for unauthenticated users
         }),
       });
 
@@ -35,9 +30,17 @@ export const useStripeCheckout = () => {
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
+      if (!data.sessionId) {
+        throw new Error('No session ID returned from server');
+      }
+
       // Redirect to Stripe Checkout
       const stripe = await getStripe();
-      const result = await stripe?.redirectToCheckout({
+      if (!stripe) {
+        throw new Error('Failed to load Stripe');
+      }
+
+      const result = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
       });
 
@@ -45,7 +48,8 @@ export const useStripeCheckout = () => {
         throw new Error(result.error.message);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Stripe checkout error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during checkout');
     } finally {
       setLoading(false);
     }

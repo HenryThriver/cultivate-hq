@@ -71,15 +71,52 @@ export const useContacts = () => {
     return data as Contact; // Cast to local Contact type if its structure is a subset or matches Row
   }, []);
 
-  const createContactMutation = useMutation<Contact, Error, ContactInsert>({
+  const createContactMutation = useMutation<
+    Contact, 
+    Error, 
+    ContactInsert,
+    { previousContacts?: Contact[]; optimisticContact: Contact }
+  >({
     mutationFn: createContactDB,
-    onSuccess: (newContact) => {
-      queryClient.invalidateQueries({ queryKey: [CONTACTS_TABLE] });
+    // OPTIMIZATION: Add optimistic updates for better perceived performance
+    onMutate: async (newContactData) => {
+      // Cancel outgoing refetches to avoid optimistic update conflicts
+      await queryClient.cancelQueries({ queryKey: [CONTACTS_TABLE] });
+      
+      // Snapshot the previous value for rollback
+      const previousContacts = queryClient.getQueryData<Contact[]>([CONTACTS_TABLE]);
+      
+      // Create optimistic contact with temporary ID
+      const optimisticContact: Contact = {
+        id: `temp-${Date.now()}`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...newContactData,
+      } as Contact;
+      
+      // Optimistically update the contacts list
+      queryClient.setQueryData([CONTACTS_TABLE], (old: Contact[] | undefined) => {
+        return old ? [optimisticContact, ...old] : [optimisticContact];
+      });
+      
+      return { previousContacts, optimisticContact };
+    },
+    onSuccess: (newContact, variables, context) => {
+      // Replace optimistic contact with real contact
+      queryClient.setQueryData([CONTACTS_TABLE], (old: Contact[] | undefined) => {
+        if (!old || !context) return old;
+        return old.map(contact => 
+          contact.id === context.optimisticContact.id ? newContact : contact
+        );
+      });
       queryClient.setQueryData([CONTACTS_TABLE, newContact.id], newContact);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       console.error('Mutation error creating contact:', error.message);
-      // Potentially show a user-facing error notification here
+      // Rollback optimistic update on error
+      if (context?.previousContacts) {
+        queryClient.setQueryData([CONTACTS_TABLE], context.previousContacts);
+      }
     }
   });
 
@@ -98,12 +135,63 @@ export const useContacts = () => {
     return data;
   }, []);
 
-  const updateContactMutation = useMutation<Contact, Error, Partial<Contact> & Pick<Contact, 'id'>>({
+  const updateContactMutation = useMutation<
+    Contact, 
+    Error, 
+    Partial<Contact> & Pick<Contact, 'id'>,
+    { previousContacts?: Contact[]; previousContact?: Contact; id: string }
+  >({
     mutationFn: updateContact,
+    // OPTIMIZATION: Add optimistic updates for contact updates
+    onMutate: async (updatedContactData) => {
+      const { id } = updatedContactData;
+      
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [CONTACTS_TABLE] });
+      await queryClient.cancelQueries({ queryKey: [CONTACTS_TABLE, id] });
+      
+      // Snapshot previous values for rollback
+      const previousContacts = queryClient.getQueryData<Contact[]>([CONTACTS_TABLE]);
+      const previousContact = queryClient.getQueryData<Contact>([CONTACTS_TABLE, id]);
+      
+      // Optimistically update the contact in the list
+      queryClient.setQueryData([CONTACTS_TABLE], (old: Contact[] | undefined) => {
+        if (!old) return old;
+        return old.map(contact => 
+          contact.id === id 
+            ? { ...contact, ...updatedContactData, updated_at: new Date().toISOString() }
+            : contact
+        );
+      });
+      
+      // Optimistically update the individual contact
+      queryClient.setQueryData([CONTACTS_TABLE, id], (old: Contact | undefined) => {
+        if (!old) return old;
+        return { ...old, ...updatedContactData, updated_at: new Date().toISOString() };
+      });
+      
+      return { previousContacts, previousContact, id };
+    },
     onSuccess: (updatedContact) => {
-      queryClient.invalidateQueries({ queryKey: [CONTACTS_TABLE] });
+      // Update with real data from server
+      queryClient.setQueryData([CONTACTS_TABLE], (old: Contact[] | undefined) => {
+        if (!old) return old;
+        return old.map(contact => 
+          contact.id === updatedContact.id ? updatedContact : contact
+        );
+      });
       queryClient.setQueryData([CONTACTS_TABLE, updatedContact.id], updatedContact);
     },
+    onError: (error, variables, context) => {
+      console.error('Mutation error updating contact:', error.message);
+      // Rollback optimistic updates on error
+      if (context?.previousContacts) {
+        queryClient.setQueryData([CONTACTS_TABLE], context.previousContacts);
+      }
+      if (context?.previousContact && context?.id) {
+        queryClient.setQueryData([CONTACTS_TABLE, context.id], context.previousContact);
+      }
+    }
   });
 
   // Delete a contact

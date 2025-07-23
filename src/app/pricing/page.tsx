@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import { 
   Box, 
   Container, 
@@ -26,8 +25,8 @@ import {
 } from '@mui/material';
 import { 
   Check,
-  TrendingUp,
   Speed,
+  TrendingUp,
   Psychology,
   AutoAwesome
 } from '@mui/icons-material';
@@ -36,18 +35,13 @@ import { useStripeCheckout } from '@/hooks/useStripeCheckout';
 import Link from 'next/link';
 
 export default function PricingPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { loading } = useAuth();
   const theme = useTheme();
   const [isAnnual, setIsAnnual] = useState(false);
   const { createCheckoutSession, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
 
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, loading, router]);
+  // Allow all users (authenticated and unauthenticated) to view pricing page
+  // No redirects needed - users can access checkout directly
 
   if (loading) {
     return (
@@ -92,11 +86,7 @@ export default function PricingPage() {
   ];
 
   const handleGetStarted = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
+    // Always go directly to checkout - Stripe will handle auth if needed
     const priceType = isAnnual ? 'yearly' : 'monthly';
     await createCheckoutSession(priceType);
   };
@@ -400,7 +390,7 @@ export default function PricingPage() {
                         }
                       }}
                     >
-                      {checkoutLoading ? 'Processing...' : user ? 'Begin strategic analysis' : 'Sign in to get started'}
+                      {checkoutLoading ? 'Processing...' : 'Get started today'}
                     </Button>
 
                     {/* Features */}
@@ -502,7 +492,7 @@ export default function PricingPage() {
                     icon: <TrendingUp />,
                     title: 'Strategic ROI',
                     description: 'One strategic connection can generate opportunities worth thousands of times your investment.',
-                    color: 'primary.main'
+                    color: theme.palette.primary.main
                   },
                   {
                     icon: <Speed />,
@@ -621,7 +611,7 @@ export default function PricingPage() {
                     minWidth: 200
                   }}
                 >
-                  {checkoutLoading ? 'Processing...' : user ? 'Get started today' : 'Sign in to get started'}
+                  {checkoutLoading ? 'Processing...' : 'Get started today'}
                 </Button>
                 <Typography
                   variant="body2"

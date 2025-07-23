@@ -75,6 +75,60 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
 -   [ ] **Scalability & Multi-user Considerations:**
     -   [ ] Begin thinking about the system architecture and features needed to support multiple users effectively.
 
+## 🚀 Post-Production Launch Improvements (PR #9 - v0.15.0)
+
+*Note: These are nice-to-have optimizations identified during code review. The current implementation is production-ready.*
+
+### Security Enhancements
+- [ ] **Token Encryption at Rest** (`src/app/api/google/combined-callback/route.ts:55,90`)
+  - **Current**: Google API tokens stored in plaintext in database
+  - **Improvement**: Consider encrypting tokens at rest for enhanced security
+  - **Impact**: Low priority (tokens are short-lived and properly scoped)
+  - **Implementation**: Use Supabase vault or application-level encryption
+
+- [ ] **UUID Collision Prevention** (`src/app/api/stripe/webhook/route.ts:62`)
+  - **Current**: Generated UUIDs not validated against existing auth users
+  - **Improvement**: Add collision check or use Supabase's built-in UUID generation
+  - **Impact**: Very low priority (UUID collisions extremely rare)
+  - **Implementation**: Add `SELECT` query to check UUID existence before `INSERT`
+
+### Performance Optimizations
+- [ ] **Database Query Optimization** (`src/lib/hooks/useUser.ts:40-47`)
+  - **Current**: Using nested query `subscription:subscriptions(*)`
+  - **Improvement**: Use single `LEFT JOIN` for better performance
+  - **Impact**: Medium priority for high-traffic scenarios
+  - **Implementation**: Replace nested select with explicit JOIN query
+
+- [ ] **Enhanced Error Logging** (`src/app/api/google/combined-callback/route.ts:73,108`)
+  - **Current**: Some errors logged but not tracked for monitoring
+  - **Improvement**: Add structured logging for production monitoring
+  - **Impact**: Medium priority for operational visibility
+  - **Implementation**: Integrate with monitoring service (DataDog, Sentry, etc.)
+
+### Infrastructure Improvements
+- [x] **Edge Functions Configuration** (Supabase Warning) ✅ **COMPLETED**
+  - **Issue**: Edge Functions not automatically deployed to branches without config.toml declaration
+  - **Solution**: Added all 6 edge functions to `supabase/config.toml` for automatic deployment
+  - **Functions Configured**: `parse-artifact`, `calendar-sync`, `gmail-sync`, `process-contact-sync-jobs`, `transcribe-voice-memo`, `read_contact_context`
+  - **Impact**: Resolves CI/CD reliability issues - edge functions now deploy automatically to staging/production
+
+- [ ] **Load Testing for Real-time Subscriptions**
+  - **Current**: Real-time subscriptions implemented but not load tested
+  - **Improvement**: Validate performance under concurrent user load
+  - **Impact**: Medium priority before significant user growth
+  - **Implementation**: Use tools like Artillery or k6 for WebSocket load testing
+
+### Monitoring & Observability
+- [ ] **Production Monitoring Dashboard**
+  - **Current**: Basic error logging in place
+  - **Improvement**: Implement comprehensive monitoring for:
+    - Google OAuth success/failure rates
+    - Stripe webhook processing latency
+    - Real-time subscription connection health
+    - Voice memo processing pipeline performance
+  - **Impact**: High priority for production operations
+  - **Implementation**: Set up monitoring with alerts for critical metrics
+
 ## 🔥 High Priority (Post-Consolidation)
 
 ### Calendar Sync RLS Issues

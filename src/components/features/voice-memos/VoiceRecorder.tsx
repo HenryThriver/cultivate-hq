@@ -267,7 +267,6 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Instead of making 90+ API calls every 2 seconds, we monitor the artifact via useVoiceMemos hook
   const monitorProcessingStatus = (artifactId: string) => {
     const maxWaitTime = 180000; // 3 minutes max wait
-    const startTime = Date.now();
     let timeoutId: NodeJS.Timeout | null = null;
     
     // Set up timeout as fallback

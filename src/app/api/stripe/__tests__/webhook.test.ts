@@ -27,8 +27,21 @@ const mockEnv = {
   STRIPE_WEBHOOK_SECRET: 'whsec_test123',
 };
 
+type MockStripe = {
+  webhooks: {
+    constructEvent: ReturnType<typeof vi.fn>;
+  };
+};
+
 describe('/api/stripe/webhook', () => {
-  let mockSupabaseClient: any;
+  let mockSupabaseClient: {
+    from: (table: string) => {
+      select?: () => { eq: () => { single: () => Promise<{ data: unknown; error: unknown }> } };
+      insert?: () => { select?: () => { single: () => Promise<{ data: unknown; error: unknown }> } };
+      update?: () => { eq: () => Promise<{ error: unknown }> };
+      delete?: () => { eq: () => Promise<{ error: unknown }> };
+    };
+  };
   
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -73,7 +86,7 @@ describe('/api/stripe/webhook', () => {
           }),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
         method: 'POST',
@@ -108,7 +121,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
         method: 'POST',
@@ -152,7 +165,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       // Mock no existing user found
       mockSupabaseClient.from.mockReturnValue({
@@ -211,7 +224,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       // Mock existing user found
       const mockUsersQuery = {
@@ -287,7 +300,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const mockSubscriptionsQuery = {
         insert: vi.fn().mockResolvedValue({ error: null }),
@@ -341,7 +354,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const mockSubscriptionsQuery = {
         update: vi.fn(() => ({
@@ -390,7 +403,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const mockSubscriptionsQuery = {
         update: vi.fn(() => ({
@@ -436,7 +449,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const mockSubscriptionsQuery = {
         update: vi.fn(() => ({
@@ -482,7 +495,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const mockSubscriptionsQuery = {
         update: vi.fn(() => ({
@@ -536,7 +549,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       // Simulate database error
       mockSupabaseClient.from.mockImplementation(() => ({
@@ -574,7 +587,7 @@ describe('/api/stripe/webhook', () => {
           constructEvent: vi.fn().mockReturnValue(mockEvent),
         },
       };
-      vi.mocked(getServerStripe).mockReturnValue(mockStripe as any);
+      vi.mocked(getServerStripe).mockReturnValue(mockStripe as MockStripe);
 
       const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
         method: 'POST',

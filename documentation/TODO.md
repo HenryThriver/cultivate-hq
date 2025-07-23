@@ -129,6 +129,38 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - **Impact**: High priority for production operations
   - **Implementation**: Set up monitoring with alerts for critical metrics
 
+## 🧪 E2E Testing Improvements (Priority 2)
+
+*Identified during Claude AI code review of comprehensive E2E testing infrastructure (PR #10)*
+
+### Test Reliability Enhancements
+- [ ] **Data-testid Attributes for Reliable Selectors**
+  - **Current**: Using complex regex selectors like `/add.*pog|new.*pog|\+.*pog/i`
+  - **Improvement**: Add `data-testid` attributes to critical UI elements
+  - **Impact**: Medium priority - reduces test flakiness and improves maintainability
+  - **Implementation**: Add testids to buttons, forms, and key interactive elements
+  - **Files**: All dashboard components (contacts, sessions, loops, onboarding)
+
+- [ ] **Auth Token Format Verification** 
+  - **Current**: Mock auth format may not match actual Supabase token structure
+  - **Improvement**: Verify test auth tokens match real Supabase implementation
+  - **Impact**: Medium priority - prevents auth-related test failures
+  - **Implementation**: Compare mock tokens in `test-utils.ts` with actual Supabase auth
+  - **Location**: `/e2e/test-utils.ts:109` - `mockAuthenticatedUser()` method
+
+### Future Testing Enhancements
+- [ ] **Performance Regression Detection**
+  - Add baseline metrics for load time assertions
+  - Implement automated performance benchmarking in CI/CD
+  
+- [ ] **Visual Regression Testing**
+  - Add screenshot comparison for mobile layouts
+  - Implement accessibility testing with Playwright accessibility features
+
+- [ ] **Test Data Factories**  
+  - Create reusable test data factories to reduce duplication
+  - Implement database seeding utilities for consistent test state
+
 ## 🔥 High Priority (Post-Consolidation)
 
 ### Calendar Sync RLS Issues

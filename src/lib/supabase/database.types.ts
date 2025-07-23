@@ -154,8 +154,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "artifacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
             foreignKeyName: "artifacts_initiator_contact_id_fkey"
             columns: ["initiator_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_initiator_contact_id_fkey"
+            columns: ["initiator_contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
+            foreignKeyName: "artifacts_recipient_contact_id_fkey"
+            columns: ["recipient_contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
@@ -164,8 +185,8 @@ export type Database = {
             foreignKeyName: "artifacts_recipient_contact_id_fkey"
             columns: ["recipient_contact_id"]
             isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -247,6 +268,13 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contact_emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
         ]
       }
       contact_specific_sync_jobs: {
@@ -290,6 +318,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_specific_sync_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -360,12 +395,18 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contact_update_suggestions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
         ]
       }
       contacts: {
         Row: {
           added_via_session_id: string | null
-          challenge_feature_mappings: Json | null
           company: string | null
           connection_cadence_days: number | null
           created_at: string
@@ -373,13 +414,8 @@ export type Database = {
           email_addresses: string[] | null
           field_sources: Json | null
           gmail_labels: string[] | null
-          goal_description: string | null
-          goal_success_criteria: string | null
-          goal_timeline: string | null
           id: string
-          introduction_opportunities: string[] | null
           is_self_contact: boolean | null
-          knowledge_to_share: string[] | null
           last_interaction_date: string | null
           linkedin_analysis_completed_at: string | null
           linkedin_data: Json | null
@@ -388,28 +424,16 @@ export type Database = {
           linkedin_url: string
           location: string | null
           name: string | null
-          networking_challenges: string[] | null
           notes: string | null
-          onboarding_completed_at: string | null
-          onboarding_voice_memo_ids: string[] | null
           personal_context: Json | null
-          primary_goal: string | null
           professional_context: Json | null
-          profile_completion_score: number | null
-          profile_picture: string | null
           relationship_score: number | null
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          subscription_plan: string | null
-          subscription_status: string | null
           title: string | null
           updated_at: string
           user_id: string
-          ways_to_help_others: string[] | null
         }
         Insert: {
           added_via_session_id?: string | null
-          challenge_feature_mappings?: Json | null
           company?: string | null
           connection_cadence_days?: number | null
           created_at?: string
@@ -417,13 +441,8 @@ export type Database = {
           email_addresses?: string[] | null
           field_sources?: Json | null
           gmail_labels?: string[] | null
-          goal_description?: string | null
-          goal_success_criteria?: string | null
-          goal_timeline?: string | null
           id?: string
-          introduction_opportunities?: string[] | null
           is_self_contact?: boolean | null
-          knowledge_to_share?: string[] | null
           last_interaction_date?: string | null
           linkedin_analysis_completed_at?: string | null
           linkedin_data?: Json | null
@@ -432,28 +451,16 @@ export type Database = {
           linkedin_url: string
           location?: string | null
           name?: string | null
-          networking_challenges?: string[] | null
           notes?: string | null
-          onboarding_completed_at?: string | null
-          onboarding_voice_memo_ids?: string[] | null
           personal_context?: Json | null
-          primary_goal?: string | null
           professional_context?: Json | null
-          profile_completion_score?: number | null
-          profile_picture?: string | null
           relationship_score?: number | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
-          ways_to_help_others?: string[] | null
         }
         Update: {
           added_via_session_id?: string | null
-          challenge_feature_mappings?: Json | null
           company?: string | null
           connection_cadence_days?: number | null
           created_at?: string
@@ -461,13 +468,8 @@ export type Database = {
           email_addresses?: string[] | null
           field_sources?: Json | null
           gmail_labels?: string[] | null
-          goal_description?: string | null
-          goal_success_criteria?: string | null
-          goal_timeline?: string | null
           id?: string
-          introduction_opportunities?: string[] | null
           is_self_contact?: boolean | null
-          knowledge_to_share?: string[] | null
           last_interaction_date?: string | null
           linkedin_analysis_completed_at?: string | null
           linkedin_data?: Json | null
@@ -476,24 +478,13 @@ export type Database = {
           linkedin_url?: string
           location?: string | null
           name?: string | null
-          networking_challenges?: string[] | null
           notes?: string | null
-          onboarding_completed_at?: string | null
-          onboarding_voice_memo_ids?: string[] | null
           personal_context?: Json | null
-          primary_goal?: string | null
           professional_context?: Json | null
-          profile_completion_score?: number | null
-          profile_picture?: string | null
           relationship_score?: number | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
-          ways_to_help_others?: string[] | null
         }
         Relationships: [
           {
@@ -567,6 +558,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sync_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -662,6 +660,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
           {
             foreignKeyName: "goal_contacts_goal_id_fkey"
@@ -845,6 +850,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "loop_analytics_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
             foreignKeyName: "loop_analytics_loop_artifact_id_fkey"
             columns: ["loop_artifact_id"]
             isOneToOne: false
@@ -894,6 +906,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_suggestions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
           {
             foreignKeyName: "loop_suggestions_created_loop_id_fkey"
@@ -1006,6 +1025,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "next_connections_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
           },
         ]
       }
@@ -1221,6 +1247,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "session_actions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+          {
             foreignKeyName: "session_actions_goal_id_fkey"
             columns: ["goal_id"]
             isOneToOne: false
@@ -1384,6 +1417,87 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          challenge_feature_mappings: Json | null
+          created_at: string
+          email: string
+          goal_description: string | null
+          goal_success_criteria: string | null
+          goal_timeline: string | null
+          id: string
+          introduction_opportunities: string[] | null
+          knowledge_to_share: string[] | null
+          name: string | null
+          networking_challenges: string[] | null
+          onboarding_completed_at: string | null
+          onboarding_voice_memo_ids: string[] | null
+          primary_goal: string | null
+          profile_completion_score: number | null
+          profile_picture: string | null
+          self_contact_id: string | null
+          updated_at: string
+          ways_to_help_others: string[] | null
+        }
+        Insert: {
+          challenge_feature_mappings?: Json | null
+          created_at?: string
+          email: string
+          goal_description?: string | null
+          goal_success_criteria?: string | null
+          goal_timeline?: string | null
+          id: string
+          introduction_opportunities?: string[] | null
+          knowledge_to_share?: string[] | null
+          name?: string | null
+          networking_challenges?: string[] | null
+          onboarding_completed_at?: string | null
+          onboarding_voice_memo_ids?: string[] | null
+          primary_goal?: string | null
+          profile_completion_score?: number | null
+          profile_picture?: string | null
+          self_contact_id?: string | null
+          updated_at?: string
+          ways_to_help_others?: string[] | null
+        }
+        Update: {
+          challenge_feature_mappings?: Json | null
+          created_at?: string
+          email?: string
+          goal_description?: string | null
+          goal_success_criteria?: string | null
+          goal_timeline?: string | null
+          id?: string
+          introduction_opportunities?: string[] | null
+          knowledge_to_share?: string[] | null
+          name?: string | null
+          networking_challenges?: string[] | null
+          onboarding_completed_at?: string | null
+          onboarding_voice_memo_ids?: string[] | null
+          primary_goal?: string | null
+          profile_completion_score?: number | null
+          profile_picture?: string | null
+          self_contact_id?: string | null
+          updated_at?: string
+          ways_to_help_others?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_self_contact_id_fkey"
+            columns: ["self_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_self_contact_id_fkey"
+            columns: ["self_contact_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["contact_id"]
+          },
+        ]
+      }
     }
     Views: {
       profiles: {
@@ -1397,25 +1511,41 @@ export type Database = {
           subscription_status: string | null
           updated_at: string | null
         }
-        Insert: {
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_plan?: string | null
-          subscription_status?: string | null
-          updated_at?: string | null
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          challenge_feature_mappings: Json | null
+          company: string | null
+          connection_cadence_days: number | null
+          contact_id: string | null
+          contact_name: string | null
+          contact_notes: string | null
+          email: string | null
+          goal_description: string | null
+          goal_success_criteria: string | null
+          goal_timeline: string | null
+          introduction_opportunities: string[] | null
+          knowledge_to_share: string[] | null
+          last_interaction_date: string | null
+          linkedin_analysis_completed_at: string | null
+          linkedin_data: Json | null
+          linkedin_url: string | null
+          location: string | null
+          networking_challenges: string[] | null
+          onboarding_completed_at: string | null
+          personal_context: Json | null
+          primary_goal: string | null
+          professional_context: Json | null
+          profile_completion_score: number | null
+          profile_picture: string | null
+          relationship_score: number | null
+          title: string | null
+          user_created_at: string | null
+          user_id: string | null
+          user_name: string | null
+          user_updated_at: string | null
+          ways_to_help_others: string[] | null
         }
         Relationships: []
       }
@@ -1499,6 +1629,310 @@ export type Database = {
         | "milestone"
         | "voice_memo"
         | "loop"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  storage: {
+    Tables: {
+      buckets: {
+        Row: {
+          allowed_mime_types: string[] | null
+          avif_autodetection: boolean | null
+          created_at: string | null
+          file_size_limit: number | null
+          id: string
+          name: string
+          owner: string | null
+          owner_id: string | null
+          public: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id: string
+          name: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id?: string
+          name?: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      migrations: {
+        Row: {
+          executed_at: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Insert: {
+          executed_at?: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Update: {
+          executed_at?: string | null
+          hash?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      objects: {
+        Row: {
+          bucket_id: string | null
+          created_at: string | null
+          id: string
+          last_accessed_at: string | null
+          metadata: Json | null
+          name: string | null
+          owner: string | null
+          owner_id: string | null
+          path_tokens: string[] | null
+          updated_at: string | null
+          user_metadata: Json | null
+          version: string | null
+        }
+        Insert: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Update: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          id: string
+          in_progress_size: number
+          key: string
+          owner_id: string | null
+          upload_signature: string
+          user_metadata: Json | null
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          id: string
+          in_progress_size?: number
+          key: string
+          owner_id?: string | null
+          upload_signature: string
+          user_metadata?: Json | null
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          id?: string
+          in_progress_size?: number
+          key?: string
+          owner_id?: string | null
+          upload_signature?: string
+          user_metadata?: Json | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads_parts: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          etag: string
+          id: string
+          key: string
+          owner_id: string | null
+          part_number: number
+          size: number
+          upload_id: string
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          etag: string
+          id?: string
+          key: string
+          owner_id?: string | null
+          part_number: number
+          size?: number
+          upload_id: string
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          etag?: string
+          id?: string
+          key?: string
+          owner_id?: string | null
+          part_number?: number
+          size?: number
+          upload_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "s3_multipart_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      can_insert_object: {
+        Args: { bucketid: string; name: string; owner: string; metadata: Json }
+        Returns: undefined
+      }
+      extension: {
+        Args: { name: string }
+        Returns: string
+      }
+      filename: {
+        Args: { name: string }
+        Returns: string
+      }
+      foldername: {
+        Args: { name: string }
+        Returns: string[]
+      }
+      get_size_by_bucket: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          size: number
+          bucket_id: string
+        }[]
+      }
+      list_multipart_uploads_with_delimiter: {
+        Args: {
+          bucket_id: string
+          prefix_param: string
+          delimiter_param: string
+          max_keys?: number
+          next_key_token?: string
+          next_upload_token?: string
+        }
+        Returns: {
+          key: string
+          id: string
+          created_at: string
+        }[]
+      }
+      list_objects_with_delimiter: {
+        Args: {
+          bucket_id: string
+          prefix_param: string
+          delimiter_param: string
+          max_keys?: number
+          start_after?: string
+          next_token?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          metadata: Json
+          updated_at: string
+        }[]
+      }
+      operation: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      search: {
+        Args: {
+          prefix: string
+          bucketname: string
+          limits?: number
+          levels?: number
+          offsets?: number
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
+        }[]
+      }
+    }
+    Enums: {
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1646,5 +2080,8 @@ export const Constants = {
         "loop",
       ],
     },
+  },
+  storage: {
+    Enums: {},
   },
 } as const

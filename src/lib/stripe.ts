@@ -1,5 +1,4 @@
 import { loadStripe, Stripe } from '@stripe/stripe-js';
-import StripeServer from 'stripe';
 
 // Initialize Stripe client-side
 let stripePromise: Promise<Stripe | null> | null = null;
@@ -11,10 +10,8 @@ export const getStripe = () => {
   return stripePromise;
 };
 
-// Initialize Stripe server-side
-export const stripe = new StripeServer(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil',
-});
+// Note: Server-side Stripe has been moved to stripe-server.ts
+// to avoid client-side bundle issues
 
 // Price configurations
 export const PRICE_CONFIG = {

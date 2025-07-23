@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, PRICE_CONFIG, PRODUCT_CONFIG } from '@/lib/stripe';
+import { getServerStripe } from '@/lib/stripe-server';
+import { PRICE_CONFIG, PRODUCT_CONFIG } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
+import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
     const { priceType, userId } = await request.json();
 
-    if (!priceType || !userId) {
+    if (!priceType) {
       return NextResponse.json(
-        { error: 'Missing required parameters' },
+        { error: 'Missing priceType parameter' },
         { status: 400 }
       );
     }
@@ -21,25 +23,29 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    let userData = null;
     
-    // Get user data
-    const { data: userData, error: userError } = await supabase
-      .from('profiles')
-      .select('email, full_name')
-      .eq('id', userId)
-      .single();
+    // Get user data if userId is provided (authenticated user)
+    if (userId) {
+      const { data, error: userError } = await supabase
+        .from('users')
+        .select('email, name')
+        .eq('id', userId)
+        .single();
 
-    if (userError || !userData) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        // Continue without user data for unauthenticated checkout
+      } else {
+        userData = { email: data.email, full_name: data.name };
+      }
     }
 
     const priceConfig = PRICE_CONFIG[priceType as keyof typeof PRICE_CONFIG];
+    const stripe = getServerStripe();
     
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ['card'],
       line_items: [
         {
@@ -61,22 +67,34 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
-      customer_email: userData.email || undefined,
+      success_url: `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
       metadata: {
-        userId: userId,
         priceType: priceType,
         planName: `${PRODUCT_CONFIG.name} - ${priceType}`,
       },
       subscription_data: {
         metadata: {
-          userId: userId,
           priceType: priceType,
         },
       },
       allow_promotion_codes: true,
-    });
+    };
+
+    // Add customer info if user is authenticated
+    if (userData?.email) {
+      sessionConfig.customer_email = userData.email;
+      if (sessionConfig.metadata) {
+        sessionConfig.metadata.userId = userId;
+      }
+      if (sessionConfig.subscription_data?.metadata) {
+        sessionConfig.subscription_data.metadata.userId = userId;
+      }
+    }
+    // Note: For unauthenticated users, Stripe will automatically collect email
+    // during subscription checkout - no need for customer_creation in subscription mode
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return NextResponse.json({ sessionId: session.id });
   } catch (error) {

@@ -186,6 +186,9 @@ describe('useFeatureFlag', () => {
   });
 
   it('should handle database errors gracefully', async () => {
+    // Suppress console.error for this test since we're testing error handling
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    
     mockUseAuth.mockReturnValue({ user: mockUser } as ReturnType<typeof useAuth>);
 
     const error = new Error('Database connection failed');
@@ -212,6 +215,9 @@ describe('useFeatureFlag', () => {
 
     expect(result.current.enabled).toBe(false);
     expect(result.current.error).toBe('Database connection failed');
+    
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
   });
 
   it('should use cache on subsequent calls', async () => {

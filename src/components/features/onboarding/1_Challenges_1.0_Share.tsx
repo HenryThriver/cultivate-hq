@@ -7,30 +7,23 @@ import OnboardingVoiceRecorder from './OnboardingVoiceRecorder';
 import { PremiumCard } from '@/components/ui/premium';
 import { ExecutiveLoading } from '@/components/ui/premium/LoadingStates';
 
-import { sleep } from './0_Welcome_Components/utils/animationSequence';
-
 interface SelectedStruggle {
   icon: string;
   text: string;
   color: string;
 }
 
-export default function ChallengesScreen() {
-  // const theme = useTheme();
-  // const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+interface ChallengesScreenProps {
+  skipAnimations?: boolean; // For testing purposes
+}
+
+export default function ChallengesScreen({ skipAnimations = false }: ChallengesScreenProps) {
   const { nextScreen, completeScreen, currentScreen, isNavigating, updateState } = useOnboardingState();
   
-  // Animation orchestration states - renamed for clarity
-  const [showHonestLine, setShowHonestLine] = useState(false); // "Let's be honest about networking -"
-  const [showHateLine, setShowHateLine] = useState(false); // "most people hate it."
-  const [showSuckLine, setShowSuckLine] = useState(false); // "Or suck at it."
-  const [showBothLine, setShowBothLine] = useState(false); // "Or both."
-  const [fadeOutHeader, setFadeOutHeader] = useState(false); // Fade out the header after impact
-  const [showSubtitle, setShowSubtitle] = useState(false); // Question subtitle
-  const [showRecorder, setShowRecorder] = useState(false);
-  const [showExamples, setShowExamples] = useState(false); // Examples below recorder
-  const [showSkipButton, setShowSkipButton] = useState(false);
-  const [sequenceStarted, setSequenceStarted] = useState(false);
+  // Simplified animation state
+  const [animationPhase, setAnimationPhase] = useState<'header' | 'subtitle' | 'recorder' | 'examples' | 'complete'>(
+    skipAnimations ? 'complete' : 'header'
+  );
   
   // Processing states
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,77 +63,33 @@ export default function ChallengesScreen() {
     }
   ];
 
-  // Responsive timing adjustments (kept for potential future use)
-  /* const timing = isMobile ? {
-    opener: 300,
-    reality: 1000,
-    examples: 1200,
-    validation: 1000,
-    recorder: 800,
-    skipButton: 2000
-  } : {
-    opener: 500,
-    reality: 1500,
-    examples: 1500,
-    validation: 1500,
-    recorder: 1500,
-    skipButton: 2000
-  }; */
-
   useEffect(() => {
-    if (sequenceStarted) return;
-    
-    const orchestrateSequence = async () => {
-      setSequenceStarted(true);
-      
-      try {
-        // === HEADER TEXT FADE-IN SEQUENCE ===
-        await sleep(1000);
-        setShowHonestLine(true); // "Let's be honest about networking -"
-        
-        await sleep(3000);
-        setShowHateLine(true); // "most people hate it."
-        
-        await sleep(2200);
-        setShowSuckLine(true); // "Or suck at it."
-        
-        await sleep(3300);
-        setShowBothLine(true); // "Or both."
-        
-        // === HEADER IMPACT MOMENT ===
-        await sleep(3000); // Let "Or both" have its moment
-        
-        // === HEADER FADE-OUT (IN PLACE) ===
-        setFadeOutHeader(true); // Fade out header where it is, no drift
-        
-        // === SUBTITLE FADE-IN AND DRIFT SEQUENCE ===
-        await sleep(1000); // Let header fade out
-        setShowSubtitle(true); // H2 subtitle fades in at same 35% position
-        
-        await sleep(1500); // Let subtitle fade in
-        
-        await sleep(1400); // Brief drift animation
-        setShowRecorder(true); // Show voice recorder underneath
-        setShowSkipButton(true); // Show skip button with the card
-        
-        await sleep(600); // Brief pause
-        setShowExamples(true); // Show examples underneath recorder
-        
-      } catch (error) {
-        console.error('Error in challenges sequence:', error);
-        // Fallback: show recorder to allow progression
-        setShowRecorder(true);
-        setShowSkipButton(true);
-      }
+    if (skipAnimations) {
+      return;
+    }
+
+    // Simple CSS-driven animation sequence
+    const sequence = [
+      { phase: 'header', delay: 0 },
+      { phase: 'subtitle', delay: 4000 },
+      { phase: 'recorder', delay: 6000 },
+      { phase: 'examples', delay: 7000 },
+      { phase: 'complete', delay: 8000 }
+    ] as const;
+
+    const timeouts: NodeJS.Timeout[] = [];
+
+    sequence.forEach(({ phase, delay }) => {
+      const timeout = setTimeout(() => {
+        setAnimationPhase(phase);
+      }, delay);
+      timeouts.push(timeout);
+    });
+
+    return () => {
+      timeouts.forEach(clearTimeout);
     };
-
-    // Start sequence after brief delay
-    const timeoutId = setTimeout(orchestrateSequence, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, [sequenceStarted]); // timing is stable, doesn't need to be in dependencies
-
-
+  }, [skipAnimations]);
 
   const handleRecordingComplete = async (audioFile: File) => {
     setIsProcessing(true);
@@ -165,21 +114,11 @@ export default function ChallengesScreen() {
 
       const result = await response.json();
       
-      console.log('ChallengesScreen - Voice memo upload result:', result);
-      
       if (result.success) {
-        console.log('ChallengesScreen - Updating onboarding state with artifact ID:', result.artifact_id);
-        
         // Update onboarding state with the voice memo ID
-        try {
-          await updateState({
-            challenge_voice_memo_id: result.artifact_id
-          });
-          console.log('ChallengesScreen - Onboarding state updated successfully');
-        } catch (updateError) {
-          console.error('ChallengesScreen - Failed to update onboarding state:', updateError);
-          throw new Error('Failed to save voice memo reference');
-        }
+        await updateState({
+          challenge_voice_memo_id: result.artifact_id
+        });
         
         // Mark this screen as complete
         await completeScreen(currentScreen);
@@ -212,24 +151,6 @@ export default function ChallengesScreen() {
 
   const isLoading = isNavigating || isProcessing;
 
-  // Shared styling patterns from welcome screen
-  // const sharedStyles = {
-  //   gradientText: {
-  //     background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 50%, #1976D2 100%)',
-  //     backgroundClip: 'text',
-  //     WebkitBackgroundClip: 'text',
-  //     color: 'transparent'
-  //   },
-  //   
-  //   smoothTransition: 'all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-  //   
-  //   glassmorphism: {
-  //     background: 'rgba(255, 255, 255, 0.95)',
-  //     backdropFilter: 'blur(20px)',
-  //     border: '1px solid rgba(255, 255, 255, 0.2)'
-  //   }
-  // };
-
   return (
     <>
       {/* Main content container */}
@@ -239,17 +160,14 @@ export default function ChallengesScreen() {
       }}>
         <Box sx={{ maxWidth: 800, mx: 'auto' }}>
           
-          {/* Header Messages Area - Consistent position for all messages */}
+          {/* Header Messages Area */}
           <Box sx={{ 
             textAlign: 'center',
             mb: 4,
-            minHeight: 160, // Reserve space for header animation
-            opacity: fadeOutHeader ? 0 : 1,
-            transition: 'opacity 1s ease-out'
+            minHeight: 160,
           }}>
           
-          {/* Bold Statement Header (H1) */}
-          {showHonestLine && (
+            {/* Main Statement */}
             <Typography 
               variant="h1"
               sx={{ 
@@ -259,39 +177,15 @@ export default function ChallengesScreen() {
                 fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' },
                 lineHeight: 1.2,
                 mb: 2,
-                opacity: 0,
-                transform: 'translateY(0px)',
-                animation: 'dramatic-fade-in 1s ease-out forwards',
-                transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                ...(showHateLine && {
-                  transform: 'translateY(-8px)'
-                }),
-                ...(showSuckLine && {
-                  transform: 'translateY(-12px)'
-                }),
-                ...(showBothLine && {
-                  transform: 'translateY(-16px)'
-                }),
-                '@keyframes dramatic-fade-in': {
-                  '0%': { opacity: 0, transform: 'translateY(15px)' },
-                  '100%': { opacity: 1, transform: 'translateY(0px)' }
-                },
-                '@keyframes reality-fade-in': {
-                  '0%': { opacity: 0 },
-                  '100%': { opacity: 1 }
-                },
-                '@keyframes examples-fade-in': {
-                  '0%': { opacity: 0 },
-                  '100%': { opacity: 1 }
-                }
+                opacity: (animationPhase >= 'header' || skipAnimations) ? 1 : 0,
+                transform: (animationPhase >= 'header' || skipAnimations) ? 'translateY(0)' : 'translateY(20px)',
+                transition: skipAnimations ? 'none' : 'all 1s ease-out',
               }}
             >
               <span>Most relationship building feels like speed dating in business casual.</span>
             </Typography>
-          )}
 
-          {/* "Or both." as separate punch line */}
-          {showBothLine && (
+            {/* Punch line */}
             <Typography 
               variant="h1"
               sx={{ 
@@ -300,72 +194,47 @@ export default function ChallengesScreen() {
                 color: '#1a1a1a',
                 fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' },
                 lineHeight: 1.2,
-                opacity: 0,
-                animation: 'dramatic-fade-in 1s ease-out forwards',
-                '@keyframes dramatic-fade-in': {
-                  '0%': { opacity: 0, transform: 'translateY(15px)' },
-                  '100%': { opacity: 1, transform: 'translateY(0px)' }
-                }
+                opacity: (animationPhase >= 'header' || skipAnimations) ? 1 : 0,
+                transform: (animationPhase >= 'header' || skipAnimations) ? 'translateY(0)' : 'translateY(20px)',
+                transition: skipAnimations ? 'none' : 'all 1s ease-out 0.5s',
               }}
             >
               You deserve better.
             </Typography>
-          )}
           </Box>
 
           {/* Subtitle Section */}
-          {showSubtitle && (
-            <Box sx={{ 
-              textAlign: 'center',
-              mb: 4,
-              opacity: 0,
-              animation: 'subtitle-fade-in 1s ease-out forwards',
-              '@keyframes subtitle-fade-in': {
-                '0%': { 
-                  opacity: 0,
-                  transform: 'translateY(20px)'
-                },
-                '100%': { 
-                  opacity: 1,
-                  transform: 'translateY(0)'
-                }
-              }
-            }}>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontWeight: 400,
-                  lineHeight: 1.4,
-                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                  color: 'text.secondary'
-                }}
-              >
-                What creates friction in your relationship building? (Be specific—vague challenges get vague solutions.)
-              </Typography>
-            </Box>
-          )}
+          <Box sx={{ 
+            textAlign: 'center',
+            mb: 4,
+            opacity: (animationPhase >= 'subtitle' || skipAnimations) ? 1 : 0,
+            transform: (animationPhase >= 'subtitle' || skipAnimations) ? 'translateY(0)' : 'translateY(20px)',
+            transition: skipAnimations ? 'none' : 'all 1s ease-out',
+          }}>
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: 400,
+                lineHeight: 1.4,
+                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+                color: 'text.secondary'
+              }}
+            >
+              What creates friction in your relationship building? (Be specific—vague challenges get vague solutions.)
+            </Typography>
+          </Box>
 
           {/* Voice Recorder Section */}
-          {showRecorder && (
-            <Box sx={{ 
-              opacity: 0,
-              animation: 'content-fade-in 1s ease-out forwards',
-              '@keyframes content-fade-in': {
-                '0%': { 
-                  opacity: 0,
-                  transform: 'translateY(20px)'
-                },
-                '100%': { 
-                  opacity: 1,
-                  transform: 'translateY(0)'
-                }
-              }
-            }}>
+          <Box sx={{ 
+            opacity: (animationPhase >= 'recorder' || skipAnimations) ? 1 : 0,
+            transform: (animationPhase >= 'recorder' || skipAnimations) ? 'translateY(0)' : 'translateY(20px)',
+            transition: skipAnimations ? 'none' : 'all 1s ease-out',
+          }}>
 
-              {/* Voice recorder */}
-              <Box sx={{ 
-                mb: 4
-              }}>
+            {/* Voice recorder */}
+            <Box sx={{ 
+              mb: 4
+            }}>
               <PremiumCard accent="sage">
                 <Box sx={{ textAlign: 'center', mb: 3 }}>
                   <Typography variant="h5" sx={{ fontWeight: 500, color: '#1a1a1a', mb: 2 }}>
@@ -377,114 +246,104 @@ export default function ChallengesScreen() {
                   </Typography>
                 </Box>
 
-                  {/* Error Alert */}
-                  {error && (
-                    <Alert severity="error" sx={{ mb: 3 }}>
-                      {error}
-                    </Alert>
-                  )}
+                {/* Error Alert */}
+                {error && (
+                  <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                  </Alert>
+                )}
 
-                  <OnboardingVoiceRecorder
-                    memoType="challenge"
-                    onRecordingComplete={handleRecordingComplete}
-                    title=""
-                    description=""
-                    isProcessing={isProcessing}
-                    disabled={isLoading}
-                  />
-                  
-                  {/* Skip option as subdued text link underneath */}
-                  {showSkipButton && (
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      mt: 2
-                    }}>
-                      <Button
-                        variant="text"
-                        onClick={handleSkip}
-                        disabled={isLoading}
-                        sx={{ 
-                          color: 'text.secondary',
-                          textTransform: 'none',
-                          fontSize: '0.8rem',
-                          fontWeight: 400,
-                          minHeight: 'auto',
-                          p: 1,
-                          '&:hover': {
-                            backgroundColor: 'transparent',
-                            textDecoration: 'underline'
-                          }
-                        }}
-                      >
-                        I prefer to proceed without sharing
-                      </Button>
-                    </Box>
-                  )}
-                </PremiumCard>
-            </Box>
-
-              {/* Examples section */}
-              {showExamples && (
-                <Box>
+                <OnboardingVoiceRecorder
+                  memoType="challenge"
+                  onRecordingComplete={handleRecordingComplete}
+                  title=""
+                  description=""
+                  isProcessing={isProcessing}
+                  disabled={isLoading}
+                />
+                
+                {/* Skip option as subdued text link underneath */}
                 <Box sx={{ 
-                  p: 3, 
-                  borderRadius: 3,
-                  backgroundColor: '#fafafa',
-                  border: '1px solid #f0f0f0'
+                  textAlign: 'center', 
+                  mt: 2
                 }}>
-                  <Typography 
-                    variant="h6" 
+                  <Button
+                    variant="text"
+                    onClick={handleSkip}
+                    disabled={isLoading}
                     sx={{ 
-                      textAlign: 'center',
-                      color: '#666',
-                      mb: 2,
-                      fontWeight: 500
+                      color: 'text.secondary',
+                      textTransform: 'none',
+                      fontSize: '0.8rem',
+                      fontWeight: 400,
+                      minHeight: 'auto',
+                      p: 1,
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        textDecoration: 'underline'
+                      }
                     }}
                   >
-                    You&apos;re not alone if you...
-                  </Typography>
-                  
-                  {selectedStruggles.map((struggle, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        mb: index < 5 ? 1.5 : 0,
-                        opacity: 0,
-                        animation: `example-cascade 0.6s ease-out ${index * 0.2}s forwards`,
-                        '@keyframes example-cascade': {
-                          '0%': { 
-                            opacity: 0,
-                            transform: 'translateX(-20px)'
-                          },
-                          '100%': { 
-                            opacity: 1,
-                            transform: 'translateX(0)'
-                          }
-                        }
+                    I prefer to proceed without sharing
+                  </Button>
+                </Box>
+              </PremiumCard>
+            </Box>
+
+            {/* Examples section */}
+            <Box sx={{
+              opacity: (animationPhase >= 'examples' || skipAnimations) ? 1 : 0,
+              transform: (animationPhase >= 'examples' || skipAnimations) ? 'translateY(0)' : 'translateY(20px)',
+              transition: skipAnimations ? 'none' : 'all 1s ease-out',
+            }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 3,
+                backgroundColor: '#fafafa',
+                border: '1px solid #f0f0f0'
+              }}>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    textAlign: 'center',
+                    color: '#666',
+                    mb: 2,
+                    fontWeight: 500
+                  }}
+                >
+                  You&apos;re not alone if you...
+                </Typography>
+                
+                {selectedStruggles.map((struggle, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      mb: index < 5 ? 1.5 : 0,
+                      opacity: (animationPhase >= 'examples' || skipAnimations) ? 1 : 0,
+                      transform: (animationPhase >= 'examples' || skipAnimations) ? 'translateX(0)' : 'translateX(-20px)',
+                      transition: skipAnimations ? 'none' : `all 0.6s ease-out ${index * 0.1}s`,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '1.2rem', minWidth: 24 }}>
+                      {struggle.icon}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        lineHeight: 1.5,
+                        color: '#555'
                       }}
                     >
-                      <Typography sx={{ fontSize: '1.2rem', minWidth: 24 }}>
-                        {struggle.icon}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          lineHeight: 1.5,
-                          color: '#555'
-                        }}
-                      >
-                        {struggle.text}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-                </Box>
-              )}
+                      {struggle.text}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
             </Box>
-          )}
+          </Box>
         </Box>
       </Box>
 
@@ -509,6 +368,7 @@ export default function ChallengesScreen() {
           </PremiumCard>
         </Box>
       )}
+
     </>
   );
-} 
+}

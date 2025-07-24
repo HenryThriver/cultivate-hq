@@ -5,7 +5,6 @@ import {
   Box,
   Container,
   Typography,
-  Grid,
   Card,
   CardContent,
   CardActionArea,
@@ -120,43 +119,56 @@ export default function AdminDashboardPage(): React.JSX.Element {
       </Paper>
 
       {/* Admin Options Grid */}
-      <Grid container spacing={3}>
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { 
+          xs: '1fr', 
+          sm: 'repeat(2, 1fr)', 
+          md: 'repeat(3, 1fr)' 
+        }, 
+        gap: 3 
+      }}>
         {adminOptions.map((option) => (
-          <Grid item xs={12} sm={6} md={4} key={option.title}>
-            <Card sx={{ height: '100%', transition: 'transform 0.2s' }}>
-              <CardActionArea 
-                onClick={() => router.push(option.href)}
-                sx={{ height: '100%', p: 3 }}
-              >
-                <CardContent sx={{ textAlign: 'center', height: '100%' }}>
-                  <Box sx={{ color: option.color, mb: 2 }}>
-                    {option.icon}
-                  </Box>
-                  <Typography variant="h6" component="div" gutterBottom>
-                    {option.title}
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ minHeight: '2.5em' }}
-                  >
-                    {option.description}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
+          <Card key={option.title} sx={{ height: '100%', transition: 'transform 0.2s' }}>
+            <CardActionArea 
+              onClick={() => router.push(option.href)}
+              sx={{ height: '100%', p: 3 }}
+            >
+              <CardContent sx={{ textAlign: 'center', height: '100%' }}>
+                <Box sx={{ color: option.color, mb: 2 }}>
+                  {option.icon}
+                </Box>
+                <Typography variant="h6" component="div" gutterBottom>
+                  {option.title}
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  sx={{ minHeight: '2.5em' }}
+                >
+                  {option.description}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       {/* Quick Stats Section */}
       <Box sx={{ mt: 6 }}>
         <Typography variant="h5" gutterBottom>
           Quick Stats
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { 
+            xs: '1fr', 
+            sm: 'repeat(2, 1fr)', 
+            md: 'repeat(4, 1fr)' 
+          }, 
+          gap: 3 
+        }}>
+          <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="primary" gutterBottom>
                   -
@@ -166,9 +178,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
+          <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="secondary" gutterBottom>
                   -
@@ -178,9 +188,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
+          <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="success.main" gutterBottom>
                   -
@@ -190,9 +198,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
+          <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="warning.main" gutterBottom>
                   -
@@ -202,8 +208,7 @@ export default function AdminDashboardPage(): React.JSX.Element {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+        </Box>
       </Box>
     </Container>
   );

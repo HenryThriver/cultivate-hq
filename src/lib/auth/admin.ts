@@ -126,12 +126,16 @@ export async function logAdminAction(
       p_user_agent: userAgent
     };
 
-    const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
+    // TODO: Uncomment when log_admin_action RPC function is created in database
+    // const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
+    // 
+    // if (rpcError) {
+    //   console.error('RPC error logging admin action:', rpcError);
+    //   throw rpcError;
+    // }
     
-    if (rpcError) {
-      console.error('RPC error logging admin action:', rpcError);
-      throw rpcError;
-    }
+    // Temporary: Log to console until RPC function is implemented
+    console.log('Admin action logged:', rpcParams);
   } catch (error) {
     console.error('Failed to log admin action:', error);
     // Don't throw - logging should not break the main operation

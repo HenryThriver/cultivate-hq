@@ -1,71 +1,28 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography, Button, useTheme, useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
 import { NetworkFormationBackground } from './0_Welcome_Components/NetworkFormationBackground';
 import { PreviewCardsContainer } from './0_Welcome_Components/PreviewCardsContainer';
 import { GoalCelebrationCard } from './0_Welcome_Components/cards/GoalCelebrationCard';
+import { TypewriterText } from './0_Welcome_Components/TypewriterText';
 
-
-// Typewriter Text Component
-const TypewriterText: React.FC<{ text: string; onComplete?: () => void; skipAnimation?: boolean }> = ({ 
-  text, 
-  onComplete, 
-  skipAnimation = false 
-}) => {
-  const [currentText, setCurrentText] = useState('');
-  const [showCursor, setShowCursor] = useState(true);
-
-  useEffect(() => {
-    if (skipAnimation) {
-      setCurrentText(text);
-      setShowCursor(false);
-      onComplete?.();
-      return;
-    }
-
-    let timeout: NodeJS.Timeout;
-    let index = 0;
-    
-    const typeChar = () => {
-      if (index < text.length) {
-        setCurrentText(text.slice(0, index + 1));
-        index++;
-        timeout = setTimeout(typeChar, 150);
-      } else {
-        setTimeout(() => {
-          setShowCursor(false);
-          onComplete?.();
-        }, 1000);
-      }
-    };
-
-    timeout = setTimeout(typeChar, 500);
-    return () => clearTimeout(timeout);
-  }, [text, onComplete, skipAnimation]);
-
-  return (
-    <Typography
-      variant="h2"
-      sx={{
-        fontWeight: 700,
-        letterSpacing: '-0.02em',
-        background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 50%, #1976D2 100%)',
-        backgroundClip: 'text',
-        WebkitBackgroundClip: 'text',
-        color: 'transparent',
-        fontSize: { xs: '2.5rem', sm: '3rem', md: '3.75rem' },
-        lineHeight: 1.1,
-        fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-      }}
-    >
-      {currentText}
-    </Typography>
-  );
-};
-
+// Animation timing constants
+const ANIMATION_TIMINGS = {
+  SEQUENCE_START: 1000, // Initial delay before typewriter starts
+  TYPEWRITER_CHAR_DELAY: 150, // Delay between each character
+  TYPEWRITER_CURSOR_DELAY: 1000, // How long cursor shows after typing
+  POST_TYPEWRITER_DELAY: 2500, // Delay after typewriter completes
+  FLOAT_TO_NETWORK_DELAY: 400, // Delay from float start to network appearance
+  NETWORK_TO_CARDS_DELAY: 600, // Delay from network to cards
+  CARDS_DISPLAY_DURATION: 8500, // How long cards are shown
+  CELEBRATION_TRANSITION_DELAY: 200, // Delay to show celebration card
+  CELEBRATION_DISPLAY_DURATION: 3000, // How long celebration card is shown
+  TAGLINE_TRANSITION_DELAY: 100, // Delay from celebration to tagline
+  TAGLINE_TO_BUTTON_DELAY: 1800, // Delay from tagline to button
+} as const;
 
 interface EnhancedWelcomeScreenProps {
   skipAnimations?: boolean; // For testing purposes
@@ -83,65 +40,89 @@ export const EnhancedWelcomeScreen: React.FC<EnhancedWelcomeScreenProps> = ({
   const [showNetwork, setShowNetwork] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const animationTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
+    
     if (skipAnimations) {
       // For testing: show all content immediately
-      setPhase('button');
-      setShowNetwork(true);
-      setShowCards(true);
-      setShowCelebration(true);
+      if (isMounted) {
+        setPhase('button');
+        setShowNetwork(true);
+        setShowCards(true);
+        setShowCelebration(true);
+      }
       return;
     }
     
     // Start the sequence - exact timing from original
-    const timer = setTimeout(() => setPhase('typewriter'), 1000);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      if (isMounted) setPhase('typewriter');
+    }, ANIMATION_TIMINGS.SEQUENCE_START);
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [skipAnimations]);
 
-  const handleTypewriterComplete = () => {
-    // Original timing: sleep(2500) after typewriter completes
-    setTimeout(() => {
+  // Cleanup all animation timeouts on unmount
+  useEffect(() => {
+    return () => {
+      animationTimeoutsRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
+  const handleTypewriterComplete = useCallback(() => {
+    const safeSetTimeout = (callback: () => void, delay: number) => {
+      const timeout = setTimeout(callback, delay);
+      animationTimeoutsRef.current.push(timeout);
+      return timeout;
+    };
+    
+    // Start animation sequence after typewriter completes
+    safeSetTimeout(() => {
       setPhase('float'); // Start floating the text up
       
-      // Original timing: sleep(400) then show network
-      setTimeout(() => {
+      // Show network background
+      safeSetTimeout(() => {
         setShowNetwork(true);
         
-        // Original timing: sleep(600) then show cards
-        setTimeout(() => {
+        // Show preview cards
+        safeSetTimeout(() => {
           setPhase('cards');
           setShowCards(true);
           
-          // Original timing: sleep(8500) then hide cards and show celebration
-          setTimeout(() => {
+          // Hide cards and transition to celebration
+          safeSetTimeout(() => {
             setShowCards(false);
             
-            // Show celebration card immediately
-            setTimeout(() => {
+            // Show celebration card
+            safeSetTimeout(() => {
               setPhase('celebration');
               setShowCelebration(true);
               
-              // Celebration card stays longer for emphasis (3 seconds)
-              setTimeout(() => {
+              // Hide celebration and show tagline
+              safeSetTimeout(() => {
                 setShowCelebration(false);
                 
-                // Tagline fades in behind celebration as it fades out
-                setTimeout(() => {
+                // Show tagline
+                safeSetTimeout(() => {
                   setPhase('tagline');
                   
-                  // Original timing: sleep(1800) then show button
-                  setTimeout(() => {
+                  // Show final CTA button
+                  safeSetTimeout(() => {
                     setPhase('button');
-                  }, 1800);
-                }, 100); // Very short delay so tagline appears as celebration fades
-              }, 3000);
-            }, 200);
-          }, 8500);
-        }, 600);
-      }, 400);
-    }, 2500);
-  };
+                  }, ANIMATION_TIMINGS.TAGLINE_TO_BUTTON_DELAY);
+                }, ANIMATION_TIMINGS.TAGLINE_TRANSITION_DELAY);
+              }, ANIMATION_TIMINGS.CELEBRATION_DISPLAY_DURATION);
+            }, ANIMATION_TIMINGS.CELEBRATION_TRANSITION_DELAY);
+          }, ANIMATION_TIMINGS.CARDS_DISPLAY_DURATION);
+        }, ANIMATION_TIMINGS.NETWORK_TO_CARDS_DELAY);
+      }, ANIMATION_TIMINGS.FLOAT_TO_NETWORK_DELAY);
+    }, ANIMATION_TIMINGS.POST_TYPEWRITER_DELAY);
+  }, []);
 
   const handleBeginClick = async () => {
     try {
@@ -209,6 +190,21 @@ export const EnhancedWelcomeScreen: React.FC<EnhancedWelcomeScreenProps> = ({
               text="Cultivate HQ"
               onComplete={handleTypewriterComplete}
               skipAnimation={skipAnimations}
+              speed={ANIMATION_TIMINGS.TYPEWRITER_CHAR_DELAY}
+              delay={500}
+              showCursor={false}
+              variant="h2"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 50%, #1976D2 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                fontSize: { xs: '2.5rem', sm: '3rem', md: '3.75rem' },
+                lineHeight: 1.1,
+                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+              }}
             />
           </Box>
         )}

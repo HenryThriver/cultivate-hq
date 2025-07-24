@@ -81,7 +81,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           scopes: 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.readonly',
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
+            // Remove prompt: 'consent' to allow returning users to sign in without re-authorization
+            // access_type: 'offline' is sufficient to get refresh tokens
           },
         },
       });

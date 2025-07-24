@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      prompt: 'consent',
+      // Remove prompt: 'consent' to allow returning users to sign in without re-authorization
+      // access_type: 'offline' is sufficient to get refresh tokens
       state: `${userId}|${source}`,
     });
 

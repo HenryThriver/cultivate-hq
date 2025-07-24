@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -39,6 +34,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_management_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artifact_processing_config: {
         Row: {
           artifact_type: string
@@ -80,19 +140,11 @@ export type Database = {
           created_at: string
           duration_seconds: number | null
           id: string
-          impact_score: number | null
-          initiator_contact_id: string | null
-          initiator_user_id: string | null
-          loop_status: string | null
           metadata: Json | null
-          recipient_contact_id: string | null
-          recipient_user_id: string | null
-          reciprocity_weight: number | null
           timestamp: string
           transcription: string | null
           transcription_status: string | null
           type: Database["public"]["Enums"]["artifact_type_enum"]
-          updated_at: string
           user_id: string
         }
         Insert: {
@@ -105,19 +157,11 @@ export type Database = {
           created_at?: string
           duration_seconds?: number | null
           id?: string
-          impact_score?: number | null
-          initiator_contact_id?: string | null
-          initiator_user_id?: string | null
-          loop_status?: string | null
           metadata?: Json | null
-          recipient_contact_id?: string | null
-          recipient_user_id?: string | null
-          reciprocity_weight?: number | null
           timestamp?: string
           transcription?: string | null
           transcription_status?: string | null
           type: Database["public"]["Enums"]["artifact_type_enum"]
-          updated_at?: string
           user_id: string
         }
         Update: {
@@ -130,19 +174,11 @@ export type Database = {
           created_at?: string
           duration_seconds?: number | null
           id?: string
-          impact_score?: number | null
-          initiator_contact_id?: string | null
-          initiator_user_id?: string | null
-          loop_status?: string | null
           metadata?: Json | null
-          recipient_contact_id?: string | null
-          recipient_user_id?: string | null
-          reciprocity_weight?: number | null
           timestamp?: string
           transcription?: string | null
           transcription_status?: string | null
           type?: Database["public"]["Enums"]["artifact_type_enum"]
-          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -156,34 +192,6 @@ export type Database = {
           {
             foreignKeyName: "artifacts_contact_id_fkey"
             columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["contact_id"]
-          },
-          {
-            foreignKeyName: "artifacts_initiator_contact_id_fkey"
-            columns: ["initiator_contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "artifacts_initiator_contact_id_fkey"
-            columns: ["initiator_contact_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["contact_id"]
-          },
-          {
-            foreignKeyName: "artifacts_recipient_contact_id_fkey"
-            columns: ["recipient_contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "artifacts_recipient_contact_id_fkey"
-            columns: ["recipient_contact_id"]
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["contact_id"]
@@ -421,7 +429,7 @@ export type Database = {
           linkedin_data: Json | null
           linkedin_posts_last_sync_at: string | null
           linkedin_posts_sync_status: string | null
-          linkedin_url: string
+          linkedin_url: string | null
           location: string | null
           name: string | null
           notes: string | null
@@ -448,7 +456,7 @@ export type Database = {
           linkedin_data?: Json | null
           linkedin_posts_last_sync_at?: string | null
           linkedin_posts_sync_status?: string | null
-          linkedin_url: string
+          linkedin_url?: string | null
           location?: string | null
           name?: string | null
           notes?: string | null
@@ -475,7 +483,7 @@ export type Database = {
           linkedin_data?: Json | null
           linkedin_posts_last_sync_at?: string | null
           linkedin_posts_sync_status?: string | null
-          linkedin_url?: string
+          linkedin_url?: string | null
           location?: string | null
           name?: string | null
           notes?: string | null
@@ -567,6 +575,33 @@ export type Database = {
             referencedColumns: ["contact_id"]
           },
         ]
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled_globally: boolean
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled_globally?: boolean
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled_globally?: boolean
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       gmail_sync_state: {
         Row: {
@@ -1348,6 +1383,69 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feature_overrides: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature_flag_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled: boolean
+          feature_flag_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature_flag_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feature_overrides_feature_flag_id_fkey"
+            columns: ["feature_flag_id"]
+            isOneToOne: false
+            referencedRelation: "feature_flags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_feature_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_feature_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_management_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_feature_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_feature_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_integrations: {
         Row: {
           access_token: string | null
@@ -1427,6 +1525,7 @@ export type Database = {
           goal_timeline: string | null
           id: string
           introduction_opportunities: string[] | null
+          is_admin: boolean
           knowledge_to_share: string[] | null
           name: string | null
           networking_challenges: string[] | null
@@ -1435,7 +1534,6 @@ export type Database = {
           primary_goal: string | null
           profile_completion_score: number | null
           profile_picture: string | null
-          self_contact_id: string | null
           updated_at: string
           ways_to_help_others: string[] | null
         }
@@ -1448,6 +1546,7 @@ export type Database = {
           goal_timeline?: string | null
           id: string
           introduction_opportunities?: string[] | null
+          is_admin?: boolean
           knowledge_to_share?: string[] | null
           name?: string | null
           networking_challenges?: string[] | null
@@ -1456,7 +1555,6 @@ export type Database = {
           primary_goal?: string | null
           profile_completion_score?: number | null
           profile_picture?: string | null
-          self_contact_id?: string | null
           updated_at?: string
           ways_to_help_others?: string[] | null
         }
@@ -1469,6 +1567,7 @@ export type Database = {
           goal_timeline?: string | null
           id?: string
           introduction_opportunities?: string[] | null
+          is_admin?: boolean
           knowledge_to_share?: string[] | null
           name?: string | null
           networking_challenges?: string[] | null
@@ -1477,26 +1576,10 @@ export type Database = {
           primary_goal?: string | null
           profile_completion_score?: number | null
           profile_picture?: string | null
-          self_contact_id?: string | null
           updated_at?: string
           ways_to_help_others?: string[] | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "users_self_contact_id_fkey"
-            columns: ["self_contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "users_self_contact_id_fkey"
-            columns: ["self_contact_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["contact_id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -1510,6 +1593,36 @@ export type Database = {
           subscription_plan: string | null
           subscription_status: string | null
           updated_at: string | null
+        }
+        Relationships: []
+      }
+      user_management_view: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          feature_override_count: number | null
+          full_name: string | null
+          id: string | null
+          is_admin: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          feature_override_count?: never
+          full_name?: string | null
+          id?: string | null
+          is_admin?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          feature_override_count?: never
+          full_name?: string | null
+          id?: string | null
+          is_admin?: boolean | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1528,12 +1641,12 @@ export type Database = {
           introduction_opportunities: string[] | null
           knowledge_to_share: string[] | null
           last_interaction_date: string | null
-          linkedin_analysis_completed_at: string | null
           linkedin_data: Json | null
           linkedin_url: string | null
           location: string | null
           networking_challenges: string[] | null
           onboarding_completed_at: string | null
+          onboarding_voice_memo_ids: string[] | null
           personal_context: Json | null
           primary_goal: string | null
           professional_context: Json | null
@@ -1585,6 +1698,10 @@ export type Database = {
           created_at: string
         }[]
       }
+      get_self_contact_id: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
       get_user_integration: {
         Args: { p_user_id: string; p_integration_type: string }
         Returns: {
@@ -1596,8 +1713,12 @@ export type Database = {
           metadata: Json
         }[]
       }
-      is_valid_user: {
-        Args: { p_user_id: string }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_feature_enabled_for_current_user: {
+        Args: { flag_name: string }
         Returns: boolean
       }
       upsert_user_integration: {
@@ -1623,10 +1744,9 @@ export type Database = {
         | "linkedin_post"
         | "file"
         | "other"
-        | "linkedin_profile"
         | "pog"
         | "ask"
-        | "milestone"
+        | "linkedin_profile"
         | "voice_memo"
         | "loop"
     }
@@ -1702,6 +1822,7 @@ export type Database = {
           created_at: string | null
           id: string
           last_accessed_at: string | null
+          level: number | null
           metadata: Json | null
           name: string | null
           owner: string | null
@@ -1716,6 +1837,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_accessed_at?: string | null
+          level?: number | null
           metadata?: Json | null
           name?: string | null
           owner?: string | null
@@ -1730,6 +1852,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_accessed_at?: string | null
+          level?: number | null
           metadata?: Json | null
           name?: string | null
           owner?: string | null
@@ -1742,6 +1865,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prefixes: {
+        Row: {
+          bucket_id: string
+          created_at: string | null
+          level: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string | null
+          level?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string | null
+          level?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prefixes_bucketId_fkey"
             columns: ["bucket_id"]
             isOneToOne: false
             referencedRelation: "buckets"
@@ -1852,9 +2007,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_prefixes: {
+        Args: { _bucket_id: string; _name: string }
+        Returns: undefined
+      }
       can_insert_object: {
         Args: { bucketid: string; name: string; owner: string; metadata: Json }
         Returns: undefined
+      }
+      delete_prefix: {
+        Args: { _bucket_id: string; _name: string }
+        Returns: boolean
       }
       extension: {
         Args: { name: string }
@@ -1865,6 +2028,18 @@ export type Database = {
         Returns: string
       }
       foldername: {
+        Args: { name: string }
+        Returns: string[]
+      }
+      get_level: {
+        Args: { name: string }
+        Returns: number
+      }
+      get_prefix: {
+        Args: { name: string }
+        Returns: string
+      }
+      get_prefixes: {
         Args: { name: string }
         Returns: string[]
       }
@@ -1930,6 +2105,63 @@ export type Database = {
           metadata: Json
         }[]
       }
+      search_legacy_v1: {
+        Args: {
+          prefix: string
+          bucketname: string
+          limits?: number
+          levels?: number
+          offsets?: number
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
+        }[]
+      }
+      search_v1_optimised: {
+        Args: {
+          prefix: string
+          bucketname: string
+          limits?: number
+          levels?: number
+          offsets?: number
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
+        }[]
+      }
+      search_v2: {
+        Args: {
+          prefix: string
+          bucket_name: string
+          limits?: number
+          levels?: number
+          start_after?: string
+        }
+        Returns: {
+          key: string
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          metadata: Json
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1940,25 +2172,21 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1976,16 +2204,14 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -2001,16 +2227,14 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -2026,16 +2250,14 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -2043,16 +2265,14 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
@@ -2072,10 +2292,9 @@ export const Constants = {
         "linkedin_post",
         "file",
         "other",
-        "linkedin_profile",
         "pog",
         "ask",
-        "milestone",
+        "linkedin_profile",
         "voice_memo",
         "loop",
       ],
@@ -2085,3 +2304,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

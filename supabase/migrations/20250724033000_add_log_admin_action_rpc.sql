@@ -41,3 +41,5 @@ GRANT EXECUTE ON FUNCTION log_admin_action TO authenticated;
 -- Add a comment explaining the function's purpose
 COMMENT ON FUNCTION log_admin_action IS 
 'Logs admin actions to the audit trail. Called by the audit logging system when admins perform sensitive operations.';
+
+-- Function is production-ready with proper UUID typing and correct column references

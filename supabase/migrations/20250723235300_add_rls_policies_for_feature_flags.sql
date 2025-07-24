@@ -67,10 +67,10 @@ CREATE POLICY "Only admins can access audit logs" ON public.admin_audit_log
     FOR ALL USING (public.is_current_user_admin());
 
 -- Update users table RLS to allow admins to read all users (for user management)
--- First, check if there's already a policy for users table
-DROP POLICY IF EXISTS "Users can read their own data" ON public.users;
+-- Drop existing policies to recreate them with admin access
+DROP POLICY IF EXISTS "Users can view their own data" ON public.users;
 DROP POLICY IF EXISTS "Users can update their own data" ON public.users;
-DROP POLICY IF EXISTS "Admins can read all users" ON public.users;
+DROP POLICY IF EXISTS "Users can insert their own data" ON public.users;
 
 -- Recreate user policies with admin access
 CREATE POLICY "Users can read their own data" ON public.users
@@ -78,6 +78,9 @@ CREATE POLICY "Users can read their own data" ON public.users
 
 CREATE POLICY "Users can update their own data" ON public.users
     FOR UPDATE USING (id = auth.uid() OR public.is_current_user_admin());
+
+CREATE POLICY "Users can insert their own data" ON public.users
+    FOR INSERT WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Admins can manage all users" ON public.users
     FOR ALL USING (public.is_current_user_admin());
@@ -87,23 +90,16 @@ CREATE OR REPLACE VIEW public.user_management_view AS
 SELECT 
     u.id,
     u.email,
-    u.full_name,
+    u.name as full_name,
     u.is_admin,
     u.created_at,
     u.updated_at,
-    c.company,
-    c.job_title,
     (
         SELECT COUNT(*) 
         FROM public.user_feature_overrides ufo 
         WHERE ufo.user_id = u.id
     ) as feature_override_count
-FROM public.users u
-LEFT JOIN public.contacts c ON c.id = u.self_contact_id;
-
--- RLS policy for the user management view
-CREATE POLICY "Only admins can access user management view" ON public.user_management_view
-    FOR SELECT USING (public.is_current_user_admin());
+FROM public.users u;
 
 -- Grant necessary permissions
 GRANT SELECT ON public.user_management_view TO authenticated;

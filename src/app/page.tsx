@@ -29,16 +29,45 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
 
 export default function HomePage(): React.JSX.Element {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users based on onboarding status
   useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard');
-    }
+    const checkUserRedirect = async () => {
+      if (!loading && user) {
+        try {
+          // Check if user has completed onboarding
+          const { data: userProfile, error } = await supabase
+            .from('users')
+            .select('onboarding_completed_at')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error checking user profile:', error);
+            // Default to dashboard on error
+            router.push('/dashboard');
+            return;
+          }
+          
+          // Redirect based on onboarding status
+          if (!userProfile?.onboarding_completed_at) {
+            router.push('/onboarding');
+          } else {
+            router.push('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error in redirect check:', error);
+          router.push('/dashboard');
+        }
+      }
+    };
+    
+    checkUserRedirect();
   }, [user, loading, router]);
 
   if (loading) {

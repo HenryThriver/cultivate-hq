@@ -30,6 +30,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useIsAdmin } from '@/lib/hooks/useFeatureFlag';
+import { TestBanner } from '@/components/features/banner/TestBanner';
+import { useTestBanner } from '@/lib/hooks/useTestBanner';
 
 const DRAWER_WIDTH = 240;
 
@@ -42,6 +44,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { shouldShowBanner, dismissBanner } = useTestBanner();
   const router = useRouter();
 
   const handleDrawerToggle = (): void => {
@@ -96,7 +99,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         { 
           text: 'Admin', 
           icon: <AdminIcon />, 
-          path: '/dashboard/admin' 
+          path: '/admin' 
+        },
+        { 
+          text: 'Test Features', 
+          icon: <AdminIcon />, 
+          path: '/test-features' 
+        },
+        { 
+          text: 'Dynamic Test', 
+          icon: <AdminIcon />, 
+          path: '/test-features-dynamic' 
         }
       ]
     : baseNavigationItems;
@@ -268,6 +281,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         }}
       >
         <Toolbar />
+        {shouldShowBanner && (
+          <TestBanner onDismiss={dismissBanner} />
+        )}
         {children}
       </Box>
     </Box>

@@ -90,7 +90,7 @@ export async function logAdminAction(
   action: string,
   resourceType: string,
   resourceId?: string,
-  details?: Record<string, any>,
+  details?: Record<string, unknown>,
   request?: Request
 ): Promise<void> {
   try {

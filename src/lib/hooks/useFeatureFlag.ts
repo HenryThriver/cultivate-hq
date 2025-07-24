@@ -182,7 +182,14 @@ export function useAllFeatureFlags(): {
 } {
   const { user } = useAuth();
   const [state, setState] = useState({
-    flags: [] as any[],
+    flags: [] as Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      enabled_globally: boolean;
+      user_enabled?: boolean;
+      has_override: boolean;
+    }>,
     loading: true,
     error: null as string | null
   });
@@ -225,16 +232,16 @@ export function useAllFeatureFlags(): {
         // Merge the data
         const flagsWithOverrides = new Map();
         if (data) {
-          data.forEach((flag: any) => {
+          data.forEach((flag: Record<string, unknown>) => {
             flagsWithOverrides.set(flag.id, {
               ...flag,
-              user_enabled: flag.user_feature_overrides[0]?.enabled,
+              user_enabled: (flag.user_feature_overrides as Array<{ enabled: boolean }>)[0]?.enabled,
               has_override: true
             });
           });
         }
 
-        const result = allFlags.map((flag: any) => {
+        const result = allFlags.map((flag: Record<string, unknown>) => {
           const override = flagsWithOverrides.get(flag.id);
           return {
             ...flag,

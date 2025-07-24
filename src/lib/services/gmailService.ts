@@ -38,7 +38,8 @@ export class GmailService {
       scope: REQUIRED_SCOPES.join(' '),
       response_type: 'code',
       access_type: 'offline',
-      prompt: 'consent',
+      // Remove prompt: 'consent' to allow returning users to sign in without re-authorization
+      // access_type: 'offline' is sufficient to get refresh tokens on first authorization
       state: source // Pass source as state parameter
     });
 

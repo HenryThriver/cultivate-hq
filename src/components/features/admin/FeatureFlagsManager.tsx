@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { withFeatureFlagErrorBoundary } from './FeatureFlagErrorBoundary';
 import {
   Box,
   Card,
@@ -101,7 +102,7 @@ const CreateFlagDialog: React.FC<CreateFlagDialogProps> = ({ open, onClose, onCr
   );
 };
 
-export const FeatureFlagsManager: React.FC = () => {
+const FeatureFlagsManagerComponent: React.FC = () => {
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const { flags, loading: flagsLoading, error } = useAllFeatureFlags();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -233,3 +234,5 @@ export const FeatureFlagsManager: React.FC = () => {
     </Box>
   );
 };
+
+export const FeatureFlagsManager = withFeatureFlagErrorBoundary(FeatureFlagsManagerComponent);

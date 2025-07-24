@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { FeatureFlagErrorBoundary } from '@/components/features/admin/FeatureFlagErrorBoundary';
 import {
   Box,
   Container,
@@ -47,7 +48,7 @@ interface FeatureFlag {
   updated_at: string;
 }
 
-export default function FeatureFlagsPage(): React.JSX.Element {
+function FeatureFlagsPageContent(): React.JSX.Element {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -409,5 +410,18 @@ export default function FeatureFlagsPage(): React.JSX.Element {
         </DialogActions>
       </Dialog>
     </Container>
+  );
+}
+
+export default function FeatureFlagsPage(): React.JSX.Element {
+  const handleRetry = () => {
+    // Force a page reload to retry loading
+    window.location.reload();
+  };
+
+  return (
+    <FeatureFlagErrorBoundary onRetry={handleRetry}>
+      <FeatureFlagsPageContent />
+    </FeatureFlagErrorBoundary>
   );
 }

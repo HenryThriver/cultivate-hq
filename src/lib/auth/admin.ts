@@ -1,6 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import type { User } from '@supabase/supabase-js';
+import type { 
+  AdminAction, 
+  AdminResourceType, 
+  AuditDetails,
+  LogAdminActionParams 
+} from '@/types/database-rpc';
 
 /**
  * Result type for admin check operations
@@ -83,14 +89,14 @@ export async function requireAdmin(): Promise<AdminCheckResult> {
 }
 
 /**
- * Logs an admin action to the audit log
+ * Logs an admin action to the audit log with type safety
  */
 export async function logAdminAction(
   adminUserId: string,
-  action: string,
-  resourceType: string,
+  action: AdminAction,
+  resourceType: AdminResourceType,
   resourceId?: string,
-  details?: Record<string, unknown>,
+  details?: AuditDetails,
   request?: Request
 ): Promise<void> {
   try {
@@ -110,7 +116,7 @@ export async function logAdminAction(
       userAgent = request.headers.get('user-agent');
     }
 
-    await supabase.rpc('log_admin_action', {
+    const rpcParams: LogAdminActionParams = {
       p_admin_user_id: adminUserId,
       p_action: action,
       p_resource_type: resourceType,
@@ -118,7 +124,14 @@ export async function logAdminAction(
       p_details: details ? JSON.stringify(details) : null,
       p_ip_address: ipAddress,
       p_user_agent: userAgent
-    });
+    };
+
+    const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
+    
+    if (rpcError) {
+      console.error('RPC error logging admin action:', rpcError);
+      throw rpcError;
+    }
   } catch (error) {
     console.error('Failed to log admin action:', error);
     // Don't throw - logging should not break the main operation

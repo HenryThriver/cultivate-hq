@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import type { 
+  FeatureFlagRow, 
+  FeatureFlagWithOverride
+} from '@/types/feature-flags';
+import { isFeatureFlagRow } from '@/types/feature-flags';
 
 /**
  * Feature flag state interface
@@ -14,10 +19,124 @@ interface FeatureFlagState {
 }
 
 /**
- * Cache for feature flag results to avoid repeated database calls
+ * Improved cache for feature flag results with collision-safe keys and size limits
  */
-const featureFlagCache = new Map<string, { enabled: boolean; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+class FeatureFlagCache {
+  private cache = new Map<string, { enabled: boolean; timestamp: number }>();
+  private readonly maxSize = 1000;
+  private readonly ttl = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Generate a collision-safe cache key
+   */
+  private generateKey(userId: string, flagName: string): string {
+    // Use a separator that's unlikely to appear in UUIDs or flag names
+    return `${userId}|${flagName}`;
+  }
+
+  /**
+   * Get cached value if valid
+   */
+  get(userId: string, flagName: string): boolean | null {
+    const key = this.generateKey(userId, flagName);
+    const cached = this.cache.get(key);
+    
+    if (!cached) return null;
+    
+    // Check if expired
+    if (Date.now() - cached.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return cached.enabled;
+  }
+
+  /**
+   * Set cached value with automatic cleanup
+   */
+  set(userId: string, flagName: string, enabled: boolean): void {
+    // Clean up if cache is getting too large
+    if (this.cache.size >= this.maxSize) {
+      this.cleanup();
+    }
+    
+    const key = this.generateKey(userId, flagName);
+    this.cache.set(key, {
+      enabled,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Clear cache for a specific user (useful when admin changes affect them)
+   */
+  clearUser(userId: string): void {
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(`${userId}|`)) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Clear cache for a specific flag (useful when global setting changes)
+   */
+  clearFlag(flagName: string): void {
+    for (const key of this.cache.keys()) {
+      if (key.endsWith(`|${flagName}`)) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Clear expired entries and limit cache size
+   */
+  private cleanup(): void {
+    const now = Date.now();
+    const expiredKeys: string[] = [];
+    
+    // Find expired entries
+    for (const [key, value] of this.cache.entries()) {
+      if (now - value.timestamp > this.ttl) {
+        expiredKeys.push(key);
+      }
+    }
+    
+    // Remove expired entries
+    expiredKeys.forEach(key => this.cache.delete(key));
+    
+    // If still too large, remove oldest entries
+    if (this.cache.size >= this.maxSize) {
+      const entries = Array.from(this.cache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+      
+      const toRemove = entries.slice(0, Math.floor(this.maxSize * 0.2)); // Remove 20%
+      toRemove.forEach(([key]) => this.cache.delete(key));
+    }
+  }
+
+  /**
+   * Clear all cache entries
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Get cache statistics for debugging
+   */
+  getStats(): { size: number; maxSize: number; ttl: number } {
+    return {
+      size: this.cache.size,
+      maxSize: this.maxSize,
+      ttl: this.ttl
+    };
+  }
+}
+
+const featureFlagCache = new FeatureFlagCache();
 
 /**
  * Hook to check if a feature flag is enabled for the current user
@@ -43,11 +162,10 @@ export function useFeatureFlag(flagName: string): FeatureFlagState {
     const checkFeatureFlag = async () => {
       try {
         // Check cache first
-        const cacheKey = `${user.id}:${flagName}`;
-        const cached = featureFlagCache.get(cacheKey);
+        const cachedValue = featureFlagCache.get(user.id, flagName);
         
-        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          setState({ enabled: cached.enabled, loading: false, error: null });
+        if (cachedValue !== null) {
+          setState({ enabled: cachedValue, loading: false, error: null });
           return;
         }
 
@@ -89,10 +207,7 @@ export function useFeatureFlag(flagName: string): FeatureFlagState {
         }
 
         // Cache the result
-        featureFlagCache.set(cacheKey, {
-          enabled: isEnabled,
-          timestamp: Date.now()
-        });
+        featureFlagCache.set(user.id, flagName, isEnabled);
 
         setState({ enabled: isEnabled, loading: false, error: null });
       } catch (error) {
@@ -169,27 +284,13 @@ export function useIsAdmin(): { isAdmin: boolean; loading: boolean; error: strin
  * Useful for admin interfaces
  */
 export function useAllFeatureFlags(): {
-  flags: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    enabled_globally: boolean;
-    user_enabled?: boolean;
-    has_override: boolean;
-  }>;
+  flags: FeatureFlagWithOverride[];
   loading: boolean;
   error: string | null;
 } {
   const { user } = useAuth();
   const [state, setState] = useState({
-    flags: [] as Array<{
-      id: string;
-      name: string;
-      description: string | null;
-      enabled_globally: boolean;
-      user_enabled?: boolean;
-      has_override: boolean;
-    }>,
+    flags: [] as FeatureFlagWithOverride[],
     loading: true,
     error: null as string | null
   });
@@ -202,53 +303,52 @@ export function useAllFeatureFlags(): {
 
     const fetchAllFlags = async () => {
       try {
-        // Use the imported supabase client
-
-        // Get all feature flags with user overrides
-        const { data, error } = await supabase
+        // Use a single optimized query with LEFT JOIN to get all flags and their overrides
+        // This eliminates the N+1 query pattern by getting everything in one request
+        const { data: flagsData, error } = await supabase
           .from('feature_flags')
           .select(`
             id,
             name,
             description,
             enabled_globally,
-            user_feature_overrides!inner(enabled)
+            created_at,
+            updated_at,
+            user_feature_overrides!left(
+              enabled,
+              user_id
+            )
           `)
-          .eq('user_feature_overrides.user_id', user.id);
+          .eq('user_feature_overrides.user_id', user.id)
+          .order('created_at', { ascending: false });
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           throw error;
         }
 
-        // Also get flags without overrides
-        const { data: allFlags, error: allFlagsError } = await supabase
-          .from('feature_flags')
-          .select('id, name, description, enabled_globally');
-
-        if (allFlagsError) {
-          throw allFlagsError;
-        }
-
-        // Merge the data
-        const flagsWithOverrides = new Map();
-        if (data) {
-          data.forEach((flag: Record<string, unknown>) => {
-            flagsWithOverrides.set(flag.id, {
-              ...flag,
-              user_enabled: (flag.user_feature_overrides as Array<{ enabled: boolean }>)[0]?.enabled,
-              has_override: true
-            });
+        // Process the joined data safely with type checking
+        const result: FeatureFlagWithOverride[] = [];
+        
+        if (flagsData && Array.isArray(flagsData)) {
+          flagsData.forEach((flag: unknown) => {
+            if (isFeatureFlagRow(flag)) {
+              // Check if there's a user override
+              const flagWithOverrides = flag as FeatureFlagRow & {
+                user_feature_overrides: Array<{ enabled: boolean; user_id: string }> | null;
+              };
+              
+              const userOverrides = flagWithOverrides.user_feature_overrides;
+              const hasOverride = userOverrides && userOverrides.length > 0;
+              const userEnabled = hasOverride ? userOverrides[0].enabled : undefined;
+              
+              result.push({
+                ...flag,
+                user_enabled: userEnabled,
+                has_override: !!hasOverride
+              });
+            }
           });
         }
-
-        const result = allFlags.map((flag: Record<string, unknown>) => {
-          const override = flagsWithOverrides.get(flag.id);
-          return {
-            ...flag,
-            user_enabled: override?.user_enabled,
-            has_override: !!override
-          };
-        });
 
         setState({ flags: result, loading: false, error: null });
       } catch (error) {
@@ -272,4 +372,25 @@ export function useAllFeatureFlags(): {
  */
 export function clearFeatureFlagCache(): void {
   featureFlagCache.clear();
+}
+
+/**
+ * Clear cache for a specific user (useful when admin changes affect them)
+ */
+export function clearFeatureFlagCacheForUser(userId: string): void {
+  featureFlagCache.clearUser(userId);
+}
+
+/**
+ * Clear cache for a specific flag (useful when global setting changes)
+ */
+export function clearFeatureFlagCacheForFlag(flagName: string): void {
+  featureFlagCache.clearFlag(flagName);
+}
+
+/**
+ * Get cache statistics for debugging
+ */
+export function getFeatureFlagCacheStats(): { size: number; maxSize: number; ttl: number } {
+  return featureFlagCache.getStats();
 }

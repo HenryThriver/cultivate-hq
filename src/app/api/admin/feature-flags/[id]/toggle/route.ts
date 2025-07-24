@@ -73,18 +73,20 @@ export async function POST(
       );
     }
 
-    await logAdminAction(
-      adminResult.user!.id,
-      'TOGGLE_FEATURE_FLAG',
-      'feature_flags',
-      id,
-      { 
-        name: currentFlag.name,
-        from: currentFlag.enabled_globally,
-        to: newEnabledStatus
-      },
-      request
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'TOGGLE_FEATURE_FLAG',
+        'feature_flags',
+        id,
+        { 
+          name: currentFlag.name,
+          from: currentFlag.enabled_globally,
+          to: newEnabledStatus
+        },
+        request
+      );
+    }
 
     return NextResponse.json({ 
       flag,

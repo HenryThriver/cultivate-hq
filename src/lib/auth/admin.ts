@@ -120,10 +120,10 @@ export async function logAdminAction(
       p_admin_user_id: adminUserId,
       p_action: action,
       p_resource_type: resourceType,
-      p_resource_id: resourceId || null,
-      p_details: details ? JSON.stringify(details) : null,
-      p_ip_address: ipAddress,
-      p_user_agent: userAgent
+      p_resource_id: resourceId,
+      p_details: details ? JSON.stringify(details) : undefined,
+      p_ip_address: ipAddress || undefined,
+      p_user_agent: userAgent || undefined
     };
 
     const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);

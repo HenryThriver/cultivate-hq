@@ -7,6 +7,20 @@ import type { Database } from '@/lib/supabase/types_db';
 export type NewArtifact = Database['public']['Tables']['artifacts']['Insert'];
 export type Artifact = Database['public']['Tables']['artifacts']['Row'];
 
+// Interface for extended artifact properties (loop fields)
+interface ArtifactExtendedProperties {
+  impact_score: number | null;
+  initiator_contact_id: string | null;
+  initiator_user_id: string | null;
+  loop_status: string | null;
+  loop_type: string | null;
+  recipient_contact_id: string | null;
+  recipient_user_id: string | null;
+  resolution_notes: string | null;
+  reciprocity_weight: number | null;
+  updated_at: string;
+}
+
 // Custom error type for API errors with codes
 interface ApiError extends Error {
   code?: string;
@@ -42,19 +56,25 @@ export const useArtifacts = () => {
     if (!data) {
       throw new Error('Artifact creation failed, no data returned.');
     }
+    // Helper function to safely extract extended properties
+    const getExtendedProperty = <T>(key: keyof ArtifactExtendedProperties, defaultValue: T): T => {
+      const value = (data as Record<string, unknown>)[key];
+      return value !== undefined ? value as T : defaultValue;
+    };
+
     return {
       ...data,
       // Add default loop fields if they're missing (for compatibility with loop artifacts)
-      impact_score: (data as Record<string, unknown>).impact_score as number | null || null,
-      initiator_contact_id: (data as Record<string, unknown>).initiator_contact_id as string | null || null,
-      initiator_user_id: (data as Record<string, unknown>).initiator_user_id as string | null || null,
-      loop_status: (data as Record<string, unknown>).loop_status as string | null || null,
-      loop_type: (data as Record<string, unknown>).loop_type as string | null || null,
-      recipient_contact_id: (data as Record<string, unknown>).recipient_contact_id as string | null || null,
-      recipient_user_id: (data as Record<string, unknown>).recipient_user_id as string | null || null,
-      resolution_notes: (data as Record<string, unknown>).resolution_notes as string | null || null,
-      reciprocity_weight: (data as Record<string, unknown>).reciprocity_weight as number | null || null,
-      updated_at: (data as Record<string, unknown>).updated_at as string || data.created_at
+      impact_score: getExtendedProperty('impact_score', null),
+      initiator_contact_id: getExtendedProperty('initiator_contact_id', null),
+      initiator_user_id: getExtendedProperty('initiator_user_id', null),
+      loop_status: getExtendedProperty('loop_status', null),
+      loop_type: getExtendedProperty('loop_type', null),
+      recipient_contact_id: getExtendedProperty('recipient_contact_id', null),
+      recipient_user_id: getExtendedProperty('recipient_user_id', null),
+      resolution_notes: getExtendedProperty('resolution_notes', null),
+      reciprocity_weight: getExtendedProperty('reciprocity_weight', null),
+      updated_at: getExtendedProperty('updated_at', data.created_at)
     } as Artifact;
   };
 

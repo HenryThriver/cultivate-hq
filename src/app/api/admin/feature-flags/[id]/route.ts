@@ -98,8 +98,16 @@ export async function PUT(
 
     const supabase = await createClient();
     
+    // Interface for feature flag update data
+    interface FeatureFlagUpdate {
+      name?: string;
+      description?: string;
+      enabled_globally?: boolean;
+      updated_at: string;
+    }
+    
     // Build update object with only provided fields
-    const updateData: Record<string, unknown> = {
+    const updateData: FeatureFlagUpdate = {
       updated_at: new Date().toISOString()
     };
     

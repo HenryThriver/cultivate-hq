@@ -247,7 +247,7 @@ export default function AuthCallbackPage(): React.JSX.Element {
             // Check if onboarding is completed
             if (!userProfile?.onboarding_completed_at) {
               // User needs onboarding - check if they have existing progress
-              const { data: onboardingState } = await supabase
+              await supabase
                 .from('onboarding_state')
                 .select('current_screen')
                 .eq('user_id', data.session.user.id)

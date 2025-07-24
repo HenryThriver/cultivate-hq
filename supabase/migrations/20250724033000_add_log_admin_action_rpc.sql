@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION log_admin_action(
   p_admin_user_id UUID,
   p_action TEXT,
   p_resource_type TEXT,
-  p_resource_id TEXT DEFAULT NULL,
+  p_resource_id UUID DEFAULT NULL,
   p_details TEXT DEFAULT NULL,
   p_ip_address TEXT DEFAULT NULL,
   p_user_agent TEXT DEFAULT NULL
@@ -20,7 +20,7 @@ BEGIN
     details,
     ip_address,
     user_agent,
-    timestamp
+    created_at
   ) VALUES (
     p_admin_user_id,
     p_action,

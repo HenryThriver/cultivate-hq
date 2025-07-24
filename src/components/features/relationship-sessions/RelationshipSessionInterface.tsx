@@ -214,7 +214,7 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
   const totalActions = session.actions.length;
   const completedCount = completedActions.size;
   const progress = totalActions > 0 ? (completedCount / totalActions) * 100 : 0;
-  const remainingActions = session.actions.filter((action: any) => !completedActions.has(action.id));
+  const remainingActions = session.actions.filter((action) => !completedActions.has(action.id));
   const allActionsCompleted = completedCount === totalActions;
   
   // Get goal information from session or first action

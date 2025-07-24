@@ -8,8 +8,10 @@ import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
 // CSS-based typewriter component
 const TypewriterText: React.FC<{ 
   text: string; 
+  delay?: number;
+  speed?: number;
   onComplete?: () => void;
-}> = ({ text, onComplete }) => {
+}> = ({ text, delay = 500, speed = 100, onComplete }) => {
   const [currentText, setCurrentText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
 
@@ -21,7 +23,7 @@ const TypewriterText: React.FC<{
       if (index < text.length) {
         setCurrentText(text.slice(0, index + 1));
         index++;
-        timeout = setTimeout(typeChar, 100);
+        timeout = setTimeout(typeChar, speed);
       } else {
         // Typing complete, hide cursor after delay
         setTimeout(() => {
@@ -31,9 +33,9 @@ const TypewriterText: React.FC<{
       }
     };
 
-    timeout = setTimeout(typeChar, 500);
+    timeout = setTimeout(typeChar, delay);
     return () => clearTimeout(timeout);
-  }, [text, onComplete]);
+  }, [text, delay, speed, onComplete]);
 
   return (
     <Typography

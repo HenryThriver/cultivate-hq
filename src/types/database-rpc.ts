@@ -37,7 +37,9 @@ export type AdminAction =
   | 'LOGIN_AS_ADMIN'
   | 'VIEW_ADMIN_PANEL'
   | 'EXPORT_DATA'
-  | 'IMPORT_DATA';
+  | 'IMPORT_DATA'
+  | 'read'
+  | 'log_admin_action';
 
 /**
  * Resource types that can be acted upon by admins
@@ -47,7 +49,8 @@ export type AdminResourceType =
   | 'user_feature_overrides'
   | 'users'
   | 'admin_audit_log'
-  | 'system';
+  | 'system'
+  | 'system_config';
 
 /**
  * Helper type for RPC function declarations

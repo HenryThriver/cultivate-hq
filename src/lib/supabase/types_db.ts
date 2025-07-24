@@ -616,7 +616,6 @@ export type Database = {
         | "linkedin_profile"
         | "pog"
         | "ask"
-        | "milestone"
         | "voice_memo"
         | "loop"
     }
@@ -746,7 +745,6 @@ export const Constants = {
         "linkedin_profile",
         "pog",
         "ask",
-        "milestone",
         "voice_memo",
         "loop",
       ],

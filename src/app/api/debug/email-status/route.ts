@@ -19,7 +19,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Require admin access for debug endpoints
   const adminResult = await requireAdmin();
   if (!adminResult.isAdmin) {
-    return adminResult.response;
+    return adminResult.response!;
   }
 
   try {

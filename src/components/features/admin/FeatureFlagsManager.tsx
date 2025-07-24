@@ -20,7 +20,6 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { useAllFeatureFlags, useIsAdmin, clearFeatureFlagCache } from '@/lib/hooks/useFeatureFlag';
-import { supabase } from '@/lib/supabase/client';
 
 interface CreateFlagDialogProps {
   open: boolean;
@@ -41,15 +40,22 @@ const CreateFlagDialog: React.FC<CreateFlagDialogProps> = ({ open, onClose, onCr
     setError(null);
     
     try {
-      const { error } = await supabase
-        .from('feature_flags')
-        .insert({
+      const response = await fetch('/api/admin/feature-flags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: name.trim(),
           description: description.trim() || null,
           enabled_globally: false
-        });
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
 
       clearFeatureFlagCache();
       onCreated();

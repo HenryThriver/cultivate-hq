@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import type { Json } from '@/lib/supabase/database.types';
 
 // ===============================================
 // TYPES
@@ -13,6 +14,15 @@ interface CreateSessionAction {
   goal_id?: string;
   meeting_artifact_id?: string;
   contact_id?: string;
+  // Extended properties used in processing
+  session_action_id?: string;
+  contact_name?: string;
+  meeting_title?: string;
+  meeting_date?: string;
+  created_from?: string;
+  goal_title?: string;
+  current_count?: number;
+  target_count?: number;
 }
 
 // interface SessionAction {
@@ -111,8 +121,8 @@ export function useGoalsForRelationshipBuilding() {
                 meetingContent = {};
               }
               
-              const hasNotes = meetingContent.notes && meetingContent.notes.trim().length > 20;
-              const hasTranscript = meetingContent.transcript && meetingContent.transcript.trim().length > 50;
+              const hasNotes = meetingContent.notes && typeof meetingContent.notes === 'string' && meetingContent.notes.trim().length > 20;
+              const hasTranscript = meetingContent.transcript && typeof meetingContent.transcript === 'string' && meetingContent.transcript.trim().length > 50;
               const hasRecording = meetingContent.recording_url;
               
               return !hasNotes && !hasTranscript && !hasRecording;
@@ -281,14 +291,14 @@ export function useGoalSessionActions(goalId: string) {
           const actionData = action.action_data;
           
           actions.push({
-            type: action.action_type,
+            type: action.action_type as 'add_contact' | 'add_meeting_notes',
             session_action_id: action.id, // Track the existing session action
-            meeting_artifact_id: action.meeting_artifact_id,
-            contact_id: action.contact_id,
+            meeting_artifact_id: action.meeting_artifact_id || undefined,
+            contact_id: action.contact_id || undefined,
             contact_name: contactData?.name || 'Unknown Contact',
-            meeting_title: actionData?.meeting_title || artifactData?.metadata?.title || 'Meeting',
+            meeting_title: (actionData && typeof actionData === 'object' && 'meeting_title' in actionData ? actionData.meeting_title as string : undefined) || (artifactData?.metadata && typeof artifactData.metadata === 'object' && 'title' in artifactData.metadata ? artifactData.metadata.title as string : undefined) || 'Meeting',
             meeting_date: artifactData?.created_at || action.created_at,
-            created_from: actionData?.created_from || 'orphaned'
+            created_from: (actionData && typeof actionData === 'object' && 'created_from' in actionData ? actionData.created_from as string : undefined) || 'orphaned'
           });
         });
       }
@@ -342,8 +352,8 @@ export function useGoalSessionActions(goalId: string) {
             let needsNotes = false;
             
             if (hasStructuredContent) {
-              const hasNotes = meetingContent.notes && meetingContent.notes.trim().length > 20;
-              const hasTranscript = meetingContent.transcript && meetingContent.transcript.trim().length > 50;
+              const hasNotes = meetingContent.notes && typeof meetingContent.notes === 'string' && meetingContent.notes.trim().length > 20;
+              const hasTranscript = meetingContent.transcript && typeof meetingContent.transcript === 'string' && meetingContent.transcript.trim().length > 50;
               const hasRecording = meetingContent.recording_url;
               needsNotes = !hasNotes && !hasTranscript && !hasRecording;
             } else {
@@ -360,7 +370,7 @@ export function useGoalSessionActions(goalId: string) {
                 meeting_artifact_id: meeting.id,
                 contact_id: meeting.contact_id,
                 contact_name: contactData?.name || 'Unknown Contact',
-                meeting_title: meetingMetadata?.title || 'Meeting',
+                meeting_title: (meetingMetadata && typeof meetingMetadata === 'object' && 'title' in meetingMetadata ? meetingMetadata.title as string : undefined) || 'Meeting',
                 meeting_date: meeting.created_at,
                 created_from: 'dynamic_detection'
               });
@@ -416,7 +426,7 @@ export function useCreateSession() {
           contact_id?: string;
           goal_id?: string;
           meeting_artifact_id?: string;
-          action_data: Record<string, unknown>;
+          action_data: Json;
           status: string;
         }> = [];
         const orphanedActionsToUpdate: string[] = [];
@@ -437,7 +447,7 @@ export function useCreateSession() {
               contact_id: action.contact_id,
               goal_id: action.goal_id,
               meeting_artifact_id: action.meeting_artifact_id,
-              action_data: {},
+              action_data: {} as Json,
               status: 'pending'
             });
           }
@@ -533,7 +543,7 @@ export function useCompleteSessionAction() {
         .from('session_actions')
         .update({
           status,
-          action_data: actionData || {},
+          action_data: (actionData || {}) as Json,
           completed_at: new Date().toISOString()
         })
         .eq('id', actionId);

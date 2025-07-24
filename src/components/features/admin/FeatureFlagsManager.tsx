@@ -130,12 +130,20 @@ const FeatureFlagsManagerComponent: React.FC = () => {
     setUpdatingFlags(prev => new Set(prev).add(flagId));
     
     try {
-      const { error } = await supabase
-        .from('feature_flags')
-        .update({ enabled_globally: enabled })
-        .eq('id', flagId);
+      const response = await fetch(`/api/admin/feature-flags/${flagId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled_globally: enabled
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
       
       clearFeatureFlagCache();
     } catch (err) {

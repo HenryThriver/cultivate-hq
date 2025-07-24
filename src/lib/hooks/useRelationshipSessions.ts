@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import type { Json } from '@/lib/supabase/database.types';
 
 // ===============================================
 // TYPES
@@ -303,7 +304,7 @@ export function useGoalSessionActions(goalId: string) {
           .from('artifacts')
           .select(`
             id, content, contact_id, metadata, created_at,
-            contacts(id, name)
+            contacts!contact_id(id, name)
           `)
           .eq('type', 'meeting')
           .in('contact_id', contactIds)
@@ -495,7 +496,7 @@ export function useSession(sessionId: string) {
           ),
           actions:session_actions(
             *,
-            contact:contacts(id, name, profile_picture),
+            contact:contacts(id, name),
             meeting_artifact:artifacts!meeting_artifact_id(id, metadata, created_at),
             goal:goals(
               id, title, description, target_contact_count,

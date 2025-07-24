@@ -145,7 +145,7 @@ export const SessionStartModal: React.FC<SessionStartModalProps> = ({
                   variant="outlined"
                 />
                 <Chip 
-                  label={`${goal.total_opportunities} action${goal.total_opportunities > 1 ? 's' : ''}`}
+                  label={`${goal.total_opportunities || 0} action${(goal.total_opportunities || 0) > 1 ? 's' : ''}`}
                   size="small"
                   color="secondary"
                   variant="outlined"

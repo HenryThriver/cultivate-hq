@@ -102,7 +102,7 @@ export function useGoalsForRelationshipBuilding() {
             
             // Count meetings without substantial notes/transcript/recording
             meetingsNeedingNotes = (meetings || []).filter(meeting => {
-              let meetingContent: any = {};
+              let meetingContent: Record<string, unknown> = {};
               try {
                 meetingContent = typeof meeting.content === 'string' 
                   ? JSON.parse(meeting.content) 
@@ -111,8 +111,8 @@ export function useGoalsForRelationshipBuilding() {
                 meetingContent = {};
               }
               
-              const hasNotes = meetingContent.notes && meetingContent.notes.trim().length > 20;
-              const hasTranscript = meetingContent.transcript && meetingContent.transcript.trim().length > 50;
+              const hasNotes = meetingContent.notes && typeof meetingContent.notes === 'string' && meetingContent.notes.trim().length > 20;
+              const hasTranscript = meetingContent.transcript && typeof meetingContent.transcript === 'string' && meetingContent.transcript.trim().length > 50;
               const hasRecording = meetingContent.recording_url;
               
               return !hasNotes && !hasTranscript && !hasRecording;
@@ -176,7 +176,7 @@ export function useMeetingsNeedingNotes() {
       const meetingsNeedingNotes = [];
       for (const meeting of meetings || []) {
         // Parse meeting content to check for existing notes/transcript
-        let meetingContent: any = {};
+        let meetingContent: Record<string, unknown> = {};
         try {
           meetingContent = typeof meeting.content === 'string' 
             ? JSON.parse(meeting.content) 
@@ -186,8 +186,8 @@ export function useMeetingsNeedingNotes() {
         }
         
         // Check if meeting has minimal context
-        const hasNotes = meetingContent.notes && meetingContent.notes.trim().length > 20;
-        const hasTranscript = meetingContent.transcript && meetingContent.transcript.trim().length > 50;
+        const hasNotes = meetingContent.notes && typeof meetingContent.notes === 'string' && meetingContent.notes.trim().length > 20;
+        const hasTranscript = meetingContent.transcript && typeof meetingContent.transcript === 'string' && meetingContent.transcript.trim().length > 50;
         const hasRecording = meetingContent.recording_url;
         
         // Meeting needs notes if it lacks substantial context
@@ -224,7 +224,7 @@ export function useGoalSessionActions(goalId: string) {
     queryFn: async () => {
       if (!user || !goalId) return [];
       
-      const actions: any[] = [];
+      const actions: CreateSessionAction[] = [];
       
       // Get goal details with contacts
       const { data: goal, error: goalError } = await supabase
@@ -254,7 +254,7 @@ export function useGoalSessionActions(goalId: string) {
           goal_title: goal.title,
           current_count: currentCount,
           target_count: targetCount
-        });
+        } as CreateSessionAction);
       }
       
       // 1. Get orphaned session actions (created during calendar sync)
@@ -276,26 +276,26 @@ export function useGoalSessionActions(goalId: string) {
       } else {
         // Add orphaned actions to the actions list
         (orphanedActions || []).forEach(action => {
-          const contactData = action.contacts as any;
-          const artifactData = action.artifacts as any;
-          const actionData = action.action_data as any;
+          const contactData = action.contacts;
+          const artifactData = action.artifacts;
+          const actionData = action.action_data;
           
           actions.push({
-            type: action.action_type,
+            type: action.action_type as 'add_contact' | 'add_meeting_notes',
             session_action_id: action.id, // Track the existing session action
-            meeting_artifact_id: action.meeting_artifact_id,
-            contact_id: action.contact_id,
+            meeting_artifact_id: action.meeting_artifact_id || undefined,
+            contact_id: action.contact_id || undefined,
             contact_name: contactData?.name || 'Unknown Contact',
-            meeting_title: actionData?.meeting_title || artifactData?.metadata?.title || 'Meeting',
+            meeting_title: (actionData && typeof actionData === 'object' && 'meeting_title' in actionData ? actionData.meeting_title as string : undefined) || (artifactData?.metadata && typeof artifactData.metadata === 'object' && 'title' in artifactData.metadata ? artifactData.metadata.title as string : undefined) || 'Meeting',
             meeting_date: artifactData?.created_at || action.created_at,
-            created_from: actionData?.created_from || 'orphaned'
-          });
+            created_from: (actionData && typeof actionData === 'object' && 'created_from' in actionData ? actionData.created_from as string : undefined) || 'orphaned'
+          } as CreateSessionAction);
         });
       }
       
       // 2. Find additional meetings needing notes for this goal's contacts (fallback)
       if (contacts.length > 0) {
-        const contactIds = contacts.map((gc: any) => gc.contact_id);
+        const contactIds = contacts.map((gc) => gc.contact_id);
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
@@ -323,7 +323,7 @@ export function useGoalSessionActions(goalId: string) {
             // Skip if already covered by orphaned action
             if (existingMeetingIds.has(meeting.id)) return;
             
-            let meetingContent: any = {};
+            let meetingContent: Record<string, unknown> = {};
             let hasStructuredContent = false;
             
             try {
@@ -342,8 +342,8 @@ export function useGoalSessionActions(goalId: string) {
             let needsNotes = false;
             
             if (hasStructuredContent) {
-              const hasNotes = meetingContent.notes && meetingContent.notes.trim().length > 20;
-              const hasTranscript = meetingContent.transcript && meetingContent.transcript.trim().length > 50;
+              const hasNotes = meetingContent.notes && typeof meetingContent.notes === 'string' && meetingContent.notes.trim().length > 20;
+              const hasTranscript = meetingContent.transcript && typeof meetingContent.transcript === 'string' && meetingContent.transcript.trim().length > 50;
               const hasRecording = meetingContent.recording_url;
               needsNotes = !hasNotes && !hasTranscript && !hasRecording;
             } else {
@@ -352,18 +352,18 @@ export function useGoalSessionActions(goalId: string) {
             }
             
             if (needsNotes) {
-              const meetingMetadata = meeting.metadata as any;
-              const contactData = meeting.contacts as any;
+              const meetingMetadata = meeting.metadata;
+              const contactData = meeting.contacts;
               
               actions.push({
                 type: 'add_meeting_notes',
                 meeting_artifact_id: meeting.id,
                 contact_id: meeting.contact_id,
                 contact_name: contactData?.name || 'Unknown Contact',
-                meeting_title: meetingMetadata?.title || 'Meeting',
+                meeting_title: (meetingMetadata && typeof meetingMetadata === 'object' && 'title' in meetingMetadata ? meetingMetadata.title as string : undefined) || 'Meeting',
                 meeting_date: meeting.created_at,
                 created_from: 'dynamic_detection'
-              });
+              } as CreateSessionAction);
             }
           });
         }
@@ -409,16 +409,25 @@ export function useCreateSession() {
       
       // Handle session actions
       if (params.actions.length > 0) {
-        const actionsToCreate: any[] = [];
+        const actionsToCreate: Array<{
+          session_id: string;
+          user_id: string;
+          action_type: string;
+          contact_id?: string;
+          goal_id?: string;
+          meeting_artifact_id?: string;
+          action_data: Json;
+          status: string;
+        }> = [];
         const orphanedActionsToUpdate: string[] = [];
         
         for (const action of params.actions) {
           // Check if this action already exists as an orphaned session action
-          const isOrphanedAction = (action as any).session_action_id;
+          const isOrphanedAction = (action as CreateSessionAction & { session_action_id?: string }).session_action_id;
           
           if (isOrphanedAction) {
             // Link existing orphaned action to this session
-            orphanedActionsToUpdate.push((action as any).session_action_id);
+            orphanedActionsToUpdate.push((action as CreateSessionAction & { session_action_id: string }).session_action_id);
           } else {
             // Create new session action
             actionsToCreate.push({
@@ -428,7 +437,7 @@ export function useCreateSession() {
               contact_id: action.contact_id,
               goal_id: action.goal_id,
               meeting_artifact_id: action.meeting_artifact_id,
-              action_data: {} as any,
+              action_data: {} as Json,
               status: 'pending'
             });
           }
@@ -501,7 +510,7 @@ export function useSession(sessionId: string) {
         .single();
       
       if (error) throw error;
-      return data as any; // Type assertion to avoid complex type issues
+      return data;
     },
     enabled: !!sessionId
   });
@@ -524,7 +533,7 @@ export function useCompleteSessionAction() {
         .from('session_actions')
         .update({
           status,
-          action_data: (actionData || {}) as any,
+          action_data: (actionData || {}) as Json,
           completed_at: new Date().toISOString()
         })
         .eq('id', actionId);

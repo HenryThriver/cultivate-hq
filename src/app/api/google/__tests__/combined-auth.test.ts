@@ -44,7 +44,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);
@@ -67,7 +67,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);
@@ -88,7 +88,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);
@@ -105,7 +105,7 @@ describe('/api/google/combined-auth', () => {
         getUser: vi.fn(), // Should not be called when user_id is provided
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth?user_id=custom-user-id');
     const response = await GET(request);
@@ -131,7 +131,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);

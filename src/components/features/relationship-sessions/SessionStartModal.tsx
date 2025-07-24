@@ -92,7 +92,7 @@ export const SessionStartModal: React.FC<SessionStartModalProps> = ({
   const handleStartSession = async () => {
     if (!selectedGoalId || !actions || actions.length === 0) return;
     
-    const actionsToCreate = actions.map((action: any) => ({
+    const actionsToCreate = actions.map((action) => ({
       type: action.type as 'add_contact' | 'add_meeting_notes',
       goal_id: action.goal_id,
       meeting_artifact_id: action.meeting_artifact_id,
@@ -105,14 +105,14 @@ export const SessionStartModal: React.FC<SessionStartModalProps> = ({
         durationMinutes: getEffectiveDuration(),
         actions: actionsToCreate
       });
-      onSessionCreated((session as any).id || '');
+      onSessionCreated(session?.id || '');
       onClose();
     } catch (error) {
       console.error('Failed to create session:', error);
     }
   };
   
-  const renderGoalOption = (goal: any) => {
+  const renderGoalOption = (goal: { id: string; title: string; current_contact_count?: number; target_contact_count?: number; total_opportunities?: number }) => {
     return (
       <Card
         key={goal.id}

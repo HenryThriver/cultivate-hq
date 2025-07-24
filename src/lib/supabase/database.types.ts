@@ -1721,6 +1721,18 @@ export type Database = {
         Args: { flag_name: string }
         Returns: boolean
       }
+      log_admin_action: {
+        Args: {
+          p_admin_user_id: string
+          p_action: string
+          p_resource_type: string
+          p_resource_id?: string
+          p_details?: string
+          p_ip_address?: string
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
       upsert_user_integration: {
         Args: {
           p_user_id: string
@@ -1749,6 +1761,7 @@ export type Database = {
         | "linkedin_profile"
         | "voice_memo"
         | "loop"
+        | "milestone"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2297,6 +2310,7 @@ export const Constants = {
         "linkedin_profile",
         "voice_memo",
         "loop",
+        "milestone",
       ],
     },
   },

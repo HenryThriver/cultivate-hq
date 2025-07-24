@@ -42,7 +42,20 @@ export const useArtifacts = () => {
     if (!data) {
       throw new Error('Artifact creation failed, no data returned.');
     }
-    return data;
+    return {
+      ...data,
+      // Add default loop fields if they're missing (for compatibility with loop artifacts)
+      impact_score: (data as Record<string, unknown>).impact_score as number | null || null,
+      initiator_contact_id: (data as Record<string, unknown>).initiator_contact_id as string | null || null,
+      initiator_user_id: (data as Record<string, unknown>).initiator_user_id as string | null || null,
+      loop_status: (data as Record<string, unknown>).loop_status as string | null || null,
+      loop_type: (data as Record<string, unknown>).loop_type as string | null || null,
+      recipient_contact_id: (data as Record<string, unknown>).recipient_contact_id as string | null || null,
+      recipient_user_id: (data as Record<string, unknown>).recipient_user_id as string | null || null,
+      resolution_notes: (data as Record<string, unknown>).resolution_notes as string | null || null,
+      reciprocity_weight: (data as Record<string, unknown>).reciprocity_weight as number | null || null,
+      updated_at: (data as Record<string, unknown>).updated_at as string || data.created_at
+    } as Artifact;
   };
 
   const createArtifactMutation = useMutation<Artifact, Error, NewArtifact>({

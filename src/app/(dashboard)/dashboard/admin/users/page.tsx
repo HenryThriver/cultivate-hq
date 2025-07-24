@@ -19,7 +19,6 @@ import {
   Breadcrumbs,
   Link,
   Tooltip,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -139,7 +138,7 @@ export default function UsersPage(): React.JSX.Element {
     try {
       // This would be implemented with a proper API endpoint
       alert(`Toggle admin status for ${user.email} - API endpoint not yet implemented`);
-    } catch (err) {
+    } catch {
       setError('Failed to update user admin status');
     }
   };

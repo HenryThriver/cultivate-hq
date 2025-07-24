@@ -33,7 +33,7 @@ export function FeatureFlagExample(): React.JSX.Element {
       {/* New Dashboard UI Feature */}
       {newDashboardUI ? (
         <Alert severity="info">
-          🎨 New Dashboard UI is enabled! You're seeing the redesigned interface.
+          🎨 New Dashboard UI is enabled! You&apos;re seeing the redesigned interface.
         </Alert>
       ) : (
         <Paper sx={{ p: 2, border: '1px dashed', borderColor: 'grey.300' }}>
@@ -58,7 +58,7 @@ export function FeatureFlagExample(): React.JSX.Element {
       {/* Beta Features */}
       {betaFeatures && (
         <Alert severity="warning">
-          🚀 Beta Features Enabled: You're part of our beta testing program!
+          🚀 Beta Features Enabled: You&apos;re part of our beta testing program!
         </Alert>
       )}
 

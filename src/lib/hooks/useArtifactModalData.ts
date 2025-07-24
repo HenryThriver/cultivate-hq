@@ -60,7 +60,10 @@ export const useArtifactModalData = (): UseArtifactModalDataReturn => {
       // --- END DEBUG LOG ---
 
       if (error) throw error;
-      return data as BaseArtifact;
+      return data ? {
+        ...data,
+        updated_at: (data as Record<string, unknown>).updated_at as string || data.created_at
+      } as BaseArtifact : null;
     },
     enabled: !!artifactId,
   });

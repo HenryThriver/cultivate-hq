@@ -106,7 +106,10 @@ export const useSourceAttribution = (contactId: string): UseSourceAttributionRet
       }
 
       if (artifactData) {
-        const fetchedArtifact = artifactData as ArtifactGlobal;
+        const fetchedArtifact = {
+          ...artifactData,
+          updated_at: (artifactData as Record<string, unknown>).updated_at as string || artifactData.created_at
+        } as ArtifactGlobal;
         setFetchedArtifacts(prev => ({ ...prev, [artifactId]: fetchedArtifact }));
         
         return {

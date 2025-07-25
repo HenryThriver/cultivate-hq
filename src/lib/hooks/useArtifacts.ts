@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types_db';
 import type { BaseArtifact } from '@/types/artifact';
+import { error as logError } from '@/lib/utils/logger';
 
 // Define the type for a new artifact based on your DB schema
 // This should align with Tables<"artifacts">["Insert"] from types_db.ts
@@ -51,7 +52,7 @@ export const useArtifacts = () => {
       .single();
 
     if (error) {
-      console.error('Supabase error creating artifact:', error);
+      logError('Supabase error creating artifact', error);
       throw new Error(error.message);
     }
     if (!data) {
@@ -78,7 +79,7 @@ export const useArtifacts = () => {
       queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE]}); // Broader invalidation
     },
     onError: (error) => {
-      console.error('Mutation error creating artifact:', error);
+      logError('Mutation error creating artifact', error);
     }
   });
 
@@ -133,7 +134,7 @@ export const useArtifacts = () => {
       return { previousArtifactsForContact, contactId };
     },
     onError: (err, variables, context) => {
-      console.error('Error deleting artifact:', err);
+      logError('Error deleting artifact', err);
       if (context?.previousArtifactsForContact && context.contactId) {
         queryClient.setQueryData([ARTIFACTS_TABLE, { contact_id: context.contactId }], context.previousArtifactsForContact);
       }

@@ -127,16 +127,16 @@ export async function logAdminAction(
       p_user_agent: userAgent || undefined
     };
 
-    // TODO: Uncomment when log_admin_action RPC function is created in database
-    // const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
-    // 
-    // if (rpcError) {
-    //   console.error('RPC error logging admin action:', rpcError);
-    //   throw rpcError;
-    // }
+    // Call the log_admin_action RPC function
+    const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
     
-    // Temporary: Log to console until RPC function is implemented
-    adminAction('Admin action logged', rpcParams);
+    if (rpcError) {
+      adminError('RPC error logging admin action', rpcError);
+      throw rpcError;
+    }
+    
+    // Log success to application logger
+    adminAction('Admin action logged successfully', { action, resourceType, resourceId });
   } catch (error) {
     adminError('Failed to log admin action', error instanceof Error ? error : new Error(String(error)));
     // Don't throw - logging should not break the main operation

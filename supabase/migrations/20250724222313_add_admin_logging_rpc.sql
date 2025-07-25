@@ -23,10 +23,15 @@ CREATE POLICY "Users can view own admin logs" ON admin_logs
 CREATE POLICY "Authenticated users can insert admin logs" ON admin_logs
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Create the log_admin_action RPC function
+-- Create the log_admin_action RPC function with correct signature
 CREATE OR REPLACE FUNCTION log_admin_action(
-    action_name TEXT,
-    action_details JSONB DEFAULT NULL
+    p_admin_user_id UUID,
+    p_action TEXT,
+    p_resource_type TEXT,
+    p_resource_id TEXT DEFAULT NULL,
+    p_details TEXT DEFAULT NULL,
+    p_ip_address TEXT DEFAULT NULL,
+    p_user_agent TEXT DEFAULT NULL
 ) RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -35,6 +40,7 @@ AS $$
 DECLARE
     log_id UUID;
     current_user_id UUID;
+    details_json JSONB;
 BEGIN
     -- Get the current authenticated user
     current_user_id := auth.uid();
@@ -44,16 +50,34 @@ BEGIN
         RAISE EXCEPTION 'User must be authenticated to log admin actions';
     END IF;
     
+    -- Ensure the requesting user matches the admin_user_id (security check)
+    IF current_user_id != p_admin_user_id THEN
+        RAISE EXCEPTION 'Cannot log admin actions for other users';
+    END IF;
+    
+    -- Parse details JSON if provided
+    IF p_details IS NOT NULL THEN
+        BEGIN
+            details_json := p_details::JSONB;
+        EXCEPTION WHEN OTHERS THEN
+            details_json := jsonb_build_object('raw_details', p_details);
+        END;
+    END IF;
+    
     -- Insert the admin log entry
     INSERT INTO admin_logs (
         user_id,
         action,
         details,
+        ip_address,
+        user_agent,
         created_at
     ) VALUES (
         current_user_id,
-        action_name,
-        action_details,
+        p_action || ' (' || p_resource_type || COALESCE(': ' || p_resource_id, '') || ')',
+        details_json,
+        p_ip_address::INET,
+        p_user_agent,
         NOW()
     ) RETURNING id INTO log_id;
     
@@ -61,8 +85,8 @@ BEGIN
 END;
 $$;
 
--- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION log_admin_action(TEXT, JSONB) TO authenticated;
+-- Grant execute permission to authenticated users  
+GRANT EXECUTE ON FUNCTION log_admin_action(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
 
 -- Add helpful comment
 COMMENT ON FUNCTION log_admin_action IS 'Logs admin actions with user context and optional details. Returns the log entry ID.';

@@ -308,7 +308,7 @@ export type Database = {
           id?: string
           last_interaction_date?: string | null
           linkedin_data?: Json | null
-          linkedin_url?: string
+          linkedin_url?: string | null
           location?: string | null
           name?: string | null
           notes?: string | null

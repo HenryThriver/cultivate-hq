@@ -63,20 +63,7 @@ export const useArtifacts = () => {
       return value !== undefined ? value as T : defaultValue;
     };
 
-    return {
-      ...data,
-      // Add default loop fields if they're missing (for compatibility with loop artifacts)
-      impact_score: getExtendedProperty('impact_score', null),
-      initiator_contact_id: getExtendedProperty('initiator_contact_id', null),
-      initiator_user_id: getExtendedProperty('initiator_user_id', null),
-      loop_status: getExtendedProperty('loop_status', null),
-      loop_type: getExtendedProperty('loop_type', null),
-      recipient_contact_id: getExtendedProperty('recipient_contact_id', null),
-      recipient_user_id: getExtendedProperty('recipient_user_id', null),
-      resolution_notes: getExtendedProperty('resolution_notes', null),
-      reciprocity_weight: getExtendedProperty('reciprocity_weight', null),
-      updated_at: getExtendedProperty('updated_at', data.created_at)
-    } as Artifact;
+    return data as unknown as BaseArtifact;
   };
 
   const createArtifactMutation = useMutation<BaseArtifact, Error, NewArtifact>({

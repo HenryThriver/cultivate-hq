@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Button, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, Button, useTheme } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
 import { NetworkFormationBackground } from './0_Welcome_Components/NetworkFormationBackground';

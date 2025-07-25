@@ -11,7 +11,7 @@ import {
 import { SkipNext, Help } from '@mui/icons-material';
 import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
 import { useUserProfile } from '@/lib/hooks/useUserProfile';
-import { useAuth } from '@/lib/contexts/AuthContext';
+// import { useAuth } from '@/lib/contexts/AuthContext';
 import OnboardingVoiceRecorder from './OnboardingVoiceRecorder';
 import { PremiumCard } from '@/components/ui/premium';
 

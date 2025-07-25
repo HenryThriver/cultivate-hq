@@ -15,7 +15,7 @@ export interface BaseArtifact<TContent = Record<string, unknown> | string | null
   user_id: string;
   type: ArtifactType;
   content: TContent;
-  // Metadata can contain any structured data
+  // Metadata can contain any structured data (nullable in database)
   metadata?: TMetadata;
   timestamp: string; 
   created_at: string;

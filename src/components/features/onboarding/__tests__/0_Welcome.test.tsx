@@ -3,19 +3,20 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render, mockHooks } from './test-utils';
 import { EnhancedWelcomeScreen } from '../0_Welcome';
-import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
-import { useRouter } from 'next/navigation';
 
 // Mock the hooks
+const mockUseOnboardingState = vi.fn();
+const mockUseRouter = vi.fn();
+
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
-  useOnboardingState: vi.fn(),
+  useOnboardingState: mockUseOnboardingState,
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(),
+  useRouter: mockUseRouter,
 }));
 
-describe('EnhancedWelcomeScreen (Simple)', () => {
+describe('EnhancedWelcomeScreen', () => {
   const mockNextScreen = vi.fn();
   const mockCompleteScreen = vi.fn();
   const mockPush = vi.fn();
@@ -24,65 +25,91 @@ describe('EnhancedWelcomeScreen (Simple)', () => {
     vi.clearAllMocks();
     
     // Setup mock implementations
-    vi.mocked(useOnboardingState).mockReturnValue({
+    mockUseOnboardingState.mockReturnValue({
       ...mockHooks.useOnboardingState(),
       nextScreen: mockNextScreen,
       completeScreen: mockCompleteScreen,
-      currentScreen: 1,
-      currentScreenName: 'welcome',
+      currentScreen: 'welcome',
     });
 
-    vi.mocked(useRouter).mockReturnValue({
+    mockUseRouter.mockReturnValue({
       ...mockHooks.useRouter(),
       push: mockPush,
     });
   });
 
-  describe('Content Rendering', () => {
-    it('renders all content immediately with skipAnimations', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+  describe('Brand Voice Compliance', () => {
+    it('displays the Cultivate HQ brand name', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      // All content should be present in the DOM immediately
-      expect(screen.getByRole('main')).toBeInTheDocument();
-      expect(screen.getByText('Cultivate HQ')).toBeInTheDocument();
-      expect(screen.getByText('Where strategic minds cultivate extraordinary outcomes')).toBeInTheDocument();
-      expect(screen.getByText('Begin your transformation')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Cultivate HQ')).toBeInTheDocument();
+      });
     });
 
-    it('renders network background with skipAnimations', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+    it('shows the strategic tagline', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      // Network should be present immediately
-      expect(screen.getByTestId('network-background')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Where strategic minds cultivate extraordinary outcomes')).toBeInTheDocument();
+      });
+    });
+
+    it('displays executive-appropriate CTA button text', async () => {
+      render(<EnhancedWelcomeScreen />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Begin your transformation')).toBeInTheDocument();
+      });
     });
   });
 
-  describe('Brand Voice Compliance', () => {
-    it('shows the strategic tagline', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+  describe('Animation Sequence', () => {
+    it('follows the proper animation timing sequence', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      expect(screen.getByText('Where strategic minds cultivate extraordinary outcomes')).toBeInTheDocument();
+      // Initially, only the brand name should appear
+      await waitFor(() => {
+        expect(screen.getByText('Cultivate HQ')).toBeInTheDocument();
+      });
+      
+      // The tagline should appear after the animation sequence
+      await waitFor(() => {
+        expect(screen.getByText('Where strategic minds cultivate extraordinary outcomes')).toBeInTheDocument();
+      }, { timeout: 4000 });
+      
+      // The button should appear last
+      await waitFor(() => {
+        expect(screen.getByText('Begin your transformation')).toBeInTheDocument();
+      }, { timeout: 5000 });
     });
 
-    it('displays executive-appropriate CTA button text', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+    it('shows network background animation', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      expect(screen.getByText('Begin your transformation')).toBeInTheDocument();
+      // The network background component should be rendered
+      await waitFor(() => {
+        // Check for the container that holds the network animation
+        const containers = screen.getAllByRole('presentation');
+        expect(containers.length).toBeGreaterThan(0);
+      });
     });
   });
 
   describe('User Interactions', () => {
     it('handles begin button click correctly', async () => {
       const user = userEvent.setup();
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+      render(<EnhancedWelcomeScreen />);
       
-      const beginButton = screen.getByText('Begin your transformation');
+      // Wait for button to appear
+      const beginButton = await screen.findByText('Begin your transformation');
       expect(beginButton).toBeInTheDocument();
       
+      // Click the button
       await user.click(beginButton);
       
       // Verify navigation functions are called
-      expect(mockCompleteScreen).toHaveBeenCalledWith(1);
+      expect(mockCompleteScreen).toHaveBeenCalledWith('welcome');
       expect(mockNextScreen).toHaveBeenCalled();
     });
 
@@ -92,9 +119,9 @@ describe('EnhancedWelcomeScreen (Simple)', () => {
       // Mock an error in completeScreen
       mockCompleteScreen.mockRejectedValueOnce(new Error('Test error'));
       
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+      render(<EnhancedWelcomeScreen />);
       
-      const beginButton = screen.getByText('Begin your transformation');
+      const beginButton = await screen.findByText('Begin your transformation');
       await user.click(beginButton);
       
       // Should fall back to direct navigation
@@ -105,21 +132,21 @@ describe('EnhancedWelcomeScreen (Simple)', () => {
   });
 
   describe('Design System Compliance', () => {
-    it('uses proper typography scale', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+    it('uses proper typography scale', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      const brandName = screen.getByText('Cultivate HQ');
-      const tagline = screen.getByText('Where strategic minds cultivate extraordinary outcomes');
+      const brandName = await screen.findByText('Cultivate HQ');
+      const tagline = await screen.findByText('Where strategic minds cultivate extraordinary outcomes');
       
       // Check that elements have proper styling
       expect(brandName).toHaveStyle({ fontWeight: '700' });
       expect(tagline).toHaveStyle({ fontWeight: '600' });
     });
 
-    it('implements confident button interactions', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+    it('implements confident button interactions', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      const button = screen.getByText('Begin your transformation');
+      const button = await screen.findByText('Begin your transformation');
       
       // Should have proper styling for confident interactions
       expect(button).toHaveStyle({
@@ -130,31 +157,30 @@ describe('EnhancedWelcomeScreen (Simple)', () => {
   });
 
   describe('Accessibility', () => {
-    it('provides proper semantic structure', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+    it('provides proper semantic structure', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      const brandName = screen.getByText('Cultivate HQ');
+      // Should have proper heading hierarchy
+      const brandName = await screen.findByText('Cultivate HQ');
       expect(brandName.tagName).toBe('H2'); // Based on variant="h2"
       
-      const tagline = screen.getByText('Where strategic minds cultivate extraordinary outcomes');
+      const tagline = await screen.findByText('Where strategic minds cultivate extraordinary outcomes');
       expect(tagline.tagName).toBe('H3'); // Based on variant="h3"
     });
 
     it('supports reduced motion preferences', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+      // Test that animations respect prefers-reduced-motion
+      render(<EnhancedWelcomeScreen />);
       
-      // Check that the jsx style tag includes reduced motion support
-      const styleElements = document.querySelectorAll('style');
-      const hasReducedMotion = Array.from(styleElements).some(el => 
-        el.textContent?.includes('@media (prefers-reduced-motion: reduce)')
-      );
-      expect(hasReducedMotion).toBe(true);
+      // Check that the style tag includes reduced motion support
+      const styleElement = document.querySelector('style');
+      expect(styleElement?.textContent).toContain('@media (prefers-reduced-motion: reduce)');
     });
 
-    it('has proper button accessibility', () => {
-      render(<EnhancedWelcomeScreen skipAnimations={true} />);
+    it('has proper button accessibility', async () => {
+      render(<EnhancedWelcomeScreen />);
       
-      const button = screen.getByRole('button', { name: 'Begin your transformation' });
+      const button = await screen.findByRole('button', { name: 'Begin your transformation' });
       expect(button).toBeInTheDocument();
       expect(button).not.toHaveAttribute('aria-disabled');
     });
@@ -162,10 +188,20 @@ describe('EnhancedWelcomeScreen (Simple)', () => {
 
   describe('Performance Considerations', () => {
     it('handles component unmounting gracefully', () => {
-      const { unmount } = render(<EnhancedWelcomeScreen skipAnimations={true} />);
+      const { unmount } = render(<EnhancedWelcomeScreen />);
       
       // Should not throw errors when unmounted
       expect(() => unmount()).not.toThrow();
+    });
+
+    it('cleans up timeouts on unmount', () => {
+      const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
+      const { unmount } = render(<EnhancedWelcomeScreen />);
+      
+      unmount();
+      
+      // Should clean up any pending timeouts
+      expect(clearTimeoutSpy).toHaveBeenCalled();
     });
   });
 });

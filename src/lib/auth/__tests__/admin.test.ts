@@ -33,10 +33,8 @@ const mockAdminUser = {
 
 describe('checkIsAdmin', () => {
   let mockSupabase: ReturnType<typeof createClient>;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.clearAllMocks();
 
     mockSupabase = {
@@ -48,10 +46,6 @@ describe('checkIsAdmin', () => {
     } as ReturnType<typeof createClient>;
 
     mockCreateClient.mockResolvedValue(mockSupabase);
-  });
-
-  afterEach(() => {
-    consoleErrorSpy?.mockRestore();
   });
 
   it('should return unauthorized when no user is authenticated', async () => {
@@ -201,10 +195,8 @@ describe('requireAdmin', () => {
 describe('logAdminAction', () => {
   let mockSupabase: ReturnType<typeof createClient>;
   let mockRequest: Request;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockSupabase = {
       rpc: vi.fn(),
     } as ReturnType<typeof createClient>;
@@ -226,10 +218,6 @@ describe('logAdminAction', () => {
         }),
       },
     } as Request;
-  });
-
-  afterEach(() => {
-    consoleErrorSpy?.mockRestore();
   });
 
   it('should log admin action successfully', async () => {

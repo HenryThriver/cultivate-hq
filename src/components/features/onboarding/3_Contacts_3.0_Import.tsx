@@ -36,16 +36,12 @@ interface ContactInput {
   error?: string;
 }
 
-interface ContactImportScreenProps {
-  skipAnimations?: boolean; // For testing purposes
-}
-
-export default function ContactImportScreen({ skipAnimations = false }: ContactImportScreenProps) {
+export default function ContactImportScreen() {
   const { nextScreen, completeScreen, currentScreen, isNavigating, updateState } = useOnboardingState();
   const { profile } = useUserProfile();
   const theme = useTheme();
   
-  const [animationStep, setAnimationStep] = useState(skipAnimations ? 3 : 0);
+  const [animationStep, setAnimationStep] = useState(0);
   const [contact, setContact] = useState<ContactInput>({
     id: '1', 
     url: '', 
@@ -61,11 +57,6 @@ export default function ContactImportScreen({ skipAnimations = false }: ContactI
   const [debugMode, setDebugMode] = useState(false);
 
   useEffect(() => {
-    if (skipAnimations) {
-      // For testing: skip animations and show all content immediately
-      return;
-    }
-
     const startAnimationSequence = () => {
       // Step 1: Show goal acknowledgment
       setAnimationStep(1);
@@ -81,7 +72,7 @@ export default function ContactImportScreen({ skipAnimations = false }: ContactI
     const timeoutId = setTimeout(startAnimationSequence, 500);
     
     return () => clearTimeout(timeoutId);
-  }, [skipAnimations]);
+  }, []);
 
   const validateLinkedInUrl = (url: string): boolean => {
     if (!url.trim()) return false;
@@ -297,13 +288,6 @@ export default function ContactImportScreen({ skipAnimations = false }: ContactI
 
       <Box sx={{ maxWidth: 800, mx: 'auto', minHeight: 120 }}>
         
-        {/* Error Alert */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-        
         {/* Step 1: Goal Acknowledgment */}
         {animationStep >= 1 && (
           <Fade in={true} timeout={1000}>
@@ -390,7 +374,7 @@ export default function ContactImportScreen({ skipAnimations = false }: ContactI
                     Strategic Connection Profile
                   </Typography>
                   <Tooltip title={suggestionTooltip} arrow placement="top">
-                    <IconButton size="small" sx={{ color: theme.palette.sage.main }} aria-label="help">
+                    <IconButton size="small" sx={{ color: theme.palette.sage.main }}>
                       <Help />
                     </IconButton>
                   </Tooltip>

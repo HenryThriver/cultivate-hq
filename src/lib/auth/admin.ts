@@ -7,7 +7,6 @@ import type {
   AuditDetails,
   LogAdminActionParams 
 } from '@/types/database-rpc';
-import { adminError, adminAction } from '@/lib/utils/logger';
 
 /**
  * Result type for admin check operations
@@ -49,7 +48,7 @@ export async function checkIsAdmin(): Promise<AdminCheckResult> {
     .single();
 
   if (userError) {
-    adminError('Error checking admin status', userError);
+    console.error('Error checking admin status:', userError);
     return {
       isAdmin: false,
       user,
@@ -138,10 +137,17 @@ export async function logAdminAction(
     // Log success to application logger
     adminAction('Admin action logged successfully', { action, resourceType, resourceId });
   } catch (error) {
-    adminError('Failed to log admin action', error instanceof Error ? error : new Error(String(error)));
+    console.error('Failed to log admin action:', error);
     // Don't throw - logging should not break the main operation
   }
 }
 
-// Client-side admin hook is available in @/lib/hooks/useFeatureFlag.ts
-// Import { useIsAdmin } from '@/lib/hooks/useFeatureFlag' to use the admin status hook
+/**
+ * Client-side hook to check if current user is admin
+ * This should only be used for UI display purposes, not security
+ */
+export function useIsAdmin() {
+  // This will be implemented in the client-side hooks file
+  // For now, return a placeholder
+  return { isAdmin: false, loading: true };
+}

@@ -42,14 +42,8 @@ describe('/api/stripe/webhook', () => {
       delete?: () => { eq: () => Promise<{ error: unknown }> };
     };
   };
-
-  // Suppress console outputs during tests since we're testing error scenarios
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   
   beforeEach(async () => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.clearAllMocks();
     Object.assign(process.env, mockEnv);
     
@@ -80,11 +74,6 @@ describe('/api/stripe/webhook', () => {
     
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabaseClient);
-  });
-
-  afterEach(() => {
-    consoleErrorSpy?.mockRestore();
-    consoleLogSpy?.mockRestore();
   });
 
   describe('Security & Validation', () => {

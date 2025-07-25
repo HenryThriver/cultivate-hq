@@ -106,7 +106,7 @@ export const MeetingDetailModal: React.FC<MeetingDetailModalProps> = ({
       failed: { icon: ErrorOutlineIcon, color: 'error' as const, text: 'AI processing failed' },
     };
 
-    const config = statusConfig[meeting.ai_parsing_status as keyof typeof statusConfig];
+    const config = statusConfig[meeting.ai_parsing_status];
     const StatusIcon = config.icon;
 
     return (

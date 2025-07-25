@@ -36,11 +36,9 @@ export const ContactCard = ({ contact }: ContactCardProps) => {
             {contact.email}
           </Typography>
         )}
-        {contact.linkedin_url && (
-          <Typography variant="body2">
-            LinkedIn: <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer">{contact.linkedin_url}</a>
-          </Typography>
-        )}
+        <Typography variant="body2">
+          LinkedIn: <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer">{contact.linkedin_url}</a>
+        </Typography>
         <Typography variant="caption" display="block" sx={{mt: 1}}>
           ID: {contact.id}
         </Typography>

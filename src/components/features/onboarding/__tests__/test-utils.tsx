@@ -3,7 +3,6 @@ import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { vi } from 'vitest';
 
 // Create a custom theme for testing that includes our brand colors
 const testTheme = createTheme({

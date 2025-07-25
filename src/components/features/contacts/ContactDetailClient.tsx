@@ -74,11 +74,9 @@ export const ContactDetailClient = ({ contactId }: ContactDetailClientProps) => 
       <Box sx={{ mb: 2 }}>
         <Typography variant="subtitle1"><strong>ID:</strong> {contact.id}</Typography>
         <Typography variant="subtitle1"><strong>LinkedIn URL:</strong> 
-          {contact.linkedin_url ? (
-            <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer">
-              {contact.linkedin_url}
-            </a>
-          ) : 'N/A'}
+          <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer">
+            {contact.linkedin_url}
+          </a>
         </Typography>
         <Typography variant="subtitle1"><strong>Email:</strong> {contact.email || 'N/A'}</Typography>
         <Typography variant="subtitle1"><strong>Name (from profile):</strong> {contact.name || 'N/A - will be populated after scraping'}</Typography>

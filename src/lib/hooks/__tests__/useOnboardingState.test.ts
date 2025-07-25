@@ -1,164 +1,57 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, act } from '@testing-library/react';
 import { useOnboardingState } from '../useOnboardingState';
-import { supabase } from '@/lib/supabase/client';
-import React from 'react';
 
-// Global state for mock to maintain across calls
-let mockOnboardingState = {
-  id: 'test-id',
-  user_id: 'test-user-id',
-  current_screen: 1,
-  completed_screens: [],
-  started_at: new Date().toISOString(),
-  last_activity_at: new Date().toISOString(),
-  challenge_voice_memo_id: null,
-  goal_voice_memo_id: null,
-  profile_enhancement_voice_memo_id: null,
-  goal_contact_urls: [],
-  imported_goal_contacts: null,
-  linkedin_contacts_added: null,
-  linkedin_connected: false,
-  gmail_connected: false,
-  calendar_connected: false,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
+// Mock Supabase client
+const mockSupabase = {
+  from: vi.fn(() => ({
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => Promise.resolve({
+          data: {
+            current_screen: 0,
+            completed_screens: [],
+            onboarding_state: {},
+            is_complete: false,
+          },
+          error: null
+        }))
+      }))
+    })),
+    insert: vi.fn(() => Promise.resolve({ data: {}, error: null })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ data: {}, error: null }))
+    })),
+    upsert: vi.fn(() => Promise.resolve({ data: {}, error: null }))
+  }))
 };
 
-// Mock Supabase client with stateful operations
 vi.mock('@/lib/supabase/client', () => ({
-  supabase: {
-    from: vi.fn((table: string) => {
-      if (table === 'onboarding_state') {
-        return {
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn(() => Promise.resolve({
-                data: { ...mockOnboardingState },
-                error: null
-              })),
-              neq: vi.fn(() => ({
-                single: vi.fn(() => Promise.resolve({ data: null, error: null }))
-              }))
-            }))
-          })),
-          insert: vi.fn((data: any) => ({
-            select: vi.fn(() => ({
-              single: vi.fn(() => {
-                mockOnboardingState = { ...mockOnboardingState, ...data };
-                return Promise.resolve({ 
-                  data: { ...mockOnboardingState }, 
-                  error: null 
-                });
-              })
-            }))
-          })),
-          update: vi.fn((updates: any) => ({
-            eq: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                select: vi.fn(() => ({
-                  single: vi.fn(() => {
-                    mockOnboardingState = { ...mockOnboardingState, ...updates };
-                    return Promise.resolve({ 
-                      data: { ...mockOnboardingState }, 
-                      error: null 
-                    });
-                  })
-                }))
-              }))
-            }))
-          })),
-          delete: vi.fn(() => ({
-            in: vi.fn(() => Promise.resolve({ data: null, error: null })),
-            eq: vi.fn(() => ({
-              eq: vi.fn(() => Promise.resolve({ data: null, error: null }))
-            }))
-          }))
-        };
-      }
-      if (table === 'artifacts') {
-        return {
-          delete: vi.fn(() => ({
-            in: vi.fn(() => Promise.resolve({ data: null, error: null }))
-          }))
-        };
-      }
-      if (table === 'users') {
-        return {
-          update: vi.fn(() => ({
-            eq: vi.fn(() => Promise.resolve({ data: {}, error: null }))
-          }))
-        };
-      }
-      if (table === 'contacts') {
-        return {
-          update: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              eq: vi.fn(() => Promise.resolve({ data: {}, error: null }))
-            }))
-          }))
-        };
-      }
-      return {};
-    })
-  }
+  supabase: mockSupabase
 }));
 
 // Mock auth context
+const mockUser = {
+  id: 'test-user-id',
+  email: 'test@example.com'
+};
+
 vi.mock('@/lib/contexts/AuthContext', () => ({
-  useAuth: () => ({ 
-    user: {
-      id: 'test-user-id',
-      email: 'test@example.com'
-    }
-  })
+  useAuth: () => ({ user: mockUser })
 }));
 
 describe('useOnboardingState', () => {
-  let queryClient: QueryClient;
-
-  const createWrapper = ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
-
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset mock state
-    mockOnboardingState = {
-      id: 'test-id',
-      user_id: 'test-user-id',
-      current_screen: 1,
-      completed_screens: [],
-      started_at: new Date().toISOString(),
-      last_activity_at: new Date().toISOString(),
-      challenge_voice_memo_id: null,
-      goal_voice_memo_id: null,
-      profile_enhancement_voice_memo_id: null,
-      goal_contact_urls: [],
-      imported_goal_contacts: null,
-      linkedin_contacts_added: null,
-      linkedin_connected: false,
-      gmail_connected: false,
-      calendar_connected: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    });
   });
 
   describe('Initialization', () => {
     it('initializes with default state', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
       
-      // Should not be navigating initially (no mutations pending)
-      expect(result.current.isNavigating).toBe(false);
+      // Should start loading
+      expect(result.current.isNavigating).toBe(true);
       
       // Wait for initialization
       await act(async () => {
@@ -167,77 +60,45 @@ describe('useOnboardingState', () => {
     });
 
     it('loads existing onboarding state from database', async () => {
-      // Set up mock state before test
-      mockOnboardingState = {
-        ...mockOnboardingState,
+      const existingState = {
         current_screen: 3,
-        completed_screens: [1, 2, 3],
-        challenge_voice_memo_id: 'memo-123',
+        completed_screens: [0, 1, 2],
+        onboarding_state: {
+          challenge_voice_memo_id: 'memo-123',
+          goal_id: 'goal-456'
+        },
+        is_complete: false
       };
 
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      mockSupabase.from.mockImplementation(() => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({
+              data: existingState,
+              error: null
+            })
+          })
+        })
+      }));
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      const { result } = renderHook(() => useOnboardingState());
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       expect(result.current.currentScreen).toBe(3);
-      expect(result.current.state?.completed_screens).toEqual([1, 2, 3]);
-      expect(result.current.state?.challenge_voice_memo_id).toBe('memo-123');
+      expect(result.current.completedScreens).toEqual([0, 1, 2]);
+      expect(result.current.state).toEqual({
+        challenge_voice_memo_id: 'memo-123',
+        goal_id: 'goal-456'
+      });
     });
   });
 
   describe('Screen Navigation', () => {
     it('advances to next screen', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
-
-      // Wait for initial state to load
-      await waitFor(() => {
-        console.log('Current state:', result.current.state);
-        console.log('Current screen:', result.current.currentScreen);
-        console.log('Is loading:', result.current.isLoading);
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const initialScreen = result.current.currentScreen;
-      expect(initialScreen).toBe(1);
-
-      await act(async () => {
-        await result.current.nextScreen();
-      });
-
-      await waitFor(() => {
-        expect(result.current.currentScreen).toBe(initialScreen + 1);
-      });
-      
-      expect(vi.mocked(supabase.from)).toHaveBeenCalledWith('onboarding_state');
-    });
-
-    it('goes to previous screen', async () => {
-      // Start with screen 2
-      mockOnboardingState = {
-        ...mockOnboardingState,
-        current_screen: 2,
-        completed_screens: [1, 2],
-      };
-
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      await act(async () => {
-        await result.current.previousScreen();
-      });
-
-      await waitFor(() => {
-        expect(result.current.currentScreen).toBe(1);
-      });
-    });
-
-    it('prevents going to previous screen from first screen', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -246,7 +107,58 @@ describe('useOnboardingState', () => {
       const initialScreen = result.current.currentScreen;
 
       await act(async () => {
-        await result.current.previousScreen();
+        await result.current.nextScreen();
+      });
+
+      expect(result.current.currentScreen).toBe(initialScreen + 1);
+      expect(mockSupabase.from).toHaveBeenCalledWith('user_onboarding');
+    });
+
+    it('goes to previous screen', async () => {
+      // Start with screen 2
+      mockSupabase.from.mockImplementation(() => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({
+              data: {
+                current_screen: 2,
+                completed_screens: [0, 1],
+                onboarding_state: {},
+                is_complete: false
+              },
+              error: null
+            })
+          })
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ data: {}, error: null })
+        })
+      }));
+
+      const { result } = renderHook(() => useOnboardingState());
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      await act(async () => {
+        await result.current.prevScreen();
+      });
+
+      expect(result.current.currentScreen).toBe(1);
+    });
+
+    it('prevents going to previous screen from first screen', async () => {
+      const { result } = renderHook(() => useOnboardingState());
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      const initialScreen = result.current.currentScreen;
+
+      await act(async () => {
+        await result.current.prevScreen();
       });
 
       // Should stay at first screen
@@ -254,159 +166,176 @@ describe('useOnboardingState', () => {
     });
 
     it('goes to specific screen', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
-      // Test navigation to next screen (screen 2) which should be allowed
       await act(async () => {
-        try {
-          await result.current.navigateToScreen(2);
-          // If successful, screen should advance
-          expect(result.current.currentScreen).toBeGreaterThan(1);
-        } catch (error) {
-          // If navigation is restricted, that's also valid behavior
-          expect(result.current.currentScreen).toBe(1);
-        }
+        await result.current.goToScreen(5);
       });
+
+      expect(result.current.currentScreen).toBe(5);
     });
   });
 
   describe('Screen Completion', () => {
     it('marks screen as completed', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       await act(async () => {
-        await result.current.completeScreen(1); // welcome is screen 1
+        await result.current.completeScreen('welcome');
       });
 
-      expect(result.current.state?.completed_screens).toContain(1); // welcome is screen 1
+      expect(result.current.completedScreens).toContain(0); // welcome is screen 0
     });
 
     it('prevents duplicate completion', async () => {
       // Start with welcome already completed
-      mockOnboardingState = {
-        ...mockOnboardingState,
-        current_screen: 2,
-        completed_screens: [1],
-      };
+      mockSupabase.from.mockImplementation(() => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({
+              data: {
+                current_screen: 1,
+                completed_screens: [0],
+                onboarding_state: {},
+                is_complete: false
+              },
+              error: null
+            })
+          })
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ data: {}, error: null })
+        })
+      }));
 
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const initialCompleted = result.current.state?.completed_screens?.length || 0;
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
-        await result.current.completeScreen(1); // welcome is screen 1
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      const initialCompleted = result.current.completedScreens.length;
+
+      await act(async () => {
+        await result.current.completeScreen('welcome');
       });
 
       // Should not add duplicate
-      await waitFor(() => {
-        expect(result.current.state?.completed_screens?.length).toBe(initialCompleted);
-      });
+      expect(result.current.completedScreens.length).toBe(initialCompleted);
     });
   });
 
   describe('State Management', () => {
     it('updates onboarding state', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       const newState = {
-        challenge_voice_memo_id: 'new-memo-123'
+        challenge_voice_memo_id: 'new-memo-123',
+        goal_id: 'new-goal-456'
       };
 
       await act(async () => {
         await result.current.updateState(newState);
       });
 
-      // Since the mock returns a static response, we'll verify the state contains updated data
-      expect(result.current.state?.id).toBe('test-id');
-      expect(result.current.state?.user_id).toBe('test-user-id');
+      expect(result.current.state).toEqual(expect.objectContaining(newState));
     });
 
     it('merges state updates', async () => {
       // Start with existing state
-      mockOnboardingState = {
-        ...mockOnboardingState,
-        challenge_voice_memo_id: 'existing-memo',
-      };
+      mockSupabase.from.mockImplementation(() => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({
+              data: {
+                current_screen: 0,
+                completed_screens: [],
+                onboarding_state: {
+                  challenge_voice_memo_id: 'existing-memo'
+                },
+                is_complete: false
+              },
+              error: null
+            })
+          })
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ data: {}, error: null })
+        })
+      }));
 
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       await act(async () => {
         await result.current.updateState({
-          goal_voice_memo_id: 'new-goal'
+          goal_id: 'new-goal'
         });
       });
 
-      await waitFor(() => {
-        expect(result.current.state?.challenge_voice_memo_id).toBe('existing-memo');
-        expect(result.current.state?.goal_voice_memo_id).toBe('new-goal');
+      expect(result.current.state).toEqual({
+        challenge_voice_memo_id: 'existing-memo',
+        goal_id: 'new-goal'
       });
     });
   });
 
   describe('Onboarding Completion', () => {
     it('completes onboarding', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       await act(async () => {
-        try {
-          await result.current.completeOnboarding();
-          // If successful, we can check basic state
-          expect(result.current.state).toBeDefined();
-        } catch (error) {
-          // Expected behavior due to complex mock requirements
-          expect(error).toBeDefined();
-        }
+        await result.current.completeOnboarding();
       });
+
+      expect(result.current.isComplete).toBe(true);
     });
 
     it('resets onboarding state', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // The restart functionality should work - test that it doesn't throw
       await act(async () => {
-        try {
-          await result.current.restartOnboarding();
-          // If it completes without error, that's good enough
-          expect(result.current.state).toBeDefined();
-        } catch (error) {
-          // Complex mock chains make this difficult to test fully
-          expect(error).toBeDefined();
-        }
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
+
+      // Complete some screens first
+      await act(async () => {
+        await result.current.completeScreen('welcome');
+        await result.current.nextScreen();
+      });
+
+      await act(async () => {
+        await result.current.resetOnboarding();
+      });
+
+      expect(result.current.currentScreen).toBe(0);
+      expect(result.current.completedScreens).toEqual([]);
+      expect(result.current.isComplete).toBe(false);
     });
   });
 
   describe('Screen Name Mapping', () => {
     it('maps screen numbers to names correctly', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -414,85 +343,102 @@ describe('useOnboardingState', () => {
 
       expect(result.current.currentScreenName).toBe('welcome');
 
-      // Test the mapping function works without actual navigation
-      expect(result.current.getScreenByNumber(1)).toBe('welcome');
-      expect(result.current.getScreenByNumber(2)).toBe('challenges');
-      expect(result.current.getScreenByNumber(5)).toBe('goals');
+      await act(async () => {
+        await result.current.goToScreen(1);
+      });
+
+      expect(result.current.currentScreenName).toBe('challenges');
+
+      await act(async () => {
+        await result.current.goToScreen(4);
+      });
+
+      expect(result.current.currentScreenName).toBe('goals');
     });
 
     it('handles invalid screen numbers', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       await act(async () => {
-        try {
-          await result.current.navigateToScreen(999);
-        } catch (error) {
-          // Expected to throw for invalid screen
-        }
+        await result.current.goToScreen(999);
       });
 
-      // Should not crash and should remain at valid screen
-      expect(result.current.currentScreenName).toBe('welcome');
+      // Should not crash and should use unknown screen name
+      expect(result.current.currentScreenName).toBe('unknown');
     });
   });
 
   describe('Error Handling', () => {
     it('handles database errors gracefully', async () => {
-      // We'll simulate this by testing initialization behavior
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      // Mock database error
+      mockSupabase.from.mockImplementation(() => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({
+              data: null,
+              error: { message: 'Database error' }
+            })
+          })
+        })
+      }));
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      const { result } = renderHook(() => useOnboardingState());
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
-      // Should initialize with defaults
-      expect(result.current.currentScreen).toBe(1);
+      // Should initialize with defaults despite error
+      expect(result.current.currentScreen).toBe(0);
       expect(result.current.isComplete).toBe(false);
     });
 
     it('handles update errors', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Should handle normal updates gracefully
       await act(async () => {
-        await result.current.updateState({ challenge_voice_memo_id: 'test-memo' });
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
-      await waitFor(() => {
-        expect(result.current.state?.challenge_voice_memo_id).toBe('test-memo');
+      // Mock update error
+      mockSupabase.from.mockImplementation(() => ({
+        update: () => ({
+          eq: () => Promise.resolve({
+            data: null,
+            error: { message: 'Update failed' }
+          })
+        })
+      }));
+
+      // Should not throw error
+      await act(async () => {
+        await expect(result.current.updateState({ test: 'value' })).resolves.not.toThrow();
       });
     });
   });
 
   describe('Loading States', () => {
     it('manages navigation loading state', async () => {
-      const { result } = renderHook(() => useOnboardingState(), { wrapper: createWrapper });
+      const { result } = renderHook(() => useOnboardingState());
 
-      // Initially might be loading while fetching data
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      expect(result.current.isNavigating).toBe(true);
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       expect(result.current.isNavigating).toBe(false);
 
-      // Test that navigation works properly
-      await act(async () => {
-        await result.current.nextScreen();
+      // Should set loading during navigation
+      act(() => {
+        result.current.nextScreen();
       });
 
-      // After navigation completes, should not be navigating
-      await waitFor(() => {
-        expect(result.current.isNavigating).toBe(false);
-        expect(result.current.currentScreen).toBe(2);
-      });
+      expect(result.current.isNavigating).toBe(true);
     });
   });
 });

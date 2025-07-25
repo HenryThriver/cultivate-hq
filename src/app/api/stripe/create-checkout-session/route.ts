@@ -42,7 +42,11 @@ export async function POST(request: NextRequest) {
     }
 
     const priceConfig = PRICE_CONFIG[priceType as keyof typeof PRICE_CONFIG];
+    const productConfig = PRODUCT_CONFIG[priceType as keyof typeof PRODUCT_CONFIG];
     const stripe = getServerStripe();
+    
+    // Handle supporter tier differently (one-time payment for 5 years)
+    const isSupporter = priceType === 'supporter';
     
     // Create Stripe checkout session
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
@@ -52,32 +56,38 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: PRODUCT_CONFIG.name,
-              description: PRODUCT_CONFIG.description,
+              name: `Cultivate HQ ${productConfig.name}`,
+              description: productConfig.description,
               metadata: {
-                features: PRODUCT_CONFIG.features.slice(0, 5).join(', ') + '...',
+                features: productConfig.features.slice(0, 5).join(', ') + '...',
               },
             },
             unit_amount: priceConfig.amount,
-            recurring: {
-              interval: priceConfig.interval,
-            },
+            ...(isSupporter ? {
+              // One-time payment for supporter tier
+            } : {
+              recurring: {
+                interval: priceConfig.interval,
+              },
+            }),
           },
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: isSupporter ? 'payment' : 'subscription',
       success_url: `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
       metadata: {
         priceType: priceType,
-        planName: `${PRODUCT_CONFIG.name} - ${priceType}`,
+        planName: `Cultivate HQ ${productConfig.name}`,
       },
-      subscription_data: {
-        metadata: {
-          priceType: priceType,
+      ...(isSupporter ? {} : {
+        subscription_data: {
+          metadata: {
+            priceType: priceType,
+          },
         },
-      },
+      }),
       allow_promotion_codes: true,
     };
 
@@ -87,7 +97,7 @@ export async function POST(request: NextRequest) {
       if (sessionConfig.metadata) {
         sessionConfig.metadata.userId = userId;
       }
-      if (sessionConfig.subscription_data?.metadata) {
+      if (!isSupporter && sessionConfig.subscription_data?.metadata) {
         sessionConfig.subscription_data.metadata.userId = userId;
       }
     }

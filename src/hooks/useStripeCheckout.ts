@@ -7,7 +7,7 @@ export const useStripeCheckout = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const createCheckoutSession = async (priceType: 'monthly' | 'yearly') => {
+  const createCheckoutSession = async (priceType: 'monthly' | 'annual' | 'supporter') => {
     setLoading(true);
     setError(null);
 

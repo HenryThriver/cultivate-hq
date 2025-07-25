@@ -163,6 +163,22 @@ export default function FeaturesPage() {
               >
                 Pricing
               </Typography>
+
+              <Typography
+                component={Link}
+                href="/about"
+                variant="body1"
+                sx={{
+                  textDecoration: 'none',
+                  color: 'text.secondary',
+                  fontWeight: 500,
+                  '&:hover': {
+                    color: 'primary.main'
+                  }
+                }}
+              >
+                About
+              </Typography>
               
               <Button
                 component={Link}
@@ -669,6 +685,15 @@ export default function FeaturesPage() {
                   sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
                 >
                   Pricing
+                </Typography>
+                <Typography
+                  component={Link}
+                  href="/about"
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
+                >
+                  About
                 </Typography>
               </Stack>
               

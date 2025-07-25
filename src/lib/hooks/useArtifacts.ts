@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types_db';
+import { error as logError } from '@/lib/utils/logger';
 
 // Define the type for a new artifact based on your DB schema
 // This should align with Tables<"artifacts">["Insert"] from types_db.ts
@@ -57,20 +58,7 @@ export const useArtifacts = () => {
       throw new Error('Artifact creation failed, no data returned.');
     }
 
-    return {
-      ...data,
-      // Add default loop fields if they're missing (for compatibility with loop artifacts)
-      impact_score: getExtendedProperty('impact_score', null),
-      initiator_contact_id: getExtendedProperty('initiator_contact_id', null),
-      initiator_user_id: getExtendedProperty('initiator_user_id', null),
-      loop_status: getExtendedProperty('loop_status', null),
-      loop_type: getExtendedProperty('loop_type', null),
-      recipient_contact_id: getExtendedProperty('recipient_contact_id', null),
-      recipient_user_id: getExtendedProperty('recipient_user_id', null),
-      resolution_notes: getExtendedProperty('resolution_notes', null),
-      reciprocity_weight: getExtendedProperty('reciprocity_weight', null),
-      updated_at: getExtendedProperty('updated_at', data.created_at)
-    } as Artifact;
+    return data as Artifact;
   };
 
   const createArtifactMutation = useMutation<Artifact, Error, NewArtifact>({

@@ -7,6 +7,7 @@ import type {
   AuditDetails,
   LogAdminActionParams 
 } from '@/types/database-rpc';
+import { adminAction, adminError } from '@/lib/utils/logger';
 
 /**
  * Result type for admin check operations

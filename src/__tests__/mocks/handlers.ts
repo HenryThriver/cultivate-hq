@@ -28,6 +28,35 @@ export const handlers = [
     });
   }),
 
+  // Mock goal creation endpoint
+  http.put('/api/user/profile', () => {
+    return HttpResponse.json({
+      goal: { id: 'test-goal-123' }
+    });
+  }),
+
+  // Mock voice memo onboarding endpoint
+  http.post('/api/voice-memo/onboarding', () => {
+    return HttpResponse.json({
+      success: true,
+      artifact_id: 'test-artifact-456'
+    });
+  }),
+
+  // Mock contacts goal import endpoint
+  http.post('/api/contacts/goal-import', () => {
+    return HttpResponse.json({
+      success: true,
+      contacts: [{
+        id: 'contact-123',
+        name: 'John Doe',
+        linkedin_url: 'https://linkedin.com/in/johndoe',
+        company: 'Tech Corp',
+        title: 'VP of Product'
+      }]
+    });
+  }),
+
   // Mock other API endpoints as needed
   http.get('/api/*', () => {
     return HttpResponse.json({ message: 'API endpoint mocked' });

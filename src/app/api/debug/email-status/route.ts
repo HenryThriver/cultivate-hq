@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin, logAdminAction } from '@/lib/auth/admin';
 
 interface DebugArtifact {
   id: string;
@@ -15,6 +16,12 @@ interface DebugArtifact {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  // Require admin access for debug endpoints
+  const adminResult = await requireAdmin();
+  if (!adminResult.isAdmin) {
+    return adminResult.response!;
+  }
+
   try {
     const supabase = await createClient();
     
@@ -63,6 +70,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         subject: metadata?.subject,
       };
     };
+
+    // Log admin action for audit trail
+    await logAdminAction(
+      adminResult.user!.id,
+      'read',
+      'system_config',
+      undefined,
+      { action: 'debug_email_status', contact_id: contactId },
+      request
+    );
 
     return NextResponse.json({
       debug_info: {

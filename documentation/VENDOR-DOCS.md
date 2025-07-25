@@ -4,6 +4,11 @@ This document centralizes all vendor API documentation and CLI command reference
 
 ## GitHub & Git
 
+### Git Core
+- **Git Documentation**: https://git-scm.com/docs
+- **Git Worktrees**: https://git-scm.com/docs/git-worktree
+- **Branching & Merging**: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+
 ### GitHub CLI (gh)
 - **Main Docs**: https://cli.github.com/manual/
 - **PR Commands**: https://cli.github.com/manual/gh_pr
@@ -120,6 +125,20 @@ This document centralizes all vendor API documentation and CLI command reference
 - ❌ `npm run test -- --run` (incorrect Vitest syntax)
 - ✅ `npx vitest run` (correct Vitest CLI usage)
 - ✅ `npm run test --run` (alternative if script configured)
+
+### Git Worktree Patterns
+- ✅ `git worktree add ../project-feature-name -b feature/feature-name` (create new worktree with new branch)
+- ✅ `git worktree add ../project-feature-name feature/existing-branch` (create worktree from existing branch)
+- ✅ `git worktree list` (list all worktrees)
+- ✅ `git worktree remove ../project-feature-name` (clean up worktree when done)
+- ✅ `git worktree prune` (clean up stale worktree references)
+
+#### Git Worktree Best Practices
+- **Parallel Development**: Work on multiple features simultaneously without branch switching
+- **Directory Naming**: Use descriptive names like `../project-feature-name` or `../project-bugfix-name`
+- **Claude Code Integration**: Each worktree can run its own Claude Code instance independently
+- **Environment Setup**: Run development setup commands in each new worktree as needed
+- **Cleanup**: Always remove worktrees when feature work is complete to avoid clutter
 
 ### GitHub CLI Patterns
 - ✅ `gh pr checks <pr-number>` (check PR status)

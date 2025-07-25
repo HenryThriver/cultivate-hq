@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,14 +13,46 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/login');
-    }
-  }, [user, loading, router]);
+    const checkAccess = async () => {
+      if (!loading) {
+        if (!user) {
+          // Not authenticated, redirect to login
+          router.push('/auth/login');
+          return;
+        }
+        
+        // User is authenticated, check onboarding status
+        // Only check if we're not already on the onboarding page
+        if (!pathname.startsWith('/onboarding')) {
+          try {
+            const { data: userProfile, error } = await supabase
+              .from('users')
+              .select('onboarding_completed_at')
+              .eq('id', user.id)
+              .single();
+            
+            if (!error && !userProfile?.onboarding_completed_at) {
+              // User hasn't completed onboarding, redirect to onboarding
+              router.push('/onboarding');
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking onboarding status:', error);
+          }
+        }
+        
+        setCheckingOnboarding(false);
+      }
+    };
+    
+    checkAccess();
+  }, [user, loading, router, pathname]);
 
-  if (loading) {
+  if (loading || checkingOnboarding) {
     return (
       <Box
         sx={{
@@ -33,7 +66,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       >
         <CircularProgress size={40} />
         <Typography variant="body1" color="text.secondary">
-          Loading...
+          {loading ? 'Loading...' : 'Checking access...'}
         </Typography>
       </Box>
     );

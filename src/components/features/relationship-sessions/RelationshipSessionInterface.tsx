@@ -36,6 +36,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/lib/hooks/useRelationshipSessions';
 import { AddContactActionCard } from './AddContactActionCard';
 import { AddMeetingNotesActionCard } from './AddMeetingNotesActionCard';
+import type { MeetingArtifactContent } from '@/types/artifact';
 
 interface RelationshipSessionInterfaceProps {
   sessionId: string;
@@ -214,7 +215,7 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
   const totalActions = session.actions.length;
   const completedCount = completedActions.size;
   const progress = totalActions > 0 ? (completedCount / totalActions) * 100 : 0;
-  const remainingActions = session.actions.filter((action: any) => !completedActions.has(action.id));
+  const remainingActions = session.actions.filter((action) => !completedActions.has(action.id));
   const allActionsCompleted = completedCount === totalActions;
   
   // Get goal information from session or first action
@@ -485,7 +486,7 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                       {currentAction.action_type === 'add_contact' ? (
                         <AddContactActionCard
                           actionId={currentAction.id}
-                          goalId={currentAction.goal_id}
+                          goalId={currentAction.goal_id || ''}
                           goalTitle={goal?.title || 'Unknown Goal'}
                           currentCount={currentCount}
                           targetCount={targetCount}
@@ -495,12 +496,12 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                       ) : (
                         <AddMeetingNotesActionCard
                           actionId={currentAction.id}
-                          meetingArtifactId={currentAction.meeting_artifact_id}
-                          contactId={currentAction.contact_id}
+                          meetingArtifactId={currentAction.meeting_artifact_id || ''}
+                          contactId={currentAction.contact_id || ''}
                           contactName={currentAction.contact?.name || 'Unknown Contact'}
-                          contactProfilePicture={currentAction.contact?.profile_picture || null}
-                          meetingTitle={currentAction.meeting_artifact?.metadata?.title || 'Meeting'}
-                          meetingMetadata={currentAction.meeting_artifact?.metadata || {}}
+                          contactProfilePicture={null}
+                          meetingTitle={(currentAction.meeting_artifact?.metadata && typeof currentAction.meeting_artifact.metadata === 'object' && 'title' in currentAction.meeting_artifact.metadata ? currentAction.meeting_artifact.metadata.title as string : undefined) || 'Meeting'}
+                          meetingMetadata={currentAction.meeting_artifact?.metadata as MeetingArtifactContent || {} as MeetingArtifactContent}
                           onComplete={handleActionComplete}
                           onSkip={handleActionSkip}
                         />

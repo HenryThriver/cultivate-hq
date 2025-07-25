@@ -29,9 +29,17 @@ const mockEnv = {
 };
 
 describe('/api/google/combined-auth', () => {
+  // Suppress console outputs during tests since we're testing error scenarios
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  
   beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.clearAllMocks();
     Object.assign(process.env, mockEnv);
+  });
+
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore();
   });
 
   it('should return 401 when user is not authenticated and no user_id provided', async () => {
@@ -44,7 +52,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);
@@ -67,7 +75,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);
@@ -88,7 +96,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);
@@ -105,7 +113,7 @@ describe('/api/google/combined-auth', () => {
         getUser: vi.fn(), // Should not be called when user_id is provided
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth?user_id=custom-user-id');
     const response = await GET(request);
@@ -131,7 +139,7 @@ describe('/api/google/combined-auth', () => {
         }),
       },
     };
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>);
 
     const request = new NextRequest('http://localhost:3000/api/google/combined-auth');
     const response = await GET(request);

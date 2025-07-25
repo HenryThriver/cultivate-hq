@@ -76,7 +76,7 @@ export const LoopSuggestions: React.FC<LoopSuggestionsProps> = ({ contactId }) =
     Error,
     string // suggestionId
   >({
-    mutationFn: async (suggestionId: string) => {
+    mutationFn: async (suggestionId: string): Promise<Tables<'artifacts'>> => {
       const suggestion = suggestions.find(s => s.id === suggestionId);
       if (!suggestion) throw new Error('Suggestion not found');
 
@@ -130,7 +130,7 @@ export const LoopSuggestions: React.FC<LoopSuggestionsProps> = ({ contactId }) =
         console.error('Failed to update suggestion status after loop creation:', updateError);
         throw updateError; // Propagate to onError
       }
-      return loop;
+      return loop as Tables<'artifacts'>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loop-suggestions', contactId] });

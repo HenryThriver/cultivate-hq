@@ -2,6 +2,19 @@ import { render, screen } from '@/__tests__/test-utils';
 import { vi } from 'vitest';
 import HomePage from '../page';
 
+// Mock Supabase client
+vi.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: null, error: null }))
+        }))
+      }))
+    }))
+  }
+}));
+
 // Mock the AuthContext
 const mockAuthContext = {
   user: null,
@@ -16,8 +29,15 @@ vi.mock('@/lib/contexts/AuthContext', () => ({
 }));
 
 describe('HomePage', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  
   beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore();
   });
 
   describe('Loading State', () => {

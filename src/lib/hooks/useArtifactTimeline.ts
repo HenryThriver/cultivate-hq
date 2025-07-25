@@ -101,7 +101,10 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
       .order('timestamp', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return (data as BaseArtifact[]) || [];
+    return (data || []).map(item => ({
+      ...item,
+      updated_at: (item as Record<string, unknown>).updated_at as string || item.created_at
+    })) as BaseArtifact[];
   };
 
   return useQuery<

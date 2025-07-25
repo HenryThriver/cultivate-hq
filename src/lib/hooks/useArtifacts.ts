@@ -1,11 +1,27 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types_db';
+import type { BaseArtifact } from '@/types/artifact';
+import { error as logError } from '@/lib/utils/logger';
 
 // Define the type for a new artifact based on your DB schema
 // This should align with Tables<"artifacts">["Insert"] from types_db.ts
 export type NewArtifact = Database['public']['Tables']['artifacts']['Insert'];
 export type Artifact = Database['public']['Tables']['artifacts']['Row'];
+
+// Interface for extended artifact properties (loop fields)
+interface ArtifactExtendedProperties {
+  impact_score: number | null;
+  initiator_contact_id: string | null;
+  initiator_user_id: string | null;
+  loop_status: string | null;
+  loop_type: string | null;
+  recipient_contact_id: string | null;
+  recipient_user_id: string | null;
+  resolution_notes: string | null;
+  reciprocity_weight: number | null;
+  updated_at: string;
+}
 
 // Custom error type for API errors with codes
 interface ApiError extends Error {
@@ -24,7 +40,7 @@ export const useArtifacts = () => {
   const queryClient = useQueryClient();
 
   // Create a new artifact
-  const createArtifactDB = async (newArtifact: NewArtifact): Promise<Artifact> => {
+  const createArtifactDB = async (newArtifact: NewArtifact): Promise<BaseArtifact> => {
     // Ensure user_id is populated if not already. For RLS, it must match auth.uid()
     // This might be automatically handled if your RLS policies are set up correctly and user_id is part of NewArtifact type.
     // If user_id is not part of NewArtifact, you might need to fetch it here or ensure it's added before this call.
@@ -36,20 +52,21 @@ export const useArtifacts = () => {
       .single();
 
     if (error) {
-      console.error('Supabase error creating artifact:', error);
+      logError('Supabase error creating artifact', error);
       throw new Error(error.message);
     }
     if (!data) {
       throw new Error('Artifact creation failed, no data returned.');
     }
-    return data;
+
+    return data as unknown as BaseArtifact;
   };
 
-  const createArtifactMutation = useMutation<Artifact, Error, NewArtifact>({
+  const createArtifactMutation = useMutation<BaseArtifact, Error, NewArtifact>({
     mutationFn: createArtifactDB,
     onSuccess: (newArtifactData) => {
       // Invalidate queries related to artifacts for a contact
-      if (newArtifactData.contact_id) {
+      if (newArtifactData?.contact_id) {
         queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE, { contact_id: newArtifactData.contact_id }] });
       }
       // Invalidate general artifact lists if you have them
@@ -57,7 +74,7 @@ export const useArtifacts = () => {
       queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE]}); // Broader invalidation
     },
     onError: (error) => {
-      console.error('Mutation error creating artifact:', error);
+      logError('Mutation error creating artifact', error);
     }
   });
 
@@ -87,7 +104,7 @@ export const useArtifacts = () => {
     void, 
     Error, 
     DeleteArtifactParams, 
-    { previousArtifactsForContact?: Artifact[], contactId?: string | null }
+    { previousArtifactsForContact?: BaseArtifact[], contactId?: string | null }
   >({
     mutationFn: (params: DeleteArtifactParams) => deleteArtifactDB(params.id),
     onMutate: async ({ id: deletedArtifactId, contactId }) => {
@@ -95,12 +112,12 @@ export const useArtifacts = () => {
       await queryClient.cancelQueries({ queryKey: [ARTIFACTS_TABLE, 'list'] }); // Cancel general lists too
       await queryClient.cancelQueries({ queryKey: [ARTIFACTS_TABLE, 'detail', deletedArtifactId]});
 
-      let previousArtifactsForContact: Artifact[] | undefined;
+      let previousArtifactsForContact: BaseArtifact[] | undefined;
 
       if (contactId) {
-        previousArtifactsForContact = queryClient.getQueryData<Artifact[]>([ARTIFACTS_TABLE, { contact_id: contactId }]);
+        previousArtifactsForContact = queryClient.getQueryData<BaseArtifact[]>([ARTIFACTS_TABLE, { contact_id: contactId }]);
         if (previousArtifactsForContact) {
-          queryClient.setQueryData<Artifact[]>(
+          queryClient.setQueryData<BaseArtifact[]>(
             [ARTIFACTS_TABLE, { contact_id: contactId }],
             previousArtifactsForContact.filter(artifact => artifact.id !== deletedArtifactId)
           );
@@ -112,7 +129,7 @@ export const useArtifacts = () => {
       return { previousArtifactsForContact, contactId };
     },
     onError: (err, variables, context) => {
-      console.error('Error deleting artifact:', err);
+      logError('Error deleting artifact', err);
       if (context?.previousArtifactsForContact && context.contactId) {
         queryClient.setQueryData([ARTIFACTS_TABLE, { contact_id: context.contactId }], context.previousArtifactsForContact);
       }

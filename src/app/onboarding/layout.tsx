@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { Box, IconButton } from '@mui/material';
-import { ArrowBack, Close } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { ArrowBack } from '@mui/icons-material';
 import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
 import { StageProgress } from '@/components/features/onboarding/StageProgress';
 import { ScreenNavigator } from '@/components/features/onboarding/ScreenNavigator';
@@ -13,7 +12,6 @@ interface OnboardingLayoutProps {
 }
 
 export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
-  const router = useRouter();
   const { 
     currentScreen, 
     previousScreen, 
@@ -27,10 +25,6 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
     if (currentScreen > 1) {
       await previousScreen();
     }
-  };
-
-  const handleClose = () => {
-    router.push('/dashboard');
   };
 
   const handleNavigateToStage = async (stageScreenNumber: number) => {
@@ -63,7 +57,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
         height: 120, // Fixed header height (increased to accommodate both navigation components)
         flexShrink: 0 // Prevent shrinking
       }}>
-        {/* Back and Close buttons outside container */}
+        {/* Back button - users can navigate backwards through onboarding */}
         <Box sx={{ 
           position: 'absolute', 
           top: 16, 
@@ -79,16 +73,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
           </IconButton>
         </Box>
         
-        <Box sx={{ 
-          position: 'absolute', 
-          top: 16, 
-          right: 16, 
-          zIndex: 1001 
-        }}>
-          <IconButton onClick={handleClose} size="small">
-            <Close />
-          </IconButton>
-        </Box>
+        {/* Close button removed - onboarding is mandatory and cannot be skipped */}
 
         {/* Navigation Controls - centered */}
         <Box sx={{ 

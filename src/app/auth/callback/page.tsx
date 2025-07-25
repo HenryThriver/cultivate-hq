@@ -228,8 +228,42 @@ export default function AuthCallbackPage(): React.JSX.Element {
             console.error('Error checking post-auth redirect:', error);
           }
           
-          // Successfully authenticated, redirect to dashboard
-          router.push('/dashboard');
+          // Check if user needs onboarding
+          try {
+            // Fetch user profile to check onboarding status
+            const { data: userProfile, error: profileError } = await supabase
+              .from('users')
+              .select('onboarding_completed_at')
+              .eq('id', data.session.user.id)
+              .single();
+            
+            if (profileError) {
+              console.error('Error checking user profile:', profileError);
+              // If we can't check, default to dashboard
+              router.push('/dashboard');
+              return;
+            }
+            
+            // Check if onboarding is completed
+            if (!userProfile?.onboarding_completed_at) {
+              // User needs onboarding - check if they have existing progress
+              await supabase
+                .from('onboarding_state')
+                .select('current_screen')
+                .eq('user_id', data.session.user.id)
+                .single();
+              
+              // Redirect to onboarding (will handle screen progression internally)
+              router.push('/onboarding');
+            } else {
+              // Onboarding complete, redirect to dashboard
+              router.push('/dashboard');
+            }
+          } catch (error) {
+            console.error('Error checking onboarding status:', error);
+            // Default to dashboard on error
+            router.push('/dashboard');
+          }
         } else {
           // No session found, redirect to login
           router.push('/auth/login');

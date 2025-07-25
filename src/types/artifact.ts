@@ -15,12 +15,26 @@ export interface BaseArtifact<TContent = Record<string, unknown> | string | null
   user_id: string;
   type: ArtifactType;
   content: TContent;
-  // Metadata can contain any structured data
+  // Metadata can contain any structured data (nullable in database)
   metadata?: TMetadata;
   timestamp: string; 
   created_at: string;
   updated_at: string;
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null; // Added here
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | string | null;
+  // Additional fields from database schema
+  duration_seconds?: number | null;
+  transcription?: string | null;
+  transcription_status?: string | null;
+  audio_file_path?: string | null;
+  ai_processing_started_at?: string | null;
+  ai_processing_completed_at?: string | null;
+  impact_score?: number | null;
+  reciprocity_weight?: number | null;
+  loop_status?: string | null;
+  initiator_contact_id?: string | null;
+  initiator_user_id?: string | null;
+  recipient_contact_id?: string | null;
+  recipient_user_id?: string | null;
 }
 
 // Database-compatible artifact type (what we get from Supabase)

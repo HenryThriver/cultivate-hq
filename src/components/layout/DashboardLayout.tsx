@@ -25,9 +25,13 @@ import {
   Logout as LogoutIcon,
   AccountCircle as AccountCircleIcon,
   Settings as SettingsIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useIsAdmin } from '@/lib/hooks/useFeatureFlag';
+import { TestBanner } from '@/components/features/banner/TestBanner';
+import { useTestBanner } from '@/lib/hooks/useTestBanner';
 
 const DRAWER_WIDTH = 240;
 
@@ -39,6 +43,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const { shouldShowBanner, dismissBanner } = useTestBanner();
   const router = useRouter();
 
   const handleDrawerToggle = (): void => {
@@ -63,7 +69,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     handleProfileMenuClose();
   };
 
-  const navigationItems = [
+  const baseNavigationItems = [
     {
       text: 'Dashboard',
       icon: <DashboardIcon />,
@@ -85,6 +91,28 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       path: '/dashboard/settings',
     },
   ];
+
+  // Add admin navigation if user is admin
+  const navigationItems = isAdmin 
+    ? [
+        ...baseNavigationItems,
+        { 
+          text: 'Admin', 
+          icon: <AdminIcon />, 
+          path: '/admin' 
+        },
+        { 
+          text: 'Test Features', 
+          icon: <AdminIcon />, 
+          path: '/test-features' 
+        },
+        { 
+          text: 'Dynamic Test', 
+          icon: <AdminIcon />, 
+          path: '/test-features-dynamic' 
+        }
+      ]
+    : baseNavigationItems;
 
   const drawer = (
     <Box>
@@ -253,6 +281,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         }}
       >
         <Toolbar />
+        {shouldShowBanner && (
+          <TestBanner onDismiss={dismissBanner} />
+        )}
         {children}
       </Box>
     </Box>

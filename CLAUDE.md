@@ -118,6 +118,8 @@ supabase link --project-ref oogajqshbhnjdrwqlffa --password "..."
 #### PREFERRED: CI/CD Migration Flow (GitHub Integration)
 **Use this approach for ALL database changes**
 
+At the beginning of each coding session, confirm what environment we are working in (local, dev, or staging) and then open the repo for the branch in focus. If this is a net new feature, create a new branch with an appropriate title.
+
 ```bash
 # 1. Create feature branch (REQUIRED)
 git checkout -b feature/your-feature
@@ -178,6 +180,53 @@ If you are Claude Code or any AI assistant:
 3. **ALWAYS prefer CI/CD workflow over direct database modifications**
 4. **ASK user to confirm environment if unclear**
 5. **REFUSE to execute database commands if linked to production without explicit user override**
+
+### Git Worktree Workflow
+
+Git worktrees enable parallel development on multiple branches simultaneously without the context switching overhead of branch changes.
+
+#### When to Use Worktrees
+- **Long-running features**: Complex features that span multiple days/weeks
+- **Parallel development**: Working on multiple features or bug fixes simultaneously
+- **Code comparison**: Comparing implementations across branches
+- **Claude Code isolation**: Running multiple Claude Code instances for different features
+
+#### Worktree Setup
+```bash
+# Create new worktree with new branch (preferred for new features)
+git worktree add ../cultivate-hq-feature-name -b feature/feature-name
+
+# Create worktree from existing branch
+git worktree add ../cultivate-hq-feature-name feature/existing-branch
+
+# List all worktrees
+git worktree list
+
+# Navigate to worktree and start Claude Code
+cd ../cultivate-hq-feature-name
+claude
+```
+
+#### Worktree Management
+```bash
+# When feature is complete, clean up worktree
+cd ../cultivate-hq  # Return to main directory
+git worktree remove ../cultivate-hq-feature-name
+
+# Clean up stale worktree references
+git worktree prune
+
+# Check worktree status
+git worktree list
+```
+
+#### Worktree Best Practices
+- **Directory Naming**: Use pattern `../cultivate-hq-feature-name` for consistency
+- **Environment Isolation**: Each worktree maintains independent file state
+- **Claude Code Instances**: Run separate Claude Code sessions per worktree
+- **Development Servers**: Each worktree can run its own dev server on different ports
+- **Database Considerations**: All worktrees share the same local Supabase instance
+- **Clean Regularly**: Remove completed feature worktrees to avoid clutter
 
 ### Development Workflow Best Practices
 

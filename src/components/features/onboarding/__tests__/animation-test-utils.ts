@@ -58,6 +58,6 @@ export const mockAnimationComponents = () => {
   }));
 
   vi.mock('../0_Welcome_Components/PreviewCardsContainer', () => ({
-    PreviewCardsContainer: ({ children }: { children: React.ReactNode }) => 'div',
+    PreviewCardsContainer: () => 'div',
   }));
 };

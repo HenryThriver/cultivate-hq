@@ -58,11 +58,6 @@ export const useArtifacts = () => {
     if (!data) {
       throw new Error('Artifact creation failed, no data returned.');
     }
-    // Helper function to safely extract extended properties
-    const getExtendedProperty = <T>(key: keyof ArtifactExtendedProperties, defaultValue: T): T => {
-      const value = (data as Record<string, unknown>)[key];
-      return value !== undefined ? value as T : defaultValue;
-    };
 
     return data as unknown as BaseArtifact;
   };

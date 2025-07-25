@@ -67,7 +67,7 @@ describe('GoalsScreen', () => {
     vi.mocked(useAuthModule.useAuth).mockReturnValue(mockHooks.useAuth());
 
     // Mock successful API responses
-    mockFetch.mockImplementation((url, options) => {
+    mockFetch.mockImplementation((url) => {
       if (url === '/api/voice-memo/onboarding') {
         return Promise.resolve(new Response(JSON.stringify({
           success: true,

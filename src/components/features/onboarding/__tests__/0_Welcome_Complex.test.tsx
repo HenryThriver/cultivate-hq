@@ -5,7 +5,7 @@ import { render, mockHooks } from './test-utils';
 import { EnhancedWelcomeScreen } from '../0_Welcome';
 import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
 import { useRouter } from 'next/navigation';
-import { setupAnimationMocks, mockAnimationSequence, mockAnimationComponents } from './animation-test-utils';
+// Unused animation test utilities removed
 
 // Mock the hooks
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
@@ -28,7 +28,7 @@ vi.mock('../0_Welcome_Components/TypewriterText', () => ({
 }));
 
 vi.mock('../0_Welcome_Components/PreviewCardsContainer', () => ({
-  PreviewCardsContainer: ({ children }: { children: React.ReactNode }) => 'div',
+  PreviewCardsContainer: () => 'div',
 }));
 
 describe('EnhancedWelcomeScreen', () => {

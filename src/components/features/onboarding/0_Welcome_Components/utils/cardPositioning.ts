@@ -45,13 +45,13 @@ export const getResponsiveCardPositions = (screenSize: 'xs' | 'sm' | 'md' | 'lg'
         { bottom: '22%', left: '32%' }
       ];
     default:
-      // Large screens: distributed across the visual plane for dynamic eye movement
+      // Large screens: positioned below the Cultivate HQ text to focus attention
       return [
-        { top: '15%', left: '23%' },        // Card 1: top-left
-        { top: '20%', right: '27%' },       // Card 2: top-right
-        { top: '45%', left: '15%' },        // Card 3: middle-left  
-        { bottom: '20%', right: '23%' },    // Card 4: bottom-right
-        { bottom: '15%', left: '27%' }      // Card 5: bottom-left
+        { top: '60%', left: '15%' },        // Card 1: lower-left
+        { top: '65%', right: '18%' },       // Card 2: lower-right
+        { top: '70%', left: '25%' },        // Card 3: bottom-left  
+        { top: '72%', right: '25%' },       // Card 4: bottom-right
+        { top: '75%', left: '35%' }         // Card 5: bottom-center
       ];
   }
 };

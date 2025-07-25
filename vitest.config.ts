@@ -11,6 +11,13 @@ export default defineConfig({
     css: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', 'dist', '.next'],
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        maxThreads: 3,
+        minThreads: 1
+      }
+    },
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [

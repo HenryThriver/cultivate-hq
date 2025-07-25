@@ -9,6 +9,7 @@ interface TypewriterTextProps extends Omit<TypographyProps, 'children'> {
   delay?: number;
   showCursor?: boolean;
   onComplete?: () => void;
+  skipAnimation?: boolean; // For testing purposes
 }
 
 export const TypewriterText: React.FC<TypewriterTextProps> = ({
@@ -17,6 +18,7 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
   delay = 0,
   showCursor = true,
   onComplete,
+  skipAnimation = false,
   ...typographyProps
 }) => {
   const [displayText, setDisplayText] = useState('');
@@ -25,27 +27,52 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    const timeouts: NodeJS.Timeout[] = [];
+    const intervals: NodeJS.Timeout[] = [];
+    
+    if (skipAnimation) {
+      if (isMounted) {
+        setDisplayText(text);
+        setCurrentIndex(text.length);
+        setIsComplete(true);
+        setShowCursorBlink(false);
+        onComplete?.();
+      }
+      return;
+    }
+
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
-        setDisplayText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
+        if (isMounted) {
+          setDisplayText(prev => prev + text[currentIndex]);
+          setCurrentIndex(prev => prev + 1);
+        }
       }, currentIndex === 0 ? delay : speed);
-
-      return () => clearTimeout(timeout);
-    } else if (!isComplete) {
+      
+      timeouts.push(timeout);
+    } else if (!isComplete && isMounted) {
       setIsComplete(true);
       onComplete?.();
       
       // Start cursor blinking after completion
       if (showCursor) {
         const blinkInterval = setInterval(() => {
-          setShowCursorBlink(prev => !prev);
+          if (isMounted) {
+            setShowCursorBlink(prev => !prev);
+          }
         }, 530);
         
-        return () => clearInterval(blinkInterval);
+        intervals.push(blinkInterval);
       }
     }
-  }, [currentIndex, text, speed, delay, onComplete, showCursor, isComplete]);
+    
+    return () => {
+      isMounted = false;
+      timeouts.forEach(clearTimeout);
+      intervals.forEach(clearInterval);
+    };
+  }, [currentIndex, text, speed, delay, onComplete, showCursor, isComplete, skipAnimation]);
 
   return (
     <Typography 

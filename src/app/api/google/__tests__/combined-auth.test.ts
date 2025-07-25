@@ -29,9 +29,17 @@ const mockEnv = {
 };
 
 describe('/api/google/combined-auth', () => {
+  // Suppress console outputs during tests since we're testing error scenarios
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  
   beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.clearAllMocks();
     Object.assign(process.env, mockEnv);
+  });
+
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore();
   });
 
   it('should return 401 when user is not authenticated and no user_id provided', async () => {

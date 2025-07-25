@@ -72,14 +72,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     };
 
     // Log admin action for audit trail
-    await logAdminAction(
-      adminResult.user!.id,
-      'read',
-      'system_config',
-      undefined,
-      { action: 'debug_email_status', contact_id: contactId },
-      request
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'read',
+        'system_config',
+        undefined,
+        { action: 'debug_email_status', contact_id: contactId },
+        request
+      );
+    }
 
     return NextResponse.json({
       debug_info: {

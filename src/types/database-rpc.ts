@@ -10,10 +10,10 @@ export interface LogAdminActionParams {
   p_admin_user_id: string;
   p_action: string;
   p_resource_type: string;
-  p_resource_id?: string | null;
-  p_details?: string | null;
-  p_ip_address?: string | null;
-  p_user_agent?: string | null;
+  p_resource_id?: string;
+  p_details?: string;  
+  p_ip_address?: string;
+  p_user_agent?: string;
 }
 
 /**
@@ -38,8 +38,7 @@ export type AdminAction =
   | 'VIEW_ADMIN_PANEL'
   | 'EXPORT_DATA'
   | 'IMPORT_DATA'
-  | 'read'
-  | 'log_admin_action';
+  | 'read';
 
 /**
  * Resource types that can be acted upon by admins

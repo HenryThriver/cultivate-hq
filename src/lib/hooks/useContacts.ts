@@ -17,7 +17,7 @@ export const useContacts = () => {
   const getContacts = React.useCallback(async (): Promise<Contact[]> => {
     const { data, error } = await supabase.from(CONTACTS_TABLE).select('*');
     if (error) throw new Error(error.message);
-    return data || [];
+    return (data || []) as Contact[];
   }, []);
 
   const { data: contacts, isLoading: isLoadingContacts, error: contactsError } = useQuery<Contact[]>({
@@ -37,7 +37,7 @@ export const useContacts = () => {
       if (error.code === 'PGRST116') return null;
       throw new Error(error.message);
     }
-    return data;
+    return data as Contact;
   }, []);
 
   // Prefetch a contact - useful for hover effects or navigating to detail page
@@ -132,7 +132,7 @@ export const useContacts = () => {
 
     if (error) throw new Error(error.message);
     if (!data) throw new Error('Contact update failed, no data returned.');
-    return data;
+    return data as Contact;
   }, []);
 
   const updateContactMutation = useMutation<

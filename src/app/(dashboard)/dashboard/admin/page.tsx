@@ -119,15 +119,13 @@ export default function AdminDashboardPage(): React.JSX.Element {
       </Paper>
 
       {/* Admin Options Grid */}
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { 
-          xs: '1fr', 
-          sm: 'repeat(2, 1fr)', 
-          md: 'repeat(3, 1fr)' 
-        }, 
-        gap: 3 
-      }}>
+      <Box 
+        sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+          gap: 3 
+        }}
+      >
         {adminOptions.map((option) => (
           <Card key={option.title} sx={{ height: '100%', transition: 'transform 0.2s' }}>
             <CardActionArea 
@@ -159,55 +157,53 @@ export default function AdminDashboardPage(): React.JSX.Element {
         <Typography variant="h5" gutterBottom>
           Quick Stats
         </Typography>
-        <Box sx={{ 
-          display: 'grid', 
-          gridTemplateColumns: { 
-            xs: '1fr', 
-            sm: 'repeat(2, 1fr)', 
-            md: 'repeat(4, 1fr)' 
-          }, 
-          gap: 3 
-        }}>
+        <Box 
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: 3
+          }}
+        >
           <Card>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="primary" gutterBottom>
-                  -
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total Users
-                </Typography>
-              </CardContent>
-            </Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="primary" gutterBottom>
+                -
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Total Users
+              </Typography>
+            </CardContent>
+          </Card>
           <Card>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="secondary" gutterBottom>
-                  -
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Active Feature Flags
-                </Typography>
-              </CardContent>
-            </Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="secondary" gutterBottom>
+                -
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Active Feature Flags
+              </Typography>
+            </CardContent>
+          </Card>
           <Card>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="success.main" gutterBottom>
-                  -
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Admin Users
-                </Typography>
-              </CardContent>
-            </Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="success.main" gutterBottom>
+                -
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Admin Users
+              </Typography>
+            </CardContent>
+          </Card>
           <Card>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="warning.main" gutterBottom>
-                  -
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  User Overrides
-                </Typography>
-              </CardContent>
-            </Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="warning.main" gutterBottom>
+                -
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                User Overrides
+              </Typography>
+            </CardContent>
+          </Card>
         </Box>
       </Box>
     </Container>

@@ -28,11 +28,13 @@ export async function GET(): Promise<NextResponse> {
       );
     }
 
-    await logAdminAction(
-      adminResult.user!.id,
-      'LIST_FEATURE_FLAGS',
-      'feature_flags'
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'LIST_FEATURE_FLAGS',
+        'feature_flags'
+      );
+    }
 
     return NextResponse.json({ flags });
   } catch (error) {
@@ -91,14 +93,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    await logAdminAction(
-      adminResult.user!.id,
-      'CREATE_FEATURE_FLAG',
-      'feature_flags',
-      flag.id,
-      { name, description, enabled_globally },
-      request
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'CREATE_FEATURE_FLAG',
+        'feature_flags',
+        flag.id,
+        { name, description, enabled_globally },
+        request
+      );
+    }
 
     return NextResponse.json({ flag }, { status: 201 });
   } catch (error) {

@@ -130,7 +130,19 @@ export const LoopSuggestions: React.FC<LoopSuggestionsProps> = ({ contactId }) =
         console.error('Failed to update suggestion status after loop creation:', updateError);
         throw updateError; // Propagate to onError
       }
-      return loop as Tables<'artifacts'>;
+      return {
+        ...loop,
+        // Add missing loop fields with default values
+        impact_score: null,
+        initiator_contact_id: null,
+        initiator_user_id: null,
+        loop_status: null,
+        recipient_contact_id: null,
+        recipient_user_id: null,
+        resolution_notes: null,
+        reciprocity_weight: null,
+        updated_at: loop.created_at
+      } as Tables<'artifacts'>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loop-suggestions', contactId] });

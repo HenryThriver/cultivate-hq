@@ -51,12 +51,14 @@ export async function GET(
       );
     }
 
-    await logAdminAction(
-      adminResult.user!.id,
-      'VIEW_FEATURE_FLAG',
-      'feature_flags',
-      id
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'VIEW_FEATURE_FLAG',
+        'feature_flags',
+        id
+      );
+    }
 
     return NextResponse.json({ flag });
   } catch (error) {
@@ -96,8 +98,16 @@ export async function PUT(
 
     const supabase = await createClient();
     
+    // Interface for feature flag update data
+    interface FeatureFlagUpdate {
+      name?: string;
+      description?: string;
+      enabled_globally?: boolean;
+      updated_at: string;
+    }
+    
     // Build update object with only provided fields
-    const updateData: Record<string, unknown> = {
+    const updateData: FeatureFlagUpdate = {
       updated_at: new Date().toISOString()
     };
     
@@ -146,14 +156,16 @@ export async function PUT(
       );
     }
 
-    await logAdminAction(
-      adminResult.user!.id,
-      'UPDATE_FEATURE_FLAG',
-      'feature_flags',
-      id,
-      updateData,
-      request
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'UPDATE_FEATURE_FLAG',
+        'feature_flags',
+        id,
+        updateData,
+        request
+      );
+    }
 
     return NextResponse.json({ flag });
   } catch (error) {
@@ -217,14 +229,16 @@ export async function DELETE(
       );
     }
 
-    await logAdminAction(
-      adminResult.user!.id,
-      'DELETE_FEATURE_FLAG',
-      'feature_flags',
-      id,
-      existingFlag ? { name: existingFlag.name, description: existingFlag.description } : undefined,
-      request
-    );
+    if (adminResult.user) {
+      await logAdminAction(
+        adminResult.user.id,
+        'DELETE_FEATURE_FLAG',
+        'feature_flags',
+        id,
+        existingFlag ? { name: existingFlag.name, description: existingFlag.description } : undefined,
+        request
+      );
+    }
 
     return NextResponse.json(
       { message: 'Feature flag deleted successfully' },

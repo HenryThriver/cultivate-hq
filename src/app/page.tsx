@@ -281,12 +281,14 @@ export default function HomePage(): React.JSX.Element {
                     fontWeight: 400,
                     color: 'text.secondary',
                     lineHeight: 1.5,
-                    maxWidth: '700px',
+                    maxWidth: '800px',
                     fontStyle: 'italic',
                     opacity: 0.9
                   }}
                 >
-                  Most relationship building feels like speed dating in business casual. Transform overwhelming chaos into systematic advantage with intelligence designed for executives who understand that relationships are the ultimate competitive edge.
+                  Most relationship building feels like speed dating in business casual. 
+                  
+                  Transform overwhelming chaos into systematic advantage with relationships that are the ultimate competitive edge.
                 </Typography>
               </Stack>
               
@@ -321,9 +323,10 @@ export default function HomePage(): React.JSX.Element {
                     }
                   }}
                 >
-                  Begin strategic analysis
+                  Start AI-Powered Relationship Building
                 </Button>
                 
+                {/* Commenting out for now because we don't have a demo video yet
                 <Button
                   variant="outlined"
                   size="large"
@@ -353,30 +356,8 @@ export default function HomePage(): React.JSX.Element {
                 >
                   Watch demo
                 </Button>
+                */}
               </Stack>
-              
-              <Box 
-                sx={{
-                  mt: 4,
-                  p: 2,
-                  backgroundColor: 'rgba(255,255,255,0.6)',
-                  borderRadius: 3,
-                  border: `1px solid ${alpha('#2196F3', 0.1)}`,
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  Professional • $30/month • No setup fees
-                </Typography>
-              </Box>
             </Stack>
           </Container>
         </Box>
@@ -412,7 +393,9 @@ export default function HomePage(): React.JSX.Element {
                     opacity: 0.9
                   }}
                 >
-                  Most networking feels transactional because it <em>is</em> transactional. Transform relationship complexity into systematic capabilities that scale with your ambition—because authentic connection is the ultimate competitive advantage.
+                  Most networking feels transactional because it lacks care and depth. 
+                  
+                  Transform relationship complexity into systematic capabilities that scale with your ambition - because authentic connection is the ultimate competitive advantage.
                 </Typography>
               </Box>
               
@@ -428,7 +411,7 @@ export default function HomePage(): React.JSX.Element {
                   {
                     icon: <Psychology sx={{ fontSize: 32 }} />,
                     title: 'Proactive Relationship Nurturing',
-                    description: 'Transform passive networking into active relationship tending. Never lose context or miss opportunities to add value.',
+                    description: 'Transform passive networking into active relationship tending. Never lose context or miss opportunities to be generous and add value.',
                     color: '#059669',
                     category: 'Intelligence'
                   },
@@ -574,7 +557,7 @@ export default function HomePage(): React.JSX.Element {
                     color: 'transparent'
                   }}
                 >
-                  Intelligence that transforms relationships
+                  Actionable intelligence that transforms relationships
                 </Typography>
                 <Typography
                   variant="body1"
@@ -587,7 +570,7 @@ export default function HomePage(): React.JSX.Element {
                     opacity: 0.9
                   }}
                 >
-                  Sophisticated capabilities designed for executives who understand that relationships are the ultimate competitive advantage.
+                  Sophisticated capabilities designed for busy leaders who want to efficiently build legendary relationships, not skim podcasts and posts.
                 </Typography>
               </Box>
               
@@ -602,19 +585,19 @@ export default function HomePage(): React.JSX.Element {
                   {
                     icon: <Insights sx={{ fontSize: 40 }} />,
                     title: 'Smart Follow-up Automation',
-                    description: 'Personalized follow-up suggestions within 24 hours',
+                    description: 'Personalized follow-ups in tailored relationship building sessions',
                     color: '#059669'
                   },
                   {
                     icon: <SmartToy sx={{ fontSize: 40 }} />,
                     title: 'Generosity-First Networking',
-                    description: 'Lead with value, not requests',
+                    description: 'Lead with value and care, not hard asks',
                     color: '#7C3AED'
                   },
                   {
                     icon: <Campaign sx={{ fontSize: 40 }} />,
-                    title: 'Smart Introduction Engine',
-                    description: 'Facilitate valuable connections automatically',
+                    title: 'Deep Research Engine',
+                    description: 'Gain rich insights about your contacts to deepen connection',
                     color: '#F59E0B'
                   }
                 ].map((feature, index) => (
@@ -761,7 +744,7 @@ export default function HomePage(): React.JSX.Element {
                     opacity: 0.9
                   }}
                 >
-                  The best relationships aren&apos;t built at networking events—they&apos;re cultivated through genuine value exchange. Join executives who&apos;ve stopped networking and started relationship building.
+                  The best relationships aren&apos;t built at networking events - they&apos;re cultivated through genuine value exchange. Join executives who&apos;ve stopped networking and started relationship building.
                 </Typography>
                 <Button
                   component={Link}
@@ -819,7 +802,7 @@ export default function HomePage(): React.JSX.Element {
                 Cultivate HQ
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-                Where strategic minds cultivate extraordinary outcomes through systematic relationship intelligence.
+                Where strategic minds cultivate extraordinary outcomes through legendary relationship building.
               </Typography>
             </Box>
             
@@ -874,11 +857,6 @@ export default function HomePage(): React.JSX.Element {
             </Stack>
           </Stack>
           
-          <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'grey.200' }}>
-            <Typography variant="body2" color="text.secondary" align="center">
-              © 2025 Cultivate HQ. All rights reserved.
-            </Typography>
-          </Box>
         </Container>
       </Box>
     </Box>

@@ -31,7 +31,7 @@ interface GoalsScreenProps {
 }
 
 export default function GoalsScreen({ skipAnimations = false }: GoalsScreenProps) {
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Currently unused
   const { nextScreen, completeScreen, currentScreen, isNavigating, updateState, state } = useOnboardingState();
   const { isLoading: isLoadingProfile } = useUserProfile();
   
@@ -162,7 +162,7 @@ export default function GoalsScreen({ skipAnimations = false }: GoalsScreenProps
         });
 
         // Mark this screen as complete and advance
-        await completeScreen('goals');
+        await completeScreen(currentScreen);
         await nextScreen();
       } else {
         throw new Error('Voice memo processing failed');
@@ -177,7 +177,7 @@ export default function GoalsScreen({ skipAnimations = false }: GoalsScreenProps
 
   const handleSkipGoals = async () => {
     try {
-      await completeScreen('goals');
+      await completeScreen(currentScreen);
       await nextScreen();
     } catch (err) {
       console.error('Error skipping goals:', err);

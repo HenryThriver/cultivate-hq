@@ -404,7 +404,7 @@ export const EmailDetailModal: React.FC<EmailDetailModalProps> = ({
                     <ArtifactSuggestions 
                       artifactId={emailMessage.id}
                       artifactType="email"
-                      aiParsingStatus={emailMessage.ai_parsing_status || undefined}
+                      aiParsingStatus={emailMessage.ai_parsing_status as 'pending' | 'processing' | 'completed' | 'failed' | undefined}
                       contactId={contactId}
                     />
                     

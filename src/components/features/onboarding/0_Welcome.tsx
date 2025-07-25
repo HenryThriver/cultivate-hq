@@ -33,7 +33,7 @@ export const EnhancedWelcomeScreen: React.FC<EnhancedWelcomeScreenProps> = ({
 }) => {
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Currently unused
   const { nextScreen, completeScreen, currentScreen } = useOnboardingState();
   
   const [phase, setPhase] = useState<'initial' | 'typewriter' | 'float' | 'cards' | 'celebration' | 'tagline' | 'button'>('initial');

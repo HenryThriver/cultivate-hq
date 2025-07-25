@@ -127,7 +127,7 @@ export async function logAdminAction(
       p_user_agent: userAgent || undefined
     };
 
-    // Call the log_admin_action RPC function
+    // Call the log_admin_action RPC function (returns void, uses admin_audit_log table)
     const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
     
     if (rpcError) {

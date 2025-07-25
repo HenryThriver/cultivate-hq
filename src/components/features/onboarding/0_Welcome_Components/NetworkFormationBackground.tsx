@@ -171,7 +171,6 @@ export const NetworkFormationBackground: React.FC<NetworkFormationBackgroundProp
 
   return (
     <Box
-      data-testid="network-background"
       sx={{
         position: 'absolute',
         top: 0,

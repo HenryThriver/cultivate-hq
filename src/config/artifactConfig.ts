@@ -267,6 +267,17 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
       return truncateText(typeof content === 'string' ? content : 'Ask details');
     },
   },
+  milestone: {
+    icon: FiTarget, // Or a specific Milestone icon
+    color: 'success.dark',
+    badgeLabel: 'Milestone',
+    getPreview: (content) => {
+      if (isObjectContent(content)) {
+        return truncateText((content.description as string) || 'Milestone details');
+      }
+      return truncateText(typeof content === 'string' ? content : 'Milestone details');
+    },
+  },
   // Fallback for unknown artifact types (shouldn't be hit if all ArtifactType members are covered)
   default: {
     icon: FiFileText,

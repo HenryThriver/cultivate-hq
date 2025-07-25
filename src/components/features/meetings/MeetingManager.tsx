@@ -149,7 +149,7 @@ export const MeetingManager: React.FC<MeetingManagerProps> = ({
           meeting={selectedMeeting}
           onSave={handleSaveContent}
           processing={saving}
-          processingStatus={selectedMeeting.ai_parsing_status as 'pending' | 'processing' | 'completed' | 'failed' | undefined}
+          processingStatus={selectedMeeting.ai_parsing_status || undefined}
         />
       )}
 

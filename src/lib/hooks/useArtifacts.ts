@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types_db';
-import type { BaseArtifact } from '@/types/artifact';
 
 // Define the type for a new artifact based on your DB schema
 // This should align with Tables<"artifacts">["Insert"] from types_db.ts
@@ -39,7 +38,7 @@ export const useArtifacts = () => {
   const queryClient = useQueryClient();
 
   // Create a new artifact
-  const createArtifactDB = async (newArtifact: NewArtifact): Promise<BaseArtifact> => {
+  const createArtifactDB = async (newArtifact: NewArtifact): Promise<Artifact> => {
     // Ensure user_id is populated if not already. For RLS, it must match auth.uid()
     // This might be automatically handled if your RLS policies are set up correctly and user_id is part of NewArtifact type.
     // If user_id is not part of NewArtifact, you might need to fetch it here or ensure it's added before this call.
@@ -63,14 +62,27 @@ export const useArtifacts = () => {
       return value !== undefined ? value as T : defaultValue;
     };
 
-    return data as unknown as BaseArtifact;
+    return {
+      ...data,
+      // Add default loop fields if they're missing (for compatibility with loop artifacts)
+      impact_score: getExtendedProperty('impact_score', null),
+      initiator_contact_id: getExtendedProperty('initiator_contact_id', null),
+      initiator_user_id: getExtendedProperty('initiator_user_id', null),
+      loop_status: getExtendedProperty('loop_status', null),
+      loop_type: getExtendedProperty('loop_type', null),
+      recipient_contact_id: getExtendedProperty('recipient_contact_id', null),
+      recipient_user_id: getExtendedProperty('recipient_user_id', null),
+      resolution_notes: getExtendedProperty('resolution_notes', null),
+      reciprocity_weight: getExtendedProperty('reciprocity_weight', null),
+      updated_at: getExtendedProperty('updated_at', data.created_at)
+    } as Artifact;
   };
 
-  const createArtifactMutation = useMutation<BaseArtifact, Error, NewArtifact>({
+  const createArtifactMutation = useMutation<Artifact, Error, NewArtifact>({
     mutationFn: createArtifactDB,
     onSuccess: (newArtifactData) => {
       // Invalidate queries related to artifacts for a contact
-      if (newArtifactData?.contact_id) {
+      if (newArtifactData.contact_id) {
         queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE, { contact_id: newArtifactData.contact_id }] });
       }
       // Invalidate general artifact lists if you have them
@@ -108,7 +120,7 @@ export const useArtifacts = () => {
     void, 
     Error, 
     DeleteArtifactParams, 
-    { previousArtifactsForContact?: BaseArtifact[], contactId?: string | null }
+    { previousArtifactsForContact?: Artifact[], contactId?: string | null }
   >({
     mutationFn: (params: DeleteArtifactParams) => deleteArtifactDB(params.id),
     onMutate: async ({ id: deletedArtifactId, contactId }) => {
@@ -116,12 +128,12 @@ export const useArtifacts = () => {
       await queryClient.cancelQueries({ queryKey: [ARTIFACTS_TABLE, 'list'] }); // Cancel general lists too
       await queryClient.cancelQueries({ queryKey: [ARTIFACTS_TABLE, 'detail', deletedArtifactId]});
 
-      let previousArtifactsForContact: BaseArtifact[] | undefined;
+      let previousArtifactsForContact: Artifact[] | undefined;
 
       if (contactId) {
-        previousArtifactsForContact = queryClient.getQueryData<BaseArtifact[]>([ARTIFACTS_TABLE, { contact_id: contactId }]);
+        previousArtifactsForContact = queryClient.getQueryData<Artifact[]>([ARTIFACTS_TABLE, { contact_id: contactId }]);
         if (previousArtifactsForContact) {
-          queryClient.setQueryData<BaseArtifact[]>(
+          queryClient.setQueryData<Artifact[]>(
             [ARTIFACTS_TABLE, { contact_id: contactId }],
             previousArtifactsForContact.filter(artifact => artifact.id !== deletedArtifactId)
           );

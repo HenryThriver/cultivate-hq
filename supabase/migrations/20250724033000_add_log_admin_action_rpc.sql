@@ -2,10 +2,10 @@
 -- This function is called by the audit logging system to record admin actions
 
 CREATE OR REPLACE FUNCTION log_admin_action(
-  p_admin_user_id UUID,
+  p_admin_user_id TEXT,
   p_action TEXT,
   p_resource_type TEXT,
-  p_resource_id UUID DEFAULT NULL,
+  p_resource_id TEXT DEFAULT NULL,
   p_details TEXT DEFAULT NULL,
   p_ip_address TEXT DEFAULT NULL,
   p_user_agent TEXT DEFAULT NULL
@@ -22,11 +22,11 @@ BEGIN
     user_agent,
     created_at
   ) VALUES (
-    p_admin_user_id,
+    p_admin_user_id::UUID,
     p_action,
     p_resource_type,
-    p_resource_id,
-    p_details,
+    CASE WHEN p_resource_id IS NOT NULL THEN p_resource_id::UUID ELSE NULL END,
+    CASE WHEN p_details IS NOT NULL THEN p_details::JSONB ELSE NULL END,
     p_ip_address,
     p_user_agent,
     NOW()

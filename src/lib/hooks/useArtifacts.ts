@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types_db';
+import { error as logError } from '@/lib/utils/logger';
 
 // Define the type for a new artifact based on your DB schema
 // This should align with Tables<"artifacts">["Insert"] from types_db.ts
@@ -50,32 +51,14 @@ export const useArtifacts = () => {
       .single();
 
     if (error) {
-      console.error('Supabase error creating artifact:', error);
+      logError('Supabase error creating artifact', error);
       throw new Error(error.message);
     }
     if (!data) {
       throw new Error('Artifact creation failed, no data returned.');
     }
-    // Helper function to safely extract extended properties
-    const getExtendedProperty = <T>(key: keyof ArtifactExtendedProperties, defaultValue: T): T => {
-      const value = (data as Record<string, unknown>)[key];
-      return value !== undefined ? value as T : defaultValue;
-    };
 
-    return {
-      ...data,
-      // Add default loop fields if they're missing (for compatibility with loop artifacts)
-      impact_score: getExtendedProperty('impact_score', null),
-      initiator_contact_id: getExtendedProperty('initiator_contact_id', null),
-      initiator_user_id: getExtendedProperty('initiator_user_id', null),
-      loop_status: getExtendedProperty('loop_status', null),
-      loop_type: getExtendedProperty('loop_type', null),
-      recipient_contact_id: getExtendedProperty('recipient_contact_id', null),
-      recipient_user_id: getExtendedProperty('recipient_user_id', null),
-      resolution_notes: getExtendedProperty('resolution_notes', null),
-      reciprocity_weight: getExtendedProperty('reciprocity_weight', null),
-      updated_at: getExtendedProperty('updated_at', data.created_at)
-    } as Artifact;
+    return data as Artifact;
   };
 
   const createArtifactMutation = useMutation<Artifact, Error, NewArtifact>({
@@ -90,7 +73,7 @@ export const useArtifacts = () => {
       queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE]}); // Broader invalidation
     },
     onError: (error) => {
-      console.error('Mutation error creating artifact:', error);
+      logError('Mutation error creating artifact', error);
     }
   });
 
@@ -145,7 +128,7 @@ export const useArtifacts = () => {
       return { previousArtifactsForContact, contactId };
     },
     onError: (err, variables, context) => {
-      console.error('Error deleting artifact:', err);
+      console.error('Error deleting artifact', err);
       if (context?.previousArtifactsForContact && context.contactId) {
         queryClient.setQueryData([ARTIFACTS_TABLE, { contact_id: context.contactId }], context.previousArtifactsForContact);
       }

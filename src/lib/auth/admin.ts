@@ -7,6 +7,7 @@ import type {
   AuditDetails,
   LogAdminActionParams 
 } from '@/types/database-rpc';
+import { adminAction, adminError } from '@/lib/utils/logger';
 
 /**
  * Result type for admin check operations
@@ -126,12 +127,16 @@ export async function logAdminAction(
       p_user_agent: userAgent || undefined
     };
 
+    // Call the log_admin_action RPC function (returns void, uses admin_audit_log table)
     const { error: rpcError } = await supabase.rpc('log_admin_action', rpcParams);
     
     if (rpcError) {
-      console.error('RPC error logging admin action:', rpcError);
+      adminError('RPC error logging admin action', rpcError);
       throw rpcError;
     }
+    
+    // Log success to application logger
+    adminAction('Admin action logged successfully', { action, resourceType, resourceId });
   } catch (error) {
     console.error('Failed to log admin action:', error);
     // Don't throw - logging should not break the main operation

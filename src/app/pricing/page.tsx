@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Box, 
   Container, 
@@ -9,20 +9,16 @@ import {
   Stack, 
   Card,
   CardContent,
-  AppBar,
-  Toolbar,
   alpha,
-  Chip,
   CircularProgress,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Switch,
-  Paper,
   Alert,
   useTheme
 } from '@mui/material';
+import { MarketingLayout } from '@/components/layout/MarketingLayout';
 import { 
   Check,
   Speed,
@@ -32,12 +28,12 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useStripeCheckout } from '@/hooks/useStripeCheckout';
-import Link from 'next/link';
+import { PRODUCT_CONFIG } from '@/lib/stripe';
 
 export default function PricingPage() {
   const { loading } = useAuth();
   const theme = useTheme();
-  const [isAnnual, setIsAnnual] = useState(false);
+  // Remove the toggle state since we're now showing all three tiers
   const { createCheckoutSession, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
 
   // Allow all users (authenticated and unauthenticated) to view pricing page
@@ -63,126 +59,74 @@ export default function PricingPage() {
     );
   }
 
-  const monthlyPrice = 30;
-  const annualPrice = 300;
-  const annualSavings = ((monthlyPrice * 12) - annualPrice) / (monthlyPrice * 12) * 100;
-
-  const features = [
-    'AI-powered contact intelligence',
-    'Smart follow-up automation',
-    'Relationship maintenance system',
-    'Generosity-first networking tools',
-    'Conversation intelligence',
-    'Strategic networking roadmap',
-    'Relationship analytics & insights',
-    'Smart introduction engine',
-    'Context preservation system',
-    'Voice memo processing',
-    'LinkedIn integration',
-    'Gmail integration',
-    'Google Calendar sync',
-    'Unlimited contacts',
-    'Priority support'
+  const pricingTiers = [
+    {
+      id: 'monthly',
+      name: 'Monthly',
+      price: 30,
+      period: '/month',
+      description: 'Strong foundation for systematic relationship cultivation',
+      features: PRODUCT_CONFIG.monthly.features,
+      popular: false,
+      buttonText: 'Begin transformation'
+    },
+    {
+      id: 'annual',
+      name: 'Annual',
+      price: 300,
+      period: '/year',
+      description: 'Comprehensive intelligence platform for relationship mastery',
+      features: PRODUCT_CONFIG.annual.features,
+      popular: true,
+      buttonText: 'Unlock strategic advantage'
+    },
+    {
+      id: 'supporter',
+      name: 'Supporter',
+      price: 3000,
+      period: '/5 years',
+      description: 'Elite partnership with creator access and strategic consult privileges',
+      features: PRODUCT_CONFIG.supporter.features,
+      popular: false,
+      buttonText: 'Join elite partnership'
+    }
   ];
 
-  const handleGetStarted = async () => {
+  const handleGetStarted = async (tierId: string) => {
     // Always go directly to checkout - Stripe will handle auth if needed
-    const priceType = isAnnual ? 'yearly' : 'monthly';
-    await createCheckoutSession(priceType);
+    await createCheckoutSession(tierId as 'monthly' | 'annual' | 'supporter');
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Navigation */}
-      <AppBar 
-        position="static" 
-        elevation={0}
-        sx={{ 
-          backgroundColor: 'transparent',
-          borderBottom: '1px solid',
-          borderColor: 'grey.200'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Toolbar sx={{ py: 1 }}>
-            <Typography
-              variant="h6"
-              component={Link}
-              href="/"
-              sx={{
-                flexGrow: 1,
-                textDecoration: 'none',
-                color: 'text.primary',
-                fontWeight: 600,
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Cultivate HQ
-            </Typography>
-            
-            <Stack direction="row" spacing={3} alignItems="center">
-              <Typography
-                component={Link}
-                href="/features"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-              >
-                Features
-              </Typography>
-              
-              <Typography
-                component={Link}
-                href="/pricing"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'primary.main',
-                  fontWeight: 500
-                }}
-              >
-                Pricing
-              </Typography>
-              
-              <Button
-                component={Link}
-                href="/login"
-                variant="outlined"
-                size="medium"
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  borderWidth: 1.5,
-                  '&:hover': {
-                    borderWidth: 1.5,
-                  }
-                }}
-              >
-                Sign In
-              </Button>
-            </Stack>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1 }}>
+    <MarketingLayout>
         {/* Hero Section */}
         <Box 
           sx={{ 
-            py: { xs: 8, md: 12 },
-            background: `linear-gradient(135deg, ${alpha('#2196F3', 0.02)} 0%, ${alpha('#7C3AED', 0.02)} 100%)`,
+            py: { xs: 10, md: 16 },
+            background: `
+              linear-gradient(135deg, 
+                ${alpha('#2196F3', 0.04)} 0%, 
+                ${alpha('#7C3AED', 0.03)} 50%, 
+                ${alpha('#059669', 0.02)} 100%
+              ),
+              radial-gradient(circle at 20% 50%, ${alpha('#2196F3', 0.06)} 0%, transparent 50%)
+            `,
             borderBottom: '1px solid',
-            borderColor: 'grey.200'
+            borderColor: 'grey.200',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.8) 100%)',
+              pointerEvents: 'none'
+            }
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
             <Stack spacing={6} alignItems="center" textAlign="center">
               {/* Error Alert */}
               {checkoutError && (
@@ -196,8 +140,8 @@ export default function PricingPage() {
                   variant="h1"
                   sx={{
                     fontSize: { xs: '2.5rem', md: '3rem' },
-                    fontWeight: 600,
-                    letterSpacing: '-0.02em',
+                    fontWeight: 700,
+                    letterSpacing: '-0.03em',
                     lineHeight: 1.1,
                     color: 'text.primary'
                   }}
@@ -206,7 +150,24 @@ export default function PricingPage() {
                   <Typography
                     component="span"
                     variant="inherit"
-                    sx={{ color: 'primary.main' }}
+                    sx={{ 
+                      background: `linear-gradient(135deg, #2196F3 0%, #7C3AED 100%)`,
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                      position: 'relative',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: '-8px',
+                        left: 0,
+                        right: 0,
+                        height: '4px',
+                        background: `linear-gradient(90deg, #2196F3 0%, #7C3AED 100%)`,
+                        borderRadius: '2px',
+                        opacity: 0.3
+                      }
+                    }}
                   >
                     relationship capital
                   </Typography>
@@ -218,271 +179,233 @@ export default function PricingPage() {
                     fontSize: { xs: '1.125rem', md: '1.25rem' },
                     fontWeight: 400,
                     color: 'text.secondary',
-                    lineHeight: 1.4,
-                    maxWidth: '600px'
+                    lineHeight: 1.5,
+                    maxWidth: '700px',
+                    fontStyle: 'italic',
+                    opacity: 0.9
                   }}
                 >
-                  Professional-grade relationship intelligence designed for executives who understand that strategic connections drive extraordinary outcomes.
+                  Most executives treat relationships like afterthoughts. The smartest ones treat them like strategic assets. Transform your approach from transactional networking to systematic relationship intelligence.
                 </Typography>
               </Stack>
-              
-              {/* Billing Toggle */}
-              <Box 
-                sx={{
-                  p: 1,
-                  backgroundColor: 'white',
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'grey.200',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 2
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: isAnnual ? 'text.secondary' : 'text.primary',
-                    fontWeight: 500
-                  }}
-                >
-                  Monthly
-                </Typography>
-                <Switch
-                  checked={isAnnual}
-                  onChange={(e) => setIsAnnual(e.target.checked)}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: 'primary.main',
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: 'primary.main',
-                    },
-                  }}
-                />
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: isAnnual ? 'text.primary' : 'text.secondary',
-                      fontWeight: 500
-                    }}
-                  >
-                    Annual
-                  </Typography>
-                  <Chip
-                    label={`Save ${Math.round(annualSavings)}%`}
-                    size="small"
-                    sx={{
-                      backgroundColor: alpha('#4CAF50', 0.1),
-                      color: '#4CAF50',
-                      fontWeight: 500
-                    }}
-                  />
-                </Stack>
-              </Box>
             </Stack>
           </Container>
         </Box>
 
-        {/* Pricing Card */}
-        <Box sx={{ py: { xs: 8, md: 12 } }}>
-          <Container maxWidth="lg">
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Card
-                sx={{
-                  maxWidth: 600,
-                  width: '100%',
-                  p: 4,
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 3,
-                  position: 'relative',
-                  backgroundColor: 'white'
-                }}
-              >
-                {/* Popular Badge */}
-                <Box
+        {/* Pricing Cards */}
+        <Box sx={{ py: { xs: 8, md: 12 }, overflow: 'visible' }}>
+          <Container maxWidth="lg" sx={{ overflow: 'visible' }}>
+            <Box 
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                gap: 4,
+                alignItems: 'stretch',
+                // Add padding top to accommodate the popular badge
+                pt: 3,
+                // Ensure overflow is visible for badges
+                overflow: 'visible'
+              }}
+            >
+              {pricingTiers.map((tier) => (
+                <Card
+                  key={tier.id}
                   sx={{
-                    position: 'absolute',
-                    top: -12,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: 'primary.main',
-                    color: 'white',
-                    px: 3,
-                    py: 0.5,
-                    borderRadius: 2,
-                    fontSize: '0.875rem',
-                    fontWeight: 500
+                    p: tier.popular ? 5 : 4,
+                    border: tier.popular ? '2px solid' : '1px solid',
+                    borderColor: tier.popular ? 'primary.main' : 'grey.200',
+                    borderRadius: 4,
+                    position: 'relative',
+                    backgroundColor: tier.popular ? 'white' : 'white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    transform: tier.popular ? 'scale(1.05)' : 'scale(1)',
+                    boxShadow: tier.popular 
+                      ? `0 12px 32px ${alpha('#2196F3', 0.15)}` 
+                      : '0 2px 8px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    // Ensure overflow is visible for badges
+                    overflow: 'visible',
+                    '&:hover': {
+                      transform: tier.popular ? 'scale(1.05) translateY(-4px)' : 'translateY(-4px)',
+                      boxShadow: tier.popular 
+                        ? `0 20px 48px ${alpha('#2196F3', 0.2)}` 
+                        : '0 8px 24px rgba(0, 0, 0, 0.12)'
+                    }
                   }}
                 >
-                  Professional
-                </Box>
-
-                <CardContent sx={{ p: 0 }}>
-                  <Stack spacing={4}>
-                    {/* Pricing */}
-                    <Box textAlign="center">
-                      <Stack direction="row" alignItems="baseline" justifyContent="center" spacing={1}>
-                        <Typography
-                          variant="h2"
-                          sx={{
-                            fontSize: { xs: '2.5rem', md: '3rem' },
-                            fontWeight: 600,
-                            color: 'primary.main'
-                          }}
-                        >
-                          ${isAnnual ? annualPrice : monthlyPrice}
-                        </Typography>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            color: 'text.secondary',
-                            fontWeight: 500
-                          }}
-                        >
-                          /{isAnnual ? 'year' : 'month'}
-                        </Typography>
-                      </Stack>
-                      
-                      {isAnnual && (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: 'text.secondary',
-                            mt: 1
-                          }}
-                        >
-                          ${(annualPrice / 12).toFixed(0)}/month billed annually
-                        </Typography>
-                      )}
-                      
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: 'text.secondary',
-                          mt: 2,
-                          fontSize: '1.125rem'
-                        }}
-                      >
-                        Complete relationship intelligence system
-                      </Typography>
-                    </Box>
-
-                    {/* CTA Button */}
-                    <Button
-                      onClick={handleGetStarted}
-                      variant="contained"
-                      size="large"
-                      fullWidth
-                      disabled={checkoutLoading}
-                      startIcon={checkoutLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                  {/* Popular Badge */}
+                  {tier.popular && (
+                    <Box
                       sx={{
-                        py: 2,
-                        fontSize: '1.125rem',
+                        position: 'absolute',
+                        top: -1,
+                        left: '50%',
+                        transform: 'translateX(-50%) translateY(-50%)',
+                        background: 'linear-gradient(135deg, #212121 0%, #424242 100%)',
+                        color: 'white',
+                        px: 3,
+                        py: 0.75,
+                        borderRadius: 1.5,
+                        fontSize: '0.75rem',
                         fontWeight: 500,
-                        textTransform: 'none',
-                        transform: 'scale(1)',
-                        transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:hover': {
-                          transform: checkoutLoading ? 'scale(1)' : 'scale(1.02)',
-                        }
+                        letterSpacing: '0.02em',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        zIndex: 1000,
+                        whiteSpace: 'nowrap'
                       }}
                     >
-                      {checkoutLoading ? 'Processing...' : 'Get started today'}
-                    </Button>
-
-                    {/* Features */}
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 600,
-                          mb: 2,
-                          textAlign: 'center'
-                        }}
-                      >
-                        Everything you need to master relationships
-                      </Typography>
-                      
-                      <List sx={{ py: 0 }}>
-                        {features.map((feature, index) => (
-                          <ListItem key={index} sx={{ py: 0.5, px: 0 }}>
-                            <ListItemIcon sx={{ minWidth: 32 }}>
-                              <Check 
-                                sx={{ 
-                                  color: 'primary.main',
-                                  fontSize: 20
-                                }} 
-                              />
-                            </ListItemIcon>
-                            <ListItemText 
-                              primary={feature}
-                              primaryTypographyProps={{
-                                fontSize: '0.875rem',
-                                color: 'text.secondary'
-                              }}
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
+                      Most Popular
                     </Box>
+                  )}
 
-                    {/* Value Proposition */}
-                    <Paper
-                      sx={{
-                        p: 3,
-                        backgroundColor: alpha('#2196F3', 0.02),
-                        border: '1px solid',
-                        borderColor: alpha('#2196F3', 0.1),
-                        borderRadius: 2
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
+                  <CardContent sx={{ p: 0, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Stack spacing={3} sx={{ flexGrow: 1 }}>
+                      {/* Header */}
+                      <Box textAlign="center">
+                        <Typography
+                          variant="h5"
+                          sx={{
+                            fontWeight: 600,
+                            mb: 1,
+                            fontSize: '1.5rem'
+                          }}
+                        >
+                          {tier.name}
+                        </Typography>
+                        
+                        <Stack direction="row" alignItems="baseline" justifyContent="center" spacing={1} sx={{ mb: 1 }}>
+                          <Typography
+                            variant="h3"
+                            sx={{
+                              fontSize: { xs: '2rem', md: '2.5rem' },
+                              fontWeight: 600,
+                              color: 'primary.main'
+                            }}
+                          >
+                            ${tier.price}
+                          </Typography>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              color: 'text.secondary',
+                              fontWeight: 500
+                            }}
+                          >
+                            {tier.period}
+                          </Typography>
+                        </Stack>
+                        
+                        
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            color: 'text.secondary',
+                            fontSize: '1rem',
+                            lineHeight: 1.4
+                          }}
+                        >
+                          {tier.description}
+                        </Typography>
+                      </Box>
+
+                      {/* Features */}
+                      <Box sx={{ flexGrow: 1 }}>
+                        <List sx={{ py: 0 }}>
+                          {tier.features.map((feature, index) => (
+                            <ListItem key={index} sx={{ py: 0.5, px: 0 }}>
+                              <ListItemIcon sx={{ minWidth: 32 }}>
+                                <Check 
+                                  sx={{ 
+                                    color: 'primary.main',
+                                    fontSize: 18
+                                  }} 
+                                />
+                              </ListItemIcon>
+                              <ListItemText 
+                                primary={feature}
+                                primaryTypographyProps={{
+                                  fontSize: '0.875rem',
+                                  color: 'text.secondary',
+                                  lineHeight: 1.4
+                                }}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+
+                      {/* CTA Button */}
+                      <Button
+                        onClick={() => handleGetStarted(tier.id)}
+                        variant={tier.popular ? 'contained' : 'outlined'}
+                        size="large"
+                        fullWidth
+                        disabled={checkoutLoading}
+                        startIcon={checkoutLoading ? <CircularProgress size={20} color="inherit" /> : null}
                         sx={{
-                          color: 'text.secondary',
-                          textAlign: 'center',
-                          fontStyle: 'italic'
+                          py: 2,
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          textTransform: 'none',
+                          mt: 'auto'
                         }}
                       >
-                        &quot;The ROI of systematic relationship building far exceeds the cost of this investment. One strategic connection can transform your entire trajectory.&quot;
-                      </Typography>
-                    </Paper>
-                  </Stack>
-                </CardContent>
-              </Card>
+                        {checkoutLoading ? 'Processing...' : tier.buttonText}
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))}
             </Box>
           </Container>
         </Box>
 
         {/* Value Proposition */}
-        <Box sx={{ py: { xs: 8, md: 12 }, backgroundColor: 'grey.50' }}>
+        <Box 
+          sx={{ 
+            py: { xs: 10, md: 16 }, 
+            background: `
+              linear-gradient(135deg, 
+                ${alpha('#F5F5F5', 0.8)} 0%, 
+                ${alpha('#FAFAFA', 0.9)} 100%
+              ),
+              radial-gradient(circle at 70% 30%, ${alpha('#2196F3', 0.03)} 0%, transparent 50%)
+            `,
+            position: 'relative'
+          }}
+        >
           <Container maxWidth="lg">
             <Stack spacing={8}>
               <Box textAlign="center">
                 <Typography
                   variant="h2"
                   sx={{
-                    fontSize: { xs: '2rem', md: '2.5rem' },
-                    fontWeight: 600,
-                    letterSpacing: '-0.02em',
-                    mb: 3
+                    fontSize: { xs: '2.25rem', md: '3rem' },
+                    fontWeight: 700,
+                    letterSpacing: '-0.03em',
+                    mb: 4,
+                    background: 'linear-gradient(135deg, #212121 0%, #616161 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent'
                   }}
                 >
-                  Why executives choose Cultivate HQ
+                  Why leaders choose Cultivate HQ
                 </Typography>
                 <Typography
                   variant="body1"
                   sx={{
-                    fontSize: '1.125rem',
+                    fontSize: '1.25rem',
                     color: 'text.secondary',
-                    maxWidth: '600px',
-                    mx: 'auto'
+                    maxWidth: '700px',
+                    mx: 'auto',
+                    fontStyle: 'italic',
+                    opacity: 0.9
                   }}
                 >
-                  Sophisticated professionals understand that relationship capital is the ultimate competitive advantage. This is your strategic advantage.
+                  While others collect business cards, exceptional leaders cultivate strategic ecosystems. Transform relationship chaos into systematic advantage—because your next breakthrough is one connection away.
                 </Typography>
               </Box>
               
@@ -490,26 +413,26 @@ export default function PricingPage() {
                 {[
                   {
                     icon: <TrendingUp />,
-                    title: 'Strategic ROI',
-                    description: 'One strategic connection can generate opportunities worth thousands of times your investment.',
+                    title: 'Exponential Returns',
+                    description: 'A single well-timed introduction can unlock opportunities worth millions. Strategic relationship capital compounds faster than any traditional investment.',
                     color: theme.palette.primary.main
                   },
                   {
                     icon: <Speed />,
-                    title: 'Executive Efficiency',
-                    description: 'Systematic relationship building saves hours of cognitive overhead while improving outcomes.',
+                    title: 'Cognitive Liberation',
+                    description: 'Eliminate relationship maintenance overwhelm. Focus your mental energy on strategy while the system handles connection intelligence.',
                     color: theme.palette.sage.main
                   },
                   {
                     icon: <Psychology />,
-                    title: 'Professional Intelligence',
-                    description: 'AI-powered insights that enhance your natural strategic instincts and executive presence.',
+                    title: 'Strategic Amplification',
+                    description: 'AI-powered pattern recognition that surfaces opportunities your busy schedule might miss. Augment your executive intuition with systematic intelligence.',
                     color: theme.palette.amber.main
                   },
                   {
                     icon: <AutoAwesome />,
-                    title: 'Sustainable Scale',
-                    description: 'Build relationship practices that work for 50+ meaningful connections without burnout.',
+                    title: 'Sustainable Excellence',
+                    description: 'Cultivate 50+ meaningful relationships without sacrificing depth or authenticity. Quality scales when systems handle complexity.',
                     color: theme.palette.plum.main
                   }
                 ].map((benefit, index) => (
@@ -568,20 +491,42 @@ export default function PricingPage() {
             <Box 
               sx={{
                 textAlign: 'center',
-                p: { xs: 4, md: 6 },
-                backgroundColor: alpha('#2196F3', 0.02),
-                borderRadius: 3,
+                p: { xs: 6, md: 8 },
+                background: `
+                  linear-gradient(135deg, 
+                    ${alpha('#2196F3', 0.06)} 0%, 
+                    ${alpha('#7C3AED', 0.04)} 100%
+                  ),
+                  radial-gradient(circle at 50% 50%, ${alpha('#2196F3', 0.08)} 0%, transparent 70%)
+                `,
+                borderRadius: 4,
                 border: '1px solid',
-                borderColor: alpha('#2196F3', 0.1)
+                borderColor: alpha('#2196F3', 0.15),
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.7) 100%)',
+                  pointerEvents: 'none'
+                }
               }}
             >
-              <Stack spacing={4} alignItems="center">
+              <Stack spacing={4} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
                 <Typography
                   variant="h2"
                   sx={{
-                    fontSize: { xs: '1.75rem', md: '2.25rem' },
-                    fontWeight: 600,
-                    letterSpacing: '-0.02em'
+                    fontSize: { xs: '2rem', md: '2.75rem' },
+                    fontWeight: 700,
+                    letterSpacing: '-0.03em',
+                    background: 'linear-gradient(135deg, #212121 0%, #616161 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent'
                   }}
                 >
                   Ready to transform your relationship building?
@@ -589,15 +534,18 @@ export default function PricingPage() {
                 <Typography
                   variant="body1"
                   sx={{
-                    fontSize: '1.125rem',
+                    fontSize: '1.25rem',
                     color: 'text.secondary',
-                    maxWidth: '500px'
+                    maxWidth: '600px',
+                    lineHeight: 1.5,
+                    fontStyle: 'italic',
+                    opacity: 0.9
                   }}
                 >
-                  Join executives who&apos;ve made systematic relationship building their competitive advantage.
+                  Stop networking. Start cultivating. Join leaders who've transformed relationship chaos into systematic advantage—because your next breakthrough is one strategic connection away.
                 </Typography>
                 <Button
-                  onClick={handleGetStarted}
+                  onClick={() => handleGetStarted('annual')}
                   variant="contained"
                   size="large"
                   disabled={checkoutLoading}
@@ -611,7 +559,7 @@ export default function PricingPage() {
                     minWidth: 200
                   }}
                 >
-                  {checkoutLoading ? 'Processing...' : 'Get started today'}
+                  {checkoutLoading ? 'Processing...' : 'Begin strategic transformation'}
                 </Button>
                 <Typography
                   variant="body2"
@@ -626,84 +574,6 @@ export default function PricingPage() {
             </Box>
           </Container>
         </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box 
-        component="footer" 
-        sx={{ 
-          mt: 'auto',
-          py: 6,
-          backgroundColor: 'grey.50',
-          borderTop: '1px solid',
-          borderColor: 'grey.200'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack 
-            direction={{ xs: 'column', md: 'row' }} 
-            spacing={{ xs: 3, md: 6 }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'center', md: 'flex-start' }}
-          >
-            <Box>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Cultivate HQ
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-                Where strategic minds cultivate extraordinary outcomes through systematic relationship intelligence.
-              </Typography>
-            </Box>
-            
-            <Stack direction="row" spacing={4}>
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
-                  Product
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/features"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Features
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/pricing"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Pricing
-                </Typography>
-              </Stack>
-              
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
-                  Support
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/login"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Sign In
-                </Typography>
-              </Stack>
-            </Stack>
-          </Stack>
-          
-          <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'grey.200' }}>
-            <Typography variant="body2" color="text.secondary" align="center">
-              © 2025 Cultivate HQ. All rights reserved.
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
-    </Box>
+    </MarketingLayout>
   );
 }

@@ -6,7 +6,7 @@ import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceType, userId } = await request.json();
+    const { priceType } = await request.json();
 
     if (!priceType) {
       return NextResponse.json(
@@ -23,14 +23,19 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    
+    // Get authenticated user from session instead of trusting request body
+    const { data: { user } } = await supabase.auth.getUser();
+    const authenticatedUserId = user?.id;
+    
     let userData = null;
     
-    // Get user data if userId is provided (authenticated user)
-    if (userId) {
+    // Get user data if user is authenticated
+    if (authenticatedUserId) {
       const { data, error: userError } = await supabase
         .from('users')
         .select('email, name')
-        .eq('id', userId)
+        .eq('id', authenticatedUserId)
         .single();
 
       if (userError) {
@@ -42,7 +47,11 @@ export async function POST(request: NextRequest) {
     }
 
     const priceConfig = PRICE_CONFIG[priceType as keyof typeof PRICE_CONFIG];
+    const productConfig = PRODUCT_CONFIG[priceType as keyof typeof PRODUCT_CONFIG];
     const stripe = getServerStripe();
+    
+    // Handle supporter tier differently (one-time payment for 5 years)
+    const isSupporter = priceType === 'supporter';
     
     // Create Stripe checkout session
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
@@ -52,43 +61,49 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: PRODUCT_CONFIG.name,
-              description: PRODUCT_CONFIG.description,
+              name: `Cultivate HQ ${productConfig.name}`,
+              description: productConfig.description,
               metadata: {
-                features: PRODUCT_CONFIG.features.slice(0, 5).join(', ') + '...',
+                features: productConfig.features.slice(0, 5).join(', ') + '...',
               },
             },
             unit_amount: priceConfig.amount,
-            recurring: {
-              interval: priceConfig.interval,
-            },
+            ...(isSupporter ? {
+              // One-time payment for supporter tier
+            } : {
+              recurring: {
+                interval: (priceConfig as typeof PRICE_CONFIG.monthly | typeof PRICE_CONFIG.annual).interval,
+              },
+            }),
           },
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: isSupporter ? 'payment' : 'subscription',
       success_url: `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
       metadata: {
         priceType: priceType,
-        planName: `${PRODUCT_CONFIG.name} - ${priceType}`,
+        planName: `Cultivate HQ ${productConfig.name}`,
       },
-      subscription_data: {
-        metadata: {
-          priceType: priceType,
+      ...(isSupporter ? {} : {
+        subscription_data: {
+          metadata: {
+            priceType: priceType,
+          },
         },
-      },
+      }),
       allow_promotion_codes: true,
     };
 
     // Add customer info if user is authenticated
-    if (userData?.email) {
+    if (userData?.email && authenticatedUserId) {
       sessionConfig.customer_email = userData.email;
       if (sessionConfig.metadata) {
-        sessionConfig.metadata.userId = userId;
+        sessionConfig.metadata.userId = authenticatedUserId;
       }
-      if (sessionConfig.subscription_data?.metadata) {
-        sessionConfig.subscription_data.metadata.userId = userId;
+      if (!isSupporter && sessionConfig.subscription_data?.metadata) {
+        sessionConfig.subscription_data.metadata.userId = authenticatedUserId;
       }
     }
     // Note: For unauthenticated users, Stripe will automatically collect email

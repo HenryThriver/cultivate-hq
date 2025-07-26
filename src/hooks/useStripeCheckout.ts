@@ -20,7 +20,7 @@ export const useStripeCheckout = () => {
         },
         body: JSON.stringify({
           priceType,
-          userId: user?.id, // Optional - will be null for unauthenticated users
+          // userId is now derived from session on the server for security
         }),
       });
 

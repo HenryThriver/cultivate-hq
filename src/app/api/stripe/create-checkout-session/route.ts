@@ -6,7 +6,7 @@ import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceType, userId } = await request.json();
+    const { priceType } = await request.json();
 
     if (!priceType) {
       return NextResponse.json(
@@ -23,14 +23,19 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    
+    // Get authenticated user from session instead of trusting request body
+    const { data: { user } } = await supabase.auth.getUser();
+    const authenticatedUserId = user?.id;
+    
     let userData = null;
     
-    // Get user data if userId is provided (authenticated user)
-    if (userId) {
+    // Get user data if user is authenticated
+    if (authenticatedUserId) {
       const { data, error: userError } = await supabase
         .from('users')
         .select('email, name')
-        .eq('id', userId)
+        .eq('id', authenticatedUserId)
         .single();
 
       if (userError) {
@@ -67,7 +72,7 @@ export async function POST(request: NextRequest) {
               // One-time payment for supporter tier
             } : {
               recurring: {
-                interval: priceConfig.interval,
+                interval: (priceConfig as typeof PRICE_CONFIG.monthly | typeof PRICE_CONFIG.annual).interval,
               },
             }),
           },
@@ -92,13 +97,13 @@ export async function POST(request: NextRequest) {
     };
 
     // Add customer info if user is authenticated
-    if (userData?.email) {
+    if (userData?.email && authenticatedUserId) {
       sessionConfig.customer_email = userData.email;
       if (sessionConfig.metadata) {
-        sessionConfig.metadata.userId = userId;
+        sessionConfig.metadata.userId = authenticatedUserId;
       }
       if (!isSupporter && sessionConfig.subscription_data?.metadata) {
-        sessionConfig.subscription_data.metadata.userId = userId;
+        sessionConfig.subscription_data.metadata.userId = authenticatedUserId;
       }
     }
     // Note: For unauthenticated users, Stripe will automatically collect email

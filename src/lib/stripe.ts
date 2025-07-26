@@ -26,9 +26,8 @@ export const PRICE_CONFIG = {
     priceId: 'price_annual_cultivate_hq', // This will be set in Stripe dashboard
   },
   supporter: {
-    amount: 3000 * 100, // $3000 in cents
-    interval: 'year' as const,
-    intervalCount: 5, // 5 years
+    amount: 3000 * 100, // $3000 in cents (one-time payment for 5 years)
+    // No interval or intervalCount - this is a one-time payment
     priceId: 'price_supporter_cultivate_hq', // This will be set in Stripe dashboard
   },
 };

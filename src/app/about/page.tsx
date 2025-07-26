@@ -8,8 +8,6 @@ import {
   Typography, 
   Stack, 
   Card,
-  CardContent,
-  IconButton,
   alpha,
   useTheme
 } from '@mui/material';
@@ -19,7 +17,6 @@ import Image from 'next/image';
 import { MarketingLayout } from '@/components/layout/MarketingLayout';
 
 export default function AboutPage() {
-  const theme = useTheme();
 
   return (
     <MarketingLayout>

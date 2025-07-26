@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import PricingPage from '../page';
 import { useStripeCheckout } from '@/hooks/useStripeCheckout';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -10,6 +11,14 @@ vi.mock('@/lib/contexts/AuthContext');
 vi.mock('@/components/layout/MarketingLayout', () => ({
   MarketingLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }));
+
+// Create a basic theme
+const theme = createTheme();
+
+// Wrapper component for theme
+const ThemeWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ThemeProvider theme={theme}>{children}</ThemeProvider>
+);
 
 describe('Pricing Page', () => {
   const mockCreateCheckoutSession = vi.fn();
@@ -35,7 +44,7 @@ describe('Pricing Page', () => {
   });
 
   it('should display all three pricing tiers correctly', () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     // Check for tier names
     expect(screen.getByText('Monthly')).toBeInTheDocument();
@@ -54,7 +63,7 @@ describe('Pricing Page', () => {
   });
 
   it('should highlight annual tier as most popular', () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     // Check for "Most Popular" badge
     expect(screen.getByText('Most Popular')).toBeInTheDocument();
@@ -65,7 +74,7 @@ describe('Pricing Page', () => {
   });
 
   it('should handle checkout flow for monthly tier', async () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     const monthlyButton = screen.getByText('Begin transformation');
     fireEvent.click(monthlyButton);
@@ -76,7 +85,7 @@ describe('Pricing Page', () => {
   });
 
   it('should handle checkout flow for annual tier', async () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     const annualButton = screen.getByText('Unlock strategic advantage');
     fireEvent.click(annualButton);
@@ -87,7 +96,7 @@ describe('Pricing Page', () => {
   });
 
   it('should handle checkout flow for supporter tier', async () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     const supporterButton = screen.getByText('Join elite partnership');
     fireEvent.click(supporterButton);
@@ -104,7 +113,7 @@ describe('Pricing Page', () => {
       error: 'Payment processing failed. Please try again.'
     });
 
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     // Error alert should be displayed
     expect(screen.getByText('Payment processing failed. Please try again.')).toBeInTheDocument();
@@ -117,7 +126,7 @@ describe('Pricing Page', () => {
       error: null
     });
 
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     // All buttons should be disabled and show "Processing..."
     const buttons = screen.getAllByText('Processing...');
@@ -138,13 +147,13 @@ describe('Pricing Page', () => {
       updateProfile: vi.fn()
     });
 
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     expect(screen.getByText('Loading Cultivate HQ...')).toBeInTheDocument();
   });
 
   it('should display feature lists for each tier', () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     // Check for some key features from monthly tier
     expect(screen.getByText('AI-powered contact intelligence')).toBeInTheDocument();
@@ -160,7 +169,7 @@ describe('Pricing Page', () => {
   });
 
   it('should handle CTA button click for annual tier', async () => {
-    render(<PricingPage />);
+    render(<PricingPage />, { wrapper: ThemeWrapper });
 
     // Scroll to the bottom CTA
     const ctaButton = screen.getByText('Begin strategic transformation');

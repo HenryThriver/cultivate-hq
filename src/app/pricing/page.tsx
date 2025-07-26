@@ -297,17 +297,6 @@ export default function PricingPage() {
                           </Typography>
                         </Stack>
                         
-                        {tier.monthlyEquivalent && (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: 'text.secondary',
-                              mb: 2
-                            }}
-                          >
-                            {tier.monthlyEquivalent}
-                          </Typography>
-                        )}
                         
                         <Typography
                           variant="body1"

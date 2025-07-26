@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { getStripe } from '@/lib/stripe';
-import { useAuth } from '@/lib/contexts/AuthContext';
 
 export const useStripeCheckout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
   const createCheckoutSession = async (priceType: 'monthly' | 'annual' | 'supporter') => {
     setLoading(true);

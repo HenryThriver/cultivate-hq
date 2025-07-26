@@ -39,7 +39,7 @@ import {
   Language
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { FUNCTIONAL_FEATURES, getFeaturesByCategory, CATEGORY_INFO } from '@/config/functionalFeatures';
+import { getFeaturesByCategory, CATEGORY_INFO } from '@/config/functionalFeatures';
 import Link from 'next/link';
 import { MarketingLayout } from '@/components/layout/MarketingLayout';
 import { HeroSection, GradientText, CTASection, gradients } from '@/components/marketing';
@@ -188,7 +188,7 @@ export default function FeaturesPage() {
         <Container maxWidth="lg">
           <Stack spacing={16}>
             {Object.entries(CATEGORY_INFO).map(([categoryKey, categoryInfo], index) => {
-              const features = getFeaturesByCategory(categoryKey as any);
+              const features = getFeaturesByCategory(categoryKey as keyof typeof CATEGORY_INFO);
               const CategoryIcon = categoryIcons[categoryKey as keyof typeof categoryIcons];
               const categoryColor = categoryColors[categoryKey as keyof typeof categoryColors];
               

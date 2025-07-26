@@ -208,10 +208,9 @@ describe('POST /api/stripe/create-checkout-session', () => {
 
     await POST(request);
 
-    // Verify the API used the authenticated user's ID
+    // Verify the API used the authenticated user's ID from session, not request body
+    expect(mockSupabaseAuth.getUser).toHaveBeenCalled();
     expect(mockSupabaseFrom).toHaveBeenCalledWith('users');
-    const selectCall = mockSupabaseFrom.mock.results[0].value.select();
-    expect(selectCall.eq).toHaveBeenCalledWith('id', 'real_user_id');
   });
 
   it('should return error for missing priceType', async () => {

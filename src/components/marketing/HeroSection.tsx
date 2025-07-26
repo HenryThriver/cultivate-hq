@@ -1,7 +1,7 @@
 import React from 'react';
-import { Box, Container, Stack, BoxProps, alpha } from '@mui/material';
+import { Box, Container, BoxProps, alpha } from '@mui/material';
 
-interface HeroSectionProps extends BoxProps {
+interface HeroSectionProps extends Omit<BoxProps, 'borderBottom'> {
   children: React.ReactNode;
   variant?: 'primary' | 'subtle' | 'gradient';
   borderBottom?: boolean;

@@ -5,6 +5,103 @@ All notable changes to Relationship OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.1] - 2025-07-26
+
+### Added
+- **Enhanced Marketing Pages**: Complete professional marketing overhaul with founder story
+  - **About Page**: Personal founder story featuring Handsome Hank's journey from Stanford MBA networking challenges to building Cultivate HQ
+  - **Professional Marketing Layout**: New `MarketingLayout` and `MarketingNavigation` components providing consistent design across all marketing pages
+  - **Enhanced Features Page**: Comprehensive capability showcase with 4 category-based feature organization (Find, Nurture, Strategy, Events)
+  - **Contact Page**: Professional contact form with direct founder communication channel
+  - **Design System Components**: New marketing-focused components (`HeroSection`, `GradientText`, `CTASection`) with consistent styling
+
+- **3-Tier Pricing System**: Professional monetization strategy with service-level differentiation
+  - **Monthly Tier ($30/month)**: Strategic foundation for systematic relationship cultivation
+  - **Annual Tier ($300/year)**: Comprehensive intelligence platform with premium support, faster AI processing, and increased limits
+  - **Supporter Tier ($3,000/5 years)**: Elite partnership with creator access, VIP support, and product roadmap influence
+  - **Service-Level Focus**: Differentiation through support quality, processing speed, and access levels rather than feature restrictions
+  - **One-Time Payment Model**: Supporter tier configured as single payment for 5-year access instead of subscription
+
+- **Secure Payment Processing**: Production-ready Stripe integration with comprehensive security
+  - **Authentication Security Fix**: Resolved critical userId validation vulnerability preventing user impersonation attacks
+  - **Session-Based Validation**: Payment processing now uses authenticated session data instead of trusting request body
+  - **Payment Model Consistency**: Fixed supporter tier configuration inconsistency between one-time payment and subscription
+  - **Comprehensive Test Coverage**: Added extensive payment flow testing including security validation, pricing tiers, and error handling
+
+### Changed
+- **Homepage Transformation**: Streamlined executive-focused messaging
+  - **Strategic Positioning**: "Transform every interaction into strategic advantage" messaging
+  - **Simplified Hero Section**: Removed complex demo elements in favor of clear value proposition
+  - **Enhanced Navigation**: Consistent marketing navigation across all public pages
+
+- **Pricing Page Redesign**: Complete user experience overhaul
+  - **3-Column Layout**: Replaced toggle-based pricing with comprehensive tier comparison
+  - **Popular Tier Highlighting**: Annual tier prominently featured as recommended option
+  - **Feature Clarity**: Clear service-level benefits explanation for each tier
+
+### Fixed
+- **Critical Security Vulnerabilities**: Resolved payment processing security issues
+  - **SECURITY**: Fixed authentication bypass vulnerability in checkout API allowing user impersonation
+  - **Payment Integrity**: Ensured checkout sessions use authenticated user data preventing spoofing attacks
+  - **Session Validation**: Added comprehensive validation of user sessions before payment processing
+
+### Technical Implementation
+- **Marketing Architecture**: Professional component system for scalable marketing pages
+- **Payment Security Architecture**: Production-ready secure payment processing with server-side validation
+- **Test Infrastructure**: Comprehensive quality assurance coverage including security testing
+
+### Business Impact
+- **Professional Market Presence**: Complete transformation from internal tool to professional product
+- **Revenue Diversification**: Three distinct pricing tiers addressing different customer segments
+- **Security Compliance**: Production-ready security standards suitable for handling payments
+
+## [0.16.0] - 2025-07-25
+
+### Added
+- **Admin Logging Infrastructure**: Production-ready admin activity tracking system
+  - **Admin Action Logging**: Comprehensive logging system for all admin operations via `log_admin_action` RPC function
+  - **Feature Flag Management**: Enhanced admin interface for feature flag management with proper audit trails
+  - **Admin Authentication**: Improved admin role validation and security controls
+  - **Centralized Logger**: Restored centralized logging utility for consistent error tracking and debugging
+
+- **Enhanced Test Infrastructure**: Expanded testing coverage for onboarding and admin features
+  - **Onboarding Animation Tests**: Comprehensive test suite for welcome screen animations with 239 new test cases
+  - **Supabase Test Utilities**: Enhanced testing utilities for database integration testing
+  - **Animation Test Framework**: Specialized testing infrastructure for complex animation sequences
+
+### Fixed
+- **Database Migration Issues**: Resolved admin logging system deployment conflicts
+  - **Migration Conflicts**: Fixed duplicate admin logging migration file preventing deployment
+  - **RPC Function Deployment**: Resolved `log_admin_action` function conflicts in production deployment
+  - **Admin Route Optimization**: Enhanced admin API routes with improved error handling and logging integration
+
+- **Build System Improvements**: Comprehensive development environment fixes
+  - **ESLint Quality Gates**: Resolved all remaining ESLint errors preventing clean CI/CD builds
+  - **TypeScript Compilation**: Fixed all TypeScript quality gate failures across admin and onboarding systems
+  - **Merge Conflict Resolution**: Successfully resolved complex merge conflicts between develop and main branches
+
+### Changed
+- **Admin System Architecture**: Enhanced admin functionality with proper logging infrastructure
+  - **Feature Flag API**: Improved admin feature flag management with comprehensive audit logging
+  - **Admin Authentication Flow**: Enhanced admin role validation with centralized logging integration
+  - **Error Handling**: Improved error handling patterns across admin interfaces
+
+### Technical Implementation
+- **Logging Infrastructure**: Production-ready logging system for admin operations
+  - **Centralized Logger**: Unified logging utility for consistent error tracking and debugging
+  - **Admin Audit Trail**: Comprehensive logging of all admin actions for security and compliance
+  - **Database RPC Functions**: Enhanced database procedures for admin logging operations
+
+- **Test Coverage Expansion**: Significant testing infrastructure improvements
+  - **Animation Testing**: Specialized test utilities for complex welcome screen animations
+  - **Database Testing**: Enhanced Supabase integration testing utilities
+  - **Quality Gate Compliance**: All ESLint and TypeScript checks passing consistently
+
+### Database Schema
+- **Admin Logging Tables**: Enhanced admin audit logging infrastructure
+- **RPC Function Integration**: `log_admin_action` function properly deployed and integrated
+- **Feature Flag Management**: Improved feature flag tracking with admin action logging
+
 ## [0.15.0] - 2025-07-23
 
 ### Added

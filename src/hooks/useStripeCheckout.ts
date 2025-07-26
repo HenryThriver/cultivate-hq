@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { getStripe } from '@/lib/stripe';
-import { useAuth } from '@/lib/contexts/AuthContext';
 
 export const useStripeCheckout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
-  const createCheckoutSession = async (priceType: 'monthly' | 'yearly') => {
+  const createCheckoutSession = async (priceType: 'monthly' | 'annual' | 'supporter') => {
     setLoading(true);
     setError(null);
 
@@ -20,7 +18,7 @@ export const useStripeCheckout = () => {
         },
         body: JSON.stringify({
           priceType,
-          userId: user?.id, // Optional - will be null for unauthenticated users
+          // userId is now derived from session on the server for security
         }),
       });
 

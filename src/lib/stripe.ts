@@ -52,15 +52,12 @@ export const PRODUCT_CONFIG = {
     description: 'Complete professional relationship system',
     features: [
       'Everything in Monthly',
-      'Premium AI features',
-      'Early access to new features',
-      'Increased API rate limits (10x)',
-      'Advanced analytics & insights',
+      'Priority AI processing',
+      'Premium support',
+      'Increased processing limits',
+      'Early access to new features & beta programs',
       'Smart introduction engine',
-      'Full LinkedIn integration',
-      'Gmail & Calendar sync',
-      'Priority support',
-      'Relationship ROI tracking'
+      'Dedicated success check-ins quarterly'
     ]
   },
   supporter: {
@@ -73,10 +70,11 @@ export const PRODUCT_CONFIG = {
       'Exclusive supporter community',
       'Monthly strategy calls',
       'Custom relationship workflows',
-      'White-label options',
-      'Advanced API access',
       'Personal onboarding session',
-      'Lifetime feature guarantee'
+      'VIP concierge support',
+      'Input on product roadmap',
+      'Recognition as founding supporter',
+      'Lifetime price guarantee'
     ]
   }
 };

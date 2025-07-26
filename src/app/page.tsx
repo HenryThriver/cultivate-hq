@@ -12,8 +12,6 @@ import {
   Paper,
   Card,
   CardContent,
-  AppBar,
-  Toolbar,
   alpha,
   CircularProgress,
 } from '@mui/material';
@@ -30,6 +28,7 @@ import {
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
+import { MarketingLayout } from '@/components/layout/MarketingLayout';
 
 export default function HomePage(): React.JSX.Element {
   const { user, loading } = useAuth();
@@ -91,120 +90,7 @@ export default function HomePage(): React.JSX.Element {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Navigation */}
-      <AppBar 
-        position="static" 
-        elevation={0}
-        sx={{ 
-          backgroundColor: 'transparent',
-          borderBottom: '1px solid',
-          borderColor: 'grey.200'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Toolbar sx={{ py: 1 }}>
-            <Typography
-              variant="h6"
-              component={Link}
-              href="/"
-              sx={{
-                flexGrow: 1,
-                textDecoration: 'none',
-                color: 'text.primary',
-                fontWeight: 600,
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Cultivate HQ
-            </Typography>
-            
-            <Stack direction="row" spacing={3} alignItems="center">
-              <Typography
-                component={Link}
-                href="/features"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-              >
-                Features
-              </Typography>
-              
-              <Typography
-                component={Link}
-                href="/pricing"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-              >
-                Pricing
-              </Typography>
-
-              <Typography
-                component={Link}
-                href="/about"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-              >
-                About
-              </Typography>
-              
-              <Button
-                component={Link}
-                href="/login"
-                variant="outlined"
-                size="medium"
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  borderWidth: 1.5,
-                  '&:hover': {
-                    borderWidth: 1.5,
-                  }
-                }}
-              >
-                Sign In
-              </Button>
-              
-              <Button
-                component={Link}
-                href="/pricing"
-                variant="contained"
-                size="medium"
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  px: 3
-                }}
-              >
-                Get Started
-              </Button>
-            </Stack>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1 }}>
+    <MarketingLayout transparent>
         {/* Hero Section */}
         <Box 
           sx={{ 
@@ -323,7 +209,7 @@ export default function HomePage(): React.JSX.Element {
                     }
                   }}
                 >
-                  Start AI-Powered Relationship Building
+                  Supercharge your relationship building
                 </Button>
                 
                 {/* Commenting out for now because we don't have a demo video yet
@@ -777,88 +663,6 @@ export default function HomePage(): React.JSX.Element {
             </Box>
           </Container>
         </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box 
-        component="footer" 
-        sx={{ 
-          mt: 'auto',
-          py: 6,
-          backgroundColor: 'grey.50',
-          borderTop: '1px solid',
-          borderColor: 'grey.200'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack 
-            direction={{ xs: 'column', md: 'row' }} 
-            spacing={{ xs: 3, md: 6 }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'center', md: 'flex-start' }}
-          >
-            <Box>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Cultivate HQ
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-                Where strategic minds cultivate extraordinary outcomes through legendary relationship building.
-              </Typography>
-            </Box>
-            
-            <Stack direction="row" spacing={4}>
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
-                  Product
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/features"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Features
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/pricing"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Pricing
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/about"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  About
-                </Typography>
-              </Stack>
-              
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
-                  Support
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/login"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Sign In
-                </Typography>
-              </Stack>
-            </Stack>
-          </Stack>
-          
-        </Container>
-      </Box>
-    </Box>
+    </MarketingLayout>
   );
 }

@@ -3,14 +3,12 @@
 import React from 'react';
 import { 
   Box, 
+  Button,
   Container, 
   Typography, 
   Stack, 
   Card,
   CardContent,
-  AppBar,
-  Toolbar,
-  Button,
   IconButton,
   alpha,
   useTheme
@@ -18,118 +16,41 @@ import {
 import { LinkedIn } from '@mui/icons-material';
 import Link from 'next/link';
 import Image from 'next/image';
+import { MarketingLayout } from '@/components/layout/MarketingLayout';
 
 export default function AboutPage() {
   const theme = useTheme();
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Navigation */}
-      <AppBar 
-        position="static" 
-        elevation={0}
-        sx={{ 
-          backgroundColor: 'transparent',
-          borderBottom: '1px solid',
-          borderColor: 'grey.200'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Toolbar sx={{ py: 1 }}>
-            <Typography
-              variant="h6"
-              component={Link}
-              href="/"
-              sx={{
-                flexGrow: 1,
-                textDecoration: 'none',
-                color: 'text.primary',
-                fontWeight: 600,
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Cultivate HQ
-            </Typography>
-            
-            <Stack direction="row" spacing={3} alignItems="center">
-              <Typography
-                component={Link}
-                href="/features"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-              >
-                Features
-              </Typography>
-              
-              <Typography
-                component={Link}
-                href="/pricing"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-              >
-                Pricing
-              </Typography>
-
-              <Typography
-                component={Link}
-                href="/about"
-                variant="body1"
-                sx={{
-                  textDecoration: 'none',
-                  color: 'primary.main',
-                  fontWeight: 500
-                }}
-              >
-                About
-              </Typography>
-              
-              <Button
-                component={Link}
-                href="/login"
-                variant="outlined"
-                size="medium"
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  borderWidth: 1.5,
-                  '&:hover': {
-                    borderWidth: 1.5,
-                  }
-                }}
-              >
-                Sign In
-              </Button>
-            </Stack>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1 }}>
+    <MarketingLayout>
         {/* Hero Section */}
         <Box 
           sx={{ 
-            py: { xs: 8, md: 12 },
-            background: `linear-gradient(135deg, ${alpha('#2196F3', 0.02)} 0%, ${alpha('#7C3AED', 0.02)} 100%)`,
+            py: { xs: 10, md: 16 },
+            background: `
+              linear-gradient(135deg, 
+                ${alpha('#2196F3', 0.04)} 0%, 
+                ${alpha('#7C3AED', 0.03)} 50%, 
+                ${alpha('#059669', 0.02)} 100%
+              ),
+              radial-gradient(circle at 20% 50%, ${alpha('#2196F3', 0.06)} 0%, transparent 50%)
+            `,
             borderBottom: '1px solid',
-            borderColor: 'grey.200'
+            borderColor: 'grey.200',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.8) 100%)',
+              pointerEvents: 'none'
+            }
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
             <Stack spacing={6} alignItems="center" textAlign="center">
               <Stack spacing={3} alignItems="center" maxWidth="800px">
                 <Typography
@@ -146,9 +67,26 @@ export default function AboutPage() {
                   <Typography
                     component="span"
                     variant="inherit"
-                    sx={{ color: 'primary.main' }}
+                    sx={{ 
+                      background: `linear-gradient(135deg, #2196F3 0%, #7C3AED 100%)`,
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                      position: 'relative',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: '-8px',
+                        left: 0,
+                        right: 0,
+                        height: '4px',
+                        background: `linear-gradient(90deg, #2196F3 0%, #7C3AED 100%)`,
+                        borderRadius: '2px',
+                        opacity: 0.3
+                      }
+                    }}
                   >
-                    Henry Finkelstein
+                    Henry
                   </Typography>
                 </Typography>
                 
@@ -162,7 +100,7 @@ export default function AboutPage() {
                     maxWidth: '600px'
                   }}
                 >
-                  Founder of Cultivate HQ, where I'm building the relationship intelligence system I always wished existed.
+                  Founder of Cultivate HQ, where I'm building the relationship intelligence system I always wanted (to share).
                 </Typography>
               </Stack>
             </Stack>
@@ -178,17 +116,18 @@ export default function AboutPage() {
               alignItems="center"
             >
               {/* Image */}
-              <Box 
+              <Stack 
+                spacing={2}
+                alignItems="center"
                 sx={{ 
-                  width: { xs: 280, md: 320 },
-                  height: { xs: 280, md: 320 },
+                  width: { xs: 280, md: 350 },
                   flexShrink: 0
                 }}
               >
                 <Card
                   sx={{
                     width: '100%',
-                    height: '100%',
+                    aspectRatio: '2/3', // Match the natural image ratio (533x800)
                     border: '1px solid',
                     borderColor: 'grey.200',
                     borderRadius: 3,
@@ -196,35 +135,38 @@ export default function AboutPage() {
                     position: 'relative'
                   }}
                 >
-                  {/* Placeholder for founder image */}
-                  <Box
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: 'grey.100',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative'
-                    }}
-                  >
-                    <Typography
-                      variant="body1"
-                      sx={{ color: 'text.secondary' }}
-                    >
-                      [Your Photo Here]
-                    </Typography>
-                    {/* When you have an image, replace the Box above with:
-                    <Image
-                      src="/path-to-your-image.jpg"
-                      alt="Henry Finkelstein, Founder of Cultivate HQ"
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
-                    */}
-                  </Box>
+                  <Image
+                    src="/HAF_Headshot_optimized.jpg"
+                    alt="Handsome Hank, Founder of Cultivate HQ"
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 280px, 350px"
+                    priority
+                    quality={85}
+                  />
                 </Card>
-              </Box>
+                
+                {/* LinkedIn Button */}
+                <Button
+                  component={Link}
+                  href="https://www.linkedin.com/in/henryfinkelstein/"
+                  target="_blank"
+                  variant="outlined"
+                  startIcon={<LinkedIn />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    borderWidth: 1.5,
+                    px: 3,
+                    py: 1,
+                    '&:hover': {
+                      borderWidth: 1.5,
+                    }
+                  }}
+                >
+                  Connect with me on LinkedIn
+                </Button>
+              </Stack>
 
               {/* Story Content */}
               <Box sx={{ flex: 1 }}>
@@ -232,14 +174,18 @@ export default function AboutPage() {
                   <Typography
                     variant="h2"
                     sx={{
-                      fontSize: { xs: '2rem', md: '2.5rem' },
-                      fontWeight: 600,
-                      letterSpacing: '-0.02em',
-                      lineHeight: 1.2,
-                      mb: 2
+                      fontSize: { xs: '2.25rem', md: '3rem' },
+                      fontWeight: 700,
+                      letterSpacing: '-0.03em',
+                      lineHeight: 1.1,
+                      mb: 3,
+                      background: 'linear-gradient(135deg, #212121 0%, #616161 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent'
                     }}
                   >
-                    Why I Built This
+                    Why I'm building Cultivate HQ
                   </Typography>
 
                   <Typography
@@ -250,9 +196,8 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    At Stanford Graduate School of Business, I discovered something that changed my perspective: 
-                    relationships aren't just nice-to-have—they're the ultimate competitive advantage. 
-                    My professors emphasized this constantly, even dedicating entire courses to networking and relationship building.
+                    When I was a Sloan Fellow at the Stanford Graduate School of Business, I learned that connections define careers. 
+                    Smarts and hard work are table stakes - truly exceptional outcomes come from exceptional networks.
                   </Typography>
 
                   <Typography
@@ -263,10 +208,7 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    But here's what frustrated me: despite understanding the importance, the systems they taught us 
-                    were overwhelming and impossible to sustain. Complex spreadsheets, manual tracking, 
-                    generic approaches that felt more like homework than genuine relationship building. 
-                    I tried everything—none of it stuck.
+                    You know why they call it net-work? Because it's usually miserable. Conferences, mixers, LinkedIn QR codes, oh my! Check out my follower count!
                   </Typography>
 
                   <Typography
@@ -277,9 +219,8 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    Even the "Beyond Connections" course, which I genuinely enjoyed, relied on spreadsheet-based 
-                    systems that felt too manual for someone who desperately wanted to maintain meaningful connections 
-                    without the administrative burden.
+                    For those who care about genuine connection grounded in generosity and care, tools have hardly evolved since Lotus123 and hand written rolodex notes.
+                    Do you also have boxes and boxes of unused cards from past roles gathering dust somewhere? And don't get me started on the mindnumbing volume over value of social media.
                   </Typography>
 
                   <Typography
@@ -290,18 +231,30 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    That's when I realized: with AI, we could build something fundamentally different. 
-                    Not just another CRM, but a truly intelligent system that understands context, 
-                    suggests meaningful actions, and makes relationship building feel natural rather than forced.
+                    Building meaningful relationships doesn't have to suck. Today's technology unlocks something fundamentally different. 
+                    A truly intelligent system that scans the public-sphere, understands historical context, suggests meaningful just-in-time actions, 
+                    and makes connection building feel fluid and fun. Elegant efficiency for busy professionals who care too much to waste their time, or yours.
+                  </Typography>
+
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: '1.125rem',
+                      lineHeight: 1.6,
+                      color: 'text.secondary'
+                    }}
+                  >
+                    What I want, and know is possible, simply didn't exist. I got inspired by Keith Ferrazzi, Ronen Olshansky, and the amazing people at Beyond Connections, and I started building.
+                    I hope you enjoy deepening connections that matter with a modern toolkit. Try it, get your mind (lovingly) blown, and you're welcome.
                   </Typography>
 
                   <Box
                     sx={{
                       p: 3,
-                      backgroundColor: alpha('#2196F3', 0.03),
-                      borderLeft: '4px solid',
-                      borderColor: 'primary.main',
-                      borderRadius: 1
+                      backgroundColor: '#FAFBFF',
+                      borderLeft: '3px solid',
+                      borderColor: '#059669', // Sage green for wisdom/insight per design system
+                      borderRadius: 2
                     }}
                   >
                     <Typography
@@ -314,42 +267,11 @@ export default function AboutPage() {
                         fontStyle: 'italic'
                       }}
                     >
-                      Cultivate HQ is the tool I built for myself—because I desperately needed a better way 
-                      to maintain connections, and nothing else out there really worked for me.
+                      Cultivate HQ is the tool I built for myself because I desperately needed a better way 
+                      to maintain meaningful, strategic connections at scale.
                     </Typography>
                   </Box>
 
-                  {/* LinkedIn Link */}
-                  <Box sx={{ pt: 2 }}>
-                    <Button
-                      component={Link}
-                      href="https://www.linkedin.com/in/henryfinkelstein/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="outlined"
-                      size="large"
-                      startIcon={
-                        <LinkedIn sx={{ fontSize: 24 }} />
-                      }
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: 500,
-                        px: 3,
-                        py: 1.5,
-                        borderWidth: 1.5,
-                        borderColor: '#0077B5',
-                        color: '#0077B5',
-                        '&:hover': {
-                          borderWidth: 1.5,
-                          borderColor: '#005885',
-                          backgroundColor: alpha('#0077B5', 0.04),
-                          color: '#005885'
-                        }
-                      }}
-                    >
-                      Connect with me on LinkedIn
-                    </Button>
-                  </Box>
                 </Stack>
               </Box>
             </Stack>
@@ -367,20 +289,42 @@ export default function AboutPage() {
             <Box 
               sx={{
                 textAlign: 'center',
-                p: { xs: 4, md: 6 },
-                backgroundColor: 'white',
-                borderRadius: 3,
+                p: { xs: 6, md: 8 },
+                background: `
+                  linear-gradient(135deg, 
+                    ${alpha('#2196F3', 0.06)} 0%, 
+                    ${alpha('#7C3AED', 0.04)} 100%
+                  ),
+                  radial-gradient(circle at 50% 50%, ${alpha('#2196F3', 0.08)} 0%, transparent 70%)
+                `,
+                borderRadius: 4,
                 border: '1px solid',
-                borderColor: 'grey.200'
+                borderColor: alpha('#2196F3', 0.15),
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.7) 100%)',
+                  pointerEvents: 'none'
+                }
               }}
             >
-              <Stack spacing={4} alignItems="center">
+              <Stack spacing={4} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
                 <Typography
                   variant="h2"
                   sx={{
-                    fontSize: { xs: '1.75rem', md: '2.25rem' },
-                    fontWeight: 600,
-                    letterSpacing: '-0.02em'
+                    fontSize: { xs: '2rem', md: '2.75rem' },
+                    fontWeight: 700,
+                    letterSpacing: '-0.03em',
+                    background: 'linear-gradient(135deg, #212121 0%, #616161 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent'
                   }}
                 >
                   I'd love to hear your feedback
@@ -400,8 +344,8 @@ export default function AboutPage() {
                 </Typography>
                 
                 <Stack 
-                  direction={{ xs: 'column', sm: 'row' }} 
-                  spacing={3}
+                  direction="column"
+                  spacing={2}
                   alignItems="center"
                 >
                   <Button
@@ -422,102 +366,31 @@ export default function AboutPage() {
                   
                   <Typography
                     variant="body2"
+                    align="center"
                     sx={{ color: 'text.secondary' }}
                   >
-                    or reach out anytime
+                    or{' '}
+                    <Typography
+                      component={Link}
+                      href="/contact"
+                      variant="body2"
+                      sx={{
+                        color: 'primary.main',
+                        textDecoration: 'none',
+                        fontWeight: 500,
+                        '&:hover': {
+                          textDecoration: 'underline'
+                        }
+                      }}
+                    >
+                      reach out anytime
+                    </Typography>
                   </Typography>
                 </Stack>
               </Stack>
             </Box>
           </Container>
         </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box 
-        component="footer" 
-        sx={{ 
-          mt: 'auto',
-          py: 6,
-          backgroundColor: 'grey.50',
-          borderTop: '1px solid',
-          borderColor: 'grey.200'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack 
-            direction={{ xs: 'column', md: 'row' }} 
-            spacing={{ xs: 3, md: 6 }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'center', md: 'flex-start' }}
-          >
-            <Box>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Cultivate HQ
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-                Where strategic minds cultivate extraordinary outcomes through systematic relationship intelligence.
-              </Typography>
-            </Box>
-            
-            <Stack direction="row" spacing={4}>
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
-                  Product
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/features"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Features
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/pricing"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Pricing
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/about"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  About
-                </Typography>
-              </Stack>
-              
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
-                  Support
-                </Typography>
-                <Typography
-                  component={Link}
-                  href="/login"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
-                >
-                  Sign In
-                </Typography>
-              </Stack>
-            </Stack>
-          </Stack>
-          
-          <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'grey.200' }}>
-            <Typography variant="body2" color="text.secondary" align="center">
-              © 2025 Cultivate HQ. All rights reserved.
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
-    </Box>
+    </MarketingLayout>
   );
 }

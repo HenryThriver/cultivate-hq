@@ -6,10 +6,12 @@ import { Loop as LoopIcon, Settings as SettingsIcon, CalendarToday, Email, Payme
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
+import { useSubscription } from '@/hooks/useUser';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { redirectToPortal, loading: portalLoading } = useCustomerPortal();
+  const { hasActiveSubscription } = useSubscription();
 
   const settingsOptions = [
     {
@@ -72,7 +74,15 @@ export default function SettingsPage() {
 
         {/* Settings Options Grid */}
         <Grid container spacing={3}>
-          {settingsOptions.map((option) => (
+          {settingsOptions
+            .filter((option) => {
+              // Only show billing card if user has an active subscription
+              if (option.action === 'billing') {
+                return hasActiveSubscription;
+              }
+              return true;
+            })
+            .map((option) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={option.title}>
               <Card sx={{ height: '100%' }}>
                 <CardActionArea 

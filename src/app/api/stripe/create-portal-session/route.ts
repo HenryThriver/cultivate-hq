@@ -33,8 +33,17 @@ export async function POST() {
     }
 
     if (!subscription || !subscription.stripe_customer_id) {
+      console.log('Debug - User ID:', user.id);
+      console.log('Debug - Subscription data:', subscription);
       return NextResponse.json(
-        { error: 'No active subscription found' },
+        { 
+          error: 'No active subscription found',
+          debug: {
+            userId: user.id,
+            hasSubscription: !!subscription,
+            hasCustomerId: !!(subscription?.stripe_customer_id)
+          }
+        },
         { status: 404 }
       );
     }

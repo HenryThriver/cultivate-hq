@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Container, Box, Typography, Grid, Card, CardContent, CardActionArea, Breadcrumbs, Link } from '@mui/material';
 import { Loop as LoopIcon, Settings as SettingsIcon, CalendarToday, Email, Payment } from '@mui/icons-material';
 import NextLink from 'next/link';
@@ -48,6 +48,17 @@ export default function SettingsPage() {
     // },
   ];
 
+  // Memoize filtered options to prevent unnecessary re-renders
+  const filteredOptions = useMemo(() => 
+    settingsOptions.filter((option) => {
+      // Only show billing card if user has an active subscription
+      if (option.action === 'billing') {
+        return hasActiveSubscription;
+      }
+      return true;
+    }), [hasActiveSubscription]
+  );
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box>
@@ -74,15 +85,7 @@ export default function SettingsPage() {
 
         {/* Settings Options Grid */}
         <Grid container spacing={3}>
-          {settingsOptions
-            .filter((option) => {
-              // Only show billing card if user has an active subscription
-              if (option.action === 'billing') {
-                return hasActiveSubscription;
-              }
-              return true;
-            })
-            .map((option) => (
+          {filteredOptions.map((option) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={option.title}>
               <Card sx={{ height: '100%' }}>
                 <CardActionArea 

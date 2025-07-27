@@ -11,6 +11,8 @@ export const useCustomerPortal = (): UseCustomerPortalReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const redirectToPortal = async () => {
+    if (loading) return; // Prevent race conditions
+    
     try {
       setLoading(true);
       setError(null);

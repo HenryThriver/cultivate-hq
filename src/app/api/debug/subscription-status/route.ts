@@ -15,11 +15,6 @@ export async function GET() {
       );
     }
 
-    // Get all subscription data for debugging
-    const { data: allSubscriptions, error: allSubError } = await supabase
-      .from('subscriptions')
-      .select('*');
-
     // Get the user's subscription
     const { data: userSubscription, error: userSubError } = await supabase
       .from('subscriptions')
@@ -31,11 +26,8 @@ export async function GET() {
       debug: {
         currentUserId: user.id,
         userEmail: user.email,
-        allSubscriptionsCount: allSubscriptions?.length || 0,
-        allSubscriptions: allSubscriptions || [],
         userSubscription: userSubscription,
         userSubError: userSubError,
-        allSubError: allSubError,
         hasUserSubscription: !!userSubscription,
         hasStripeCustomerId: !!(userSubscription?.stripe_customer_id)
       }

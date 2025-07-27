@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import DOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
 
 // Initialize Resend only when API key is available
 const getResendClient = () => {
@@ -8,6 +10,34 @@ const getResendClient = () => {
     throw new Error('RESEND_API_KEY environment variable is not set');
   }
   return new Resend(apiKey);
+};
+
+// Initialize DOMPurify for server-side sanitization
+const window = new JSDOM('').window;
+const purify = DOMPurify(window as any);
+
+// Input validation constants
+const INPUT_LIMITS = {
+  name: 100,
+  email: 254, // RFC 5321 email length limit
+  subject: 200,
+  message: 5000,
+  company: 200,
+  jobTitle: 100,
+  industry: 100,
+  currentSolution: 500,
+  challenges: 2000,
+} as const;
+
+// Sanitize and validate input
+const sanitizeInput = (input: string, maxLength: number): string => {
+  if (!input) return '';
+  
+  // Trim whitespace and truncate to max length
+  const trimmed = input.trim().substring(0, maxLength);
+  
+  // Sanitize HTML to prevent XSS
+  return purify.sanitize(trimmed);
 };
 
 interface ContactFormData {
@@ -32,25 +62,47 @@ export async function POST(request: NextRequest) {
   try {
     const body: ContactFormData = await request.json();
     const { 
-      name, 
-      email, 
-      subject, 
-      message, 
+      name: rawName, 
+      email: rawEmail, 
+      subject: rawSubject, 
+      message: rawMessage, 
       formType = 'contact',
-      company,
-      jobTitle,
+      company: rawCompany,
+      jobTitle: rawJobTitle,
       companySize,
-      industry,
-      currentSolution,
-      challenges,
+      industry: rawIndustry,
+      currentSolution: rawCurrentSolution,
+      challenges: rawChallenges,
       timeline,
       budget
     } = body;
+
+    // Sanitize and validate all inputs
+    const name = sanitizeInput(rawName, INPUT_LIMITS.name);
+    const email = sanitizeInput(rawEmail, INPUT_LIMITS.email);
+    const subject = sanitizeInput(rawSubject, INPUT_LIMITS.subject);
+    const message = sanitizeInput(rawMessage, INPUT_LIMITS.message);
+    const company = sanitizeInput(rawCompany || '', INPUT_LIMITS.company);
+    const jobTitle = sanitizeInput(rawJobTitle || '', INPUT_LIMITS.jobTitle);
+    const industry = sanitizeInput(rawIndustry || '', INPUT_LIMITS.industry);
+    const currentSolution = sanitizeInput(rawCurrentSolution || '', INPUT_LIMITS.currentSolution);
+    const challenges = sanitizeInput(rawChallenges || '', INPUT_LIMITS.challenges);
 
     // Basic validation
     if (!name || !email || !subject || !message) {
       return NextResponse.json(
         { error: 'Missing required fields' }, 
+        { status: 400 }
+      );
+    }
+
+    // Validate input lengths
+    if (rawName?.length > INPUT_LIMITS.name || 
+        rawEmail?.length > INPUT_LIMITS.email ||
+        rawSubject?.length > INPUT_LIMITS.subject ||
+        rawMessage?.length > INPUT_LIMITS.message) {
+      return NextResponse.json(
+        { error: 'Input exceeds maximum length limits' }, 
         { status: 400 }
       );
     }
@@ -132,26 +184,40 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error('Resend error:', error);
+      // Log error securely without exposing details to client
+      console.error('Email sending failed:', {
+        timestamp: new Date().toISOString(),
+        formType,
+        error: process.env.NODE_ENV === 'development' ? error : 'Email service error'
+      });
       return NextResponse.json(
-        { error: 'Failed to send email' }, 
+        { error: 'Failed to send email. Please try again later.' }, 
         { status: 500 }
       );
     }
 
-    console.log('Email sent successfully:', data);
+    // Log success securely
+    console.log('Email sent successfully:', {
+      timestamp: new Date().toISOString(),
+      formType,
+      emailId: data?.id
+    });
 
     // Return success response
     return NextResponse.json({ 
       success: true,
-      message: 'Email sent successfully',
-      id: data?.id 
+      message: 'Email sent successfully'
     });
 
   } catch (error) {
-    console.error('Contact form error:', error);
+    // Secure error logging
+    console.error('Contact form error:', {
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error as Error)?.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Internal server error' }, 
+      { error: 'Internal server error. Please try again later.' }, 
       { status: 500 }
     );
   }

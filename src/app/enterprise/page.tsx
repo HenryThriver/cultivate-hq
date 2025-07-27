@@ -37,6 +37,7 @@ export default function EnterpriseContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [captchaQuestion, setCaptchaQuestion] = useState({ question: '', answer: 0 });
+  const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
   // Generate simple math captcha
   React.useEffect(() => {
@@ -56,6 +57,13 @@ export default function EnterpriseContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent rapid submissions (debounce for 3 seconds)
+    const now = Date.now();
+    if (now - lastSubmissionTime < 3000) {
+      setSubmitStatus('error');
+      return;
+    }
+    
     // Validate captcha
     if (parseInt(formData.captcha) !== captchaQuestion.answer) {
       setSubmitStatus('error');
@@ -63,6 +71,7 @@ export default function EnterpriseContactPage() {
     }
 
     setIsSubmitting(true);
+    setLastSubmissionTime(now);
     
     try {
       const response = await fetch('/api/contact', {

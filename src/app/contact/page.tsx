@@ -27,6 +27,7 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [captchaQuestion, setCaptchaQuestion] = useState({ question: '', answer: 0 });
+  const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
   // Generate simple math captcha
   React.useEffect(() => {
@@ -46,6 +47,13 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent rapid submissions (debounce for 3 seconds)
+    const now = Date.now();
+    if (now - lastSubmissionTime < 3000) {
+      setSubmitStatus('error');
+      return;
+    }
+    
     // Validate captcha
     if (parseInt(formData.captcha) !== captchaQuestion.answer) {
       setSubmitStatus('error');
@@ -53,11 +61,23 @@ export default function ContactPage() {
     }
 
     setIsSubmitting(true);
+    setLastSubmissionTime(now);
     
     try {
-      // TODO: Implement actual form submission logic
-      // For now, just simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          formType: 'contact'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
       
       setSubmitStatus('success');
       setFormData({
@@ -76,7 +96,7 @@ export default function ContactPage() {
         answer: num1 + num2,
       });
       
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);

@@ -171,4 +171,60 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
 - **Next Steps**: 
   - Debug the exact RLS policy conflict between UI and background sync
   - May need additional policy for authenticated users vs service role context
-  - Check if there are multiple conflicting policies still active 
+  - Check if there are multiple conflicting policies still active
+
+## 🚀 Performance Optimizations (Post-Launch)
+
+*Note: Loading states for AI processing are already well-implemented. These are performance enhancements for future consideration.*
+
+### React Performance Optimizations
+- [ ] **Implement React Optimization Hooks**
+  - **Current**: No usage of `React.memo`, `useMemo`, or `useCallback` found
+  - **Improvement**: Add memoization to frequently re-rendering components
+  - **Impact**: Medium priority - could significantly improve re-render performance
+  - **Implementation**: Start with high-traffic components (ContactList, Timeline, Dashboard)
+
+- [ ] **Leverage TanStack Query for Server State**
+  - **Current**: TanStack Query installed but not actively used
+  - **Improvement**: Replace manual data fetching with TanStack Query for caching
+  - **Impact**: High value - automatic caching, background refetching, optimistic updates
+  - **Implementation**: Migrate data fetching in hooks to use useQuery/useMutation
+
+### Code Splitting & Bundle Optimization
+- [ ] **Expand Lazy Loading Implementation**
+  - **Current**: Only VoiceRecorder uses dynamic imports
+  - **Improvement**: Lazy load heavy components (modals, charts, editors)
+  - **Impact**: Medium priority - reduces initial bundle size
+  - **Implementation**: Use Next.js dynamic() for ContactDetail, Timeline, etc.
+
+- [ ] **Add Bundle Analysis Tools**
+  - **Current**: No bundle analyzer configured
+  - **Improvement**: Add webpack-bundle-analyzer or next-bundle-analyzer
+  - **Impact**: High value for identifying optimization opportunities
+  - **Implementation**: Add to build process, analyze and optimize large dependencies
+
+### Client-Side Optimizations
+- [ ] **Implement Virtual Scrolling for Large Lists**
+  - **Current**: Contact lists handle 100+ items but no virtualization
+  - **Improvement**: Add react-window or similar for contact/artifact lists
+  - **Impact**: High priority when user base grows
+  - **Implementation**: Virtual scrolling for ContactList, Timeline components
+
+- [ ] **Add Debouncing/Throttling for User Inputs**
+  - **Current**: Direct event handlers without rate limiting
+  - **Improvement**: Debounce search inputs, throttle scroll handlers
+  - **Impact**: Medium priority - prevents excessive API calls
+  - **Implementation**: Add lodash.debounce or custom hooks for input handlers
+
+### Infrastructure Optimizations
+- [ ] **Implement Service Worker/PWA Features**
+  - **Current**: No offline caching or PWA features
+  - **Improvement**: Add service worker for offline support and caching
+  - **Impact**: Low priority initially, high value for mobile users
+  - **Implementation**: Next.js PWA plugin with workbox configuration
+
+- [ ] **Optimize Image Loading**
+  - **Current**: Limited use of Next.js Image component
+  - **Improvement**: Use Image component throughout, add blur placeholders
+  - **Impact**: Medium priority - improves perceived performance
+  - **Implementation**: Replace img tags with next/image, generate placeholders 

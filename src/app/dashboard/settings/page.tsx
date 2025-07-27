@@ -13,51 +13,52 @@ export default function SettingsPage() {
   const { redirectToPortal, loading: portalLoading } = useCustomerPortal();
   const { hasActiveSubscription } = useSubscription();
 
-  const settingsOptions = [
-    {
-      title: 'Loop Templates',
-      description: 'Manage templates for common loop workflows like introductions, referrals, and follow-ups',
-      icon: <LoopIcon sx={{ fontSize: 40 }} color="primary" />,
-      href: '/dashboard/settings/loops'
-    },
-    {
-      title: 'Calendar Integration',
-      description: 'Connect Google Calendar to automatically import meetings and sync your schedule',
-      icon: <CalendarToday sx={{ fontSize: 40 }} color="primary" />,
-      href: '/dashboard/settings/calendar'
-    },
-    {
-      title: 'Gmail Integration',
-      description: 'Connect Gmail to automatically import email conversations and sync your communications',
-      icon: <Email sx={{ fontSize: 40 }} color="primary" />,
-      href: '/dashboard/settings/gmail'
-    },
-    {
-      title: 'Billing & Subscription',
-      description: 'Manage your subscription, payment methods, and billing history',
-      icon: <Payment sx={{ fontSize: 40 }} color="primary" />,
-      href: null, // Special handling for billing portal
-      action: 'billing'
-    },
-    // Future settings options can be added here
-    // {
-    //   title: 'Contact Settings',
-    //   description: 'Configure contact management preferences and defaults',
-    //   icon: <ContactsIcon sx={{ fontSize: 40 }} color="primary" />,
-    //   href: '/dashboard/settings/contacts'
-    // },
-  ];
-
-  // Memoize filtered options to prevent unnecessary re-renders
-  const filteredOptions = useMemo(() => 
-    settingsOptions.filter((option) => {
+  // Memoize settings options and filtered results to prevent unnecessary re-renders
+  const filteredOptions = useMemo(() => {
+    const settingsOptions = [
+      {
+        title: 'Loop Templates',
+        description: 'Manage templates for common loop workflows like introductions, referrals, and follow-ups',
+        icon: <LoopIcon sx={{ fontSize: 40 }} color="primary" />,
+        href: '/dashboard/settings/loops'
+      },
+      {
+        title: 'Calendar Integration',
+        description: 'Connect Google Calendar to automatically import meetings and sync your schedule',
+        icon: <CalendarToday sx={{ fontSize: 40 }} color="primary" />,
+        href: '/dashboard/settings/calendar'
+      },
+      {
+        title: 'Gmail Integration',
+        description: 'Connect Gmail to automatically import email conversations and sync your communications',
+        icon: <Email sx={{ fontSize: 40 }} color="primary" />,
+        href: '/dashboard/settings/gmail'
+      },
+      {
+        title: 'Billing & Subscription',
+        description: 'Manage your subscription, payment methods, and billing history',
+        icon: <Payment sx={{ fontSize: 40 }} color="primary" />,
+        href: null, // Special handling for billing portal
+        action: 'billing'
+      },
+      // Future settings options can be added here
+      // {
+      //   title: 'Contact Settings',
+      //   description: 'Configure contact management preferences and defaults',
+      //   icon: <ContactsIcon sx={{ fontSize: 40 }} color="primary" />,
+      //   href: '/dashboard/settings/contacts'
+      // },
+    ];
+    
+    return settingsOptions.filter((option) => {
       // Only show billing card if user has an active subscription
       if (option.action === 'billing') {
         return hasActiveSubscription;
       }
       return true;
-    }), [hasActiveSubscription]
-  );
+    });
+  }, [hasActiveSubscription]);
+
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>

@@ -8,8 +8,7 @@ import {
   Typography, 
   Stack, 
   Card,
-  alpha,
-  useTheme
+  alpha
 } from '@mui/material';
 import { LinkedIn } from '@mui/icons-material';
 import Link from 'next/link';

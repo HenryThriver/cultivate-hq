@@ -93,6 +93,11 @@ export default function PricingPage() {
   ];
 
   const handleGetStarted = async (tierId: string) => {
+    if (tierId === 'enterprise') {
+      // Navigate to enterprise contact page
+      window.location.href = '/enterprise';
+      return;
+    }
     // Always go directly to checkout - Stripe will handle auth if needed
     await createCheckoutSession(tierId as 'monthly' | 'annual' | 'supporter');
   };
@@ -275,27 +280,41 @@ export default function PricingPage() {
                           {tier.name}
                         </Typography>
                         
-                        <Stack direction="row" alignItems="baseline" justifyContent="center" spacing={1} sx={{ mb: 1 }}>
+                        {tier.price !== null ? (
+                          <Stack direction="row" alignItems="baseline" justifyContent="center" spacing={1} sx={{ mb: 1 }}>
+                            <Typography
+                              variant="h3"
+                              sx={{
+                                fontSize: { xs: '2rem', md: '2.5rem' },
+                                fontWeight: 600,
+                                color: 'primary.main'
+                              }}
+                            >
+                              ${tier.price}
+                            </Typography>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                color: 'text.secondary',
+                                fontWeight: 500
+                              }}
+                            >
+                              {tier.period}
+                            </Typography>
+                          </Stack>
+                        ) : (
                           <Typography
-                            variant="h3"
+                            variant="h4"
                             sx={{
-                              fontSize: { xs: '2rem', md: '2.5rem' },
+                              fontSize: { xs: '1.5rem', md: '2rem' },
                               fontWeight: 600,
-                              color: 'primary.main'
+                              color: 'primary.main',
+                              mb: 1
                             }}
                           >
-                            ${tier.price}
+                            Custom Pricing
                           </Typography>
-                          <Typography
-                            variant="h6"
-                            sx={{
-                              color: 'text.secondary',
-                              fontWeight: 500
-                            }}
-                          >
-                            {tier.period}
-                          </Typography>
-                        </Stack>
+                        )}
                         
                         
                         <Typography
@@ -359,6 +378,158 @@ export default function PricingPage() {
                 </Card>
               ))}
             </Box>
+          </Container>
+        </Box>
+
+        {/* Enterprise Section */}
+        <Box sx={{ py: { xs: 6, md: 8 } }}>
+          <Container maxWidth="lg">
+            <Card
+              sx={{
+                p: { xs: 4, md: 6 },
+                border: '2px solid',
+                borderColor: 'primary.main',
+                borderRadius: 4,
+                position: 'relative',
+                background: `
+                  linear-gradient(135deg, 
+                    ${alpha('#2196F3', 0.06)} 0%, 
+                    ${alpha('#7C3AED', 0.04)} 100%
+                  ),
+                  radial-gradient(circle at 30% 70%, ${alpha('#2196F3', 0.08)} 0%, transparent 50%)
+                `,
+                boxShadow: `0 12px 32px ${alpha('#2196F3', 0.15)}`,
+                transition: 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: `0 20px 48px ${alpha('#2196F3', 0.2)}`,
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', md: 'row' },
+                  alignItems: 'center',
+                  gap: { xs: 4, md: 6 },
+                  position: 'relative',
+                  zIndex: 1
+                }}
+              >
+                {/* Content */}
+                <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontSize: { xs: '1.75rem', md: '2.25rem' },
+                      fontWeight: 700,
+                      letterSpacing: '-0.03em',
+                      mb: 2,
+                      background: 'linear-gradient(135deg, #212121 0%, #616161 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent'
+                    }}
+                  >
+                    Enterprise Solutions
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: { xs: '1rem', md: '1.125rem' },
+                      color: 'text.secondary',
+                      lineHeight: 1.6,
+                      mb: 3,
+                      maxWidth: { md: '500px' }
+                    }}
+                  >
+                    Custom relationship intelligence platform for organizations ready to scale strategic connections across entire teams. Get dedicated support, advanced security, and tailored integrations.
+                  </Typography>
+                  
+                  {/* Enterprise Features */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                    {[
+                      'Unlimited team members',
+                      'Dedicated success manager',
+                      'Custom integrations',
+                      'Advanced security & compliance',
+                      'Priority support & SLA'
+                    ].map((feature, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          px: 2,
+                          py: 0.5,
+                          backgroundColor: alpha('#2196F3', 0.1),
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: alpha('#2196F3', 0.2)
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            color: 'primary.main'
+                          }}
+                        >
+                          {feature}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+
+                {/* CTA */}
+                <Box sx={{ textAlign: 'center', minWidth: { md: '200px' } }}>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontSize: { xs: '1.5rem', md: '2rem' },
+                      fontWeight: 600,
+                      color: 'primary.main',
+                      mb: 1
+                    }}
+                  >
+                    Custom Pricing
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 3,
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Tailored to your organization&apos;s needs
+                  </Typography>
+                  <Button
+                    onClick={() => window.location.href = '/enterprise'}
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      px: 4,
+                      py: 1.5,
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      background: `linear-gradient(135deg, #2196F3 0%, #1976D2 100%)`,
+                      boxShadow: `0 4px 20px ${alpha('#2196F3', 0.3)}`,
+                      transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        transform: 'scale(1.02) translateY(-1px)',
+                        boxShadow: `0 8px 32px ${alpha('#2196F3', 0.4)}`,
+                        background: `linear-gradient(135deg, #1976D2 0%, #0D47A1 100%)`,
+                      }
+                    }}
+                  >
+                    Contact for pricing
+                  </Button>
+                </Box>
+              </Box>
+            </Card>
           </Container>
         </Box>
 

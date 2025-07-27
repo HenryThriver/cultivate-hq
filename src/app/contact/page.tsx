@@ -76,7 +76,7 @@ export default function ContactPage() {
         answer: num1 + num2,
       });
       
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);

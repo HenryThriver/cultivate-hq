@@ -9,6 +9,7 @@ export type NewArtifact = Database['public']['Tables']['artifacts']['Insert'];
 export type Artifact = Database['public']['Tables']['artifacts']['Row'];
 
 // Interface for extended artifact properties (loop fields)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface ArtifactExtendedProperties {
   impact_score: number | null;
   initiator_contact_id: string | null;

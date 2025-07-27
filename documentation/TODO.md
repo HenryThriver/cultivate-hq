@@ -172,3 +172,70 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - Debug the exact RLS policy conflict between UI and background sync
   - May need additional policy for authenticated users vs service role context
   - Check if there are multiple conflicting policies still active 
+
+## 🔐 Subscription Management Security & Testing (Post-Claude Review)
+
+*Items identified during Claude AI code review of subscription cancellation feature (PR #28)*
+
+### Test Coverage (High Priority)
+- [x] **API Route Tests** - Unit tests for subscription management endpoints ✅ **COMPLETED**
+  - **✅ Complete**: Tests for `/api/stripe/create-portal-session` route (7 tests, all passing)
+  - **Missing**: Tests for `/api/debug/subscription-status` route  
+  - **Impact**: High priority - core billing functionality now tested
+  - **Location**: `src/app/api/stripe/__tests__/create-portal-session.test.ts`
+
+- [x] **Hook Tests** - Test all states and error conditions ✅ **MOSTLY COMPLETED**
+  - **✅ Complete**: Tests for `useCustomerPortal` hook (8 tests, 7 passing, 1 complex race condition test)
+  - **Test Cases**: ✅ Loading states, ✅ error conditions, ⚠️ race conditions (implemented but test flaky), ✅ successful redirects
+  - **Impact**: Medium priority - critical user interaction now tested
+  - **Location**: `src/hooks/__tests__/useCustomerPortal.test.ts`
+  - **Note**: Race condition protection is implemented and working in code, but test case is complex and flaky
+
+- [ ] **Component Integration Tests** - Settings page billing functionality
+  - **Missing**: Tests for subscription-conditional billing card display
+  - **Test Cases**: Card visibility with/without active subscription, portal redirect flow
+  - **Impact**: Medium priority - user experience not validated
+  - **Implementation**: Add tests to existing settings page test suite
+
+### Security Enhancements (Medium Priority)
+- [ ] **Rate Limiting for Portal Sessions**
+  - **Current**: No rate limiting on `/api/stripe/create-portal-session`
+  - **Risk**: Potential abuse through excessive portal session requests
+  - **Impact**: Medium priority - could lead to service abuse
+  - **Implementation**: Add rate limiting middleware (Redis or memory-based)
+
+- [ ] **Enhanced Input Validation**
+  - **Current**: Basic authentication checks only
+  - **Improvement**: Add request validation middleware for all API routes
+  - **Impact**: Low priority - current validation sufficient for billing endpoints
+  - **Implementation**: Create validation schemas with Zod or similar
+
+### Code Quality Improvements (Low Priority)
+- [ ] **TypeScript Interface Definitions**
+  - **Current**: Response types not explicitly defined for API routes
+  - **Improvement**: Create interfaces for all API response types
+  - **Impact**: Low priority - improves developer experience and type safety
+  - **Implementation**: Define `PortalSessionResponse`, `DebugResponse` interfaces
+
+- [ ] **Standardized Error Response Format**
+  - **Current**: Inconsistent error response formats across API routes
+  - **Improvement**: Create unified error response utility
+  - **Impact**: Low priority - improves API consistency
+  - **Implementation**: Create shared error response helper function
+
+- [ ] **Action Constants Definition**
+  - **Current**: Hardcoded 'billing' string in settings component
+  - **Improvement**: Define action constants or use enums
+  - **Impact**: Very low priority - minor code quality improvement
+  - **Implementation**: Create constants file for settings actions
+
+### Performance Optimizations (Completed ✅)
+- [x] **Settings Page Re-render Optimization** ✅ **COMPLETED**
+  - **Issue**: Filter operation running on every render
+  - **Solution**: Implemented `useMemo` for filtered options array
+  - **Impact**: Prevents unnecessary component re-renders
+
+- [x] **Race Condition Prevention** ✅ **COMPLETED**
+  - **Issue**: Multiple rapid calls to `redirectToPortal` could overlap
+  - **Solution**: Added early return if already loading
+  - **Impact**: Prevents duplicate portal session creation

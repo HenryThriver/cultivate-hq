@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { Container, Box, Typography, Grid, Card, CardContent, CardActionArea, Breadcrumbs, Link } from '@mui/material';
-import { Loop as LoopIcon, Settings as SettingsIcon, CalendarToday, Email } from '@mui/icons-material';
+import { Loop as LoopIcon, Settings as SettingsIcon, CalendarToday, Email, Payment } from '@mui/icons-material';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { redirectToPortal, loading: portalLoading } = useCustomerPortal();
 
   const settingsOptions = [
     {
@@ -27,6 +29,13 @@ export default function SettingsPage() {
       description: 'Connect Gmail to automatically import email conversations and sync your communications',
       icon: <Email sx={{ fontSize: 40 }} color="primary" />,
       href: '/dashboard/settings/gmail'
+    },
+    {
+      title: 'Billing & Subscription',
+      description: 'Manage your subscription, payment methods, and billing history',
+      icon: <Payment sx={{ fontSize: 40 }} color="primary" />,
+      href: null, // Special handling for billing portal
+      action: 'billing'
     },
     // Future settings options can be added here
     // {
@@ -68,7 +77,14 @@ export default function SettingsPage() {
               <Card sx={{ height: '100%' }}>
                 <CardActionArea 
                   sx={{ height: '100%', p: 3 }}
-                  onClick={() => router.push(option.href)}
+                  onClick={() => {
+                    if (option.action === 'billing') {
+                      redirectToPortal();
+                    } else if (option.href) {
+                      router.push(option.href);
+                    }
+                  }}
+                  disabled={option.action === 'billing' && portalLoading}
                 >
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Box sx={{ mb: 2 }}>

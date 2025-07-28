@@ -152,25 +152,25 @@ describe('HomePage', () => {
     it('should render the features section heading', () => {
       render(<HomePage />);
       
-      expect(screen.getByText('Intelligence that transforms relationships')).toBeInTheDocument();
+      expect(screen.getByText('Four pillars of relationship excellence')).toBeInTheDocument();
     });
 
     it('should display all four key features', () => {
       render(<HomePage />);
       
-      expect(screen.getByText('AI-Powered Contact Intelligence')).toBeInTheDocument();
-      expect(screen.getByText('Smart Follow-up Automation')).toBeInTheDocument();
-      expect(screen.getByText('Generosity-First Networking')).toBeInTheDocument();
-      expect(screen.getByText('Smart Introduction Engine')).toBeInTheDocument();
+      expect(screen.getByText('Strategic Connection Architecture')).toBeInTheDocument();
+      expect(screen.getByText('Proactive Relationship Nurturing')).toBeInTheDocument();
+      expect(screen.getByText('Strategic Ask Management')).toBeInTheDocument();
+      expect(screen.getByText('Sustainable Systems Design')).toBeInTheDocument();
     });
 
     it('should display feature descriptions', () => {
       render(<HomePage />);
       
-      expect(screen.getByText('Never forget names, faces, or important details again')).toBeInTheDocument();
-      expect(screen.getByText('Personalized follow-up suggestions within 24 hours')).toBeInTheDocument();
-      expect(screen.getByText('Lead with value, not requests')).toBeInTheDocument();
-      expect(screen.getByText('Facilitate valuable connections automatically')).toBeInTheDocument();
+      expect(screen.getByText(/Identify and connect with the right people aligned to your goals/)).toBeInTheDocument();
+      expect(screen.getByText(/Transform passive networking into active relationship tending/)).toBeInTheDocument();
+      expect(screen.getByText(/Be clear about what to ask, of whom, and when/)).toBeInTheDocument();
+      expect(screen.getByText(/Build relationship practices that scale without burnout/)).toBeInTheDocument();
     });
   });
 
@@ -210,7 +210,7 @@ describe('HomePage', () => {
     it('should render footer with brand information', () => {
       render(<HomePage />);
       
-      expect(screen.getByText('© 2025 Cultivate HQ. All rights reserved.')).toBeInTheDocument();
+      expect(screen.getByText(/© \d{4} Cultivate HQ\. All rights reserved\./)).toBeInTheDocument();
     });
 
     it('should display footer navigation links', () => {

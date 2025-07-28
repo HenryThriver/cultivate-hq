@@ -164,22 +164,6 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - Create reusable test data factories to reduce duplication
   - Implement database seeding utilities for consistent test state
 
-### Onboarding Flow Test Coverage (PR #30 Review)
-- [ ] **Email Collection Tests**
-  - Add tests for email collection functionality in 3.1 Confirm screen
-  - Test add/remove email operations and validation
-  - Test loading existing emails from database
-  
-- [ ] **Animation Sequence Tests**  
-  - Add tests for animation sequences in challenges screen
-  - Verify proper cleanup of timeouts on unmount
-  - Test animation state transitions
-  
-- [ ] **Goal Category Selection Tests**
-  - Test goal category selection logic and validation
-  - Verify backend/frontend category mapping
-  - Test error handling for invalid categories
-
 ## 🔥 High Priority (Post-Consolidation)
 
 ### Calendar Sync RLS Issues
@@ -301,19 +285,6 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - **Improvement**: Debounce search inputs, throttle scroll handlers
   - **Impact**: Medium priority - prevents excessive API calls
   - **Implementation**: Add lodash.debounce or custom hooks for input handlers
-
-### Onboarding Flow Performance (PR #30 Review)
-- [ ] **Batch Email Queries**
-  - **Current**: Multiple individual queries for loading contact emails
-  - **Improvement**: Implement batch loading for multiple contacts' emails
-  - **Impact**: Medium priority - reduces database round trips
-  - **Implementation**: Single query with contact_id IN clause
-  
-- [ ] **Animation Cleanup**
-  - **Current**: Comment suggests timing doesn't need cleanup but unclear
-  - **Improvement**: Ensure all setTimeout/setInterval are properly cleared
-  - **Impact**: Low priority - prevents memory leaks
-  - **Implementation**: Add proper cleanup in useEffect return functions
 
 ### Infrastructure Optimizations
 - [ ] **Implement Service Worker/PWA Features**

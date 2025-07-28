@@ -19,14 +19,38 @@ import OnboardingVoiceRecorder from './OnboardingVoiceRecorder';
 import { PremiumCard } from '@/components/ui/premium';
 
 const GOAL_CATEGORIES = [
-  'Land a specific role or make a career transition',
-  'Grow or launch my startup',
-  'Nurture previous and prospective clients / customers',
-  'Find investors or strategic partners',
-  'Break into a new industry or market',
-  'Learn a new skill or find a new mentor',
-  'Maintain or deepen relationships within an existing community',
-  'Something else'
+  {
+    display: 'Land a specific role or make a career transition',
+    value: 'career_transition'
+  },
+  {
+    display: 'Grow or launch my startup',
+    value: 'startup'
+  },
+  {
+    display: 'Nurture previous and prospective clients / customers',
+    value: 'client_relationships'
+  },
+  {
+    display: 'Find investors or strategic partners',
+    value: 'investors_partners'
+  },
+  {
+    display: 'Break into a new industry or market',
+    value: 'industry_expansion'
+  },
+  {
+    display: 'Learn a new skill or find a new mentor',
+    value: 'learning_mentorship'
+  },
+  {
+    display: 'Maintain or deepen relationships within an existing community',
+    value: 'community_deepening'
+  },
+  {
+    display: 'Something else',
+    value: 'other'
+  }
 ];
 
 export default function GoalsScreen() {
@@ -59,8 +83,8 @@ export default function GoalsScreen() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const handleCategorySelect = async (category: string) => {
-    setSelectedCategory(category);
+  const handleCategorySelect = async (categoryObj: {display: string, value: string}) => {
+    setSelectedCategory(categoryObj.display);
     setError('');
 
     try {
@@ -72,7 +96,7 @@ export default function GoalsScreen() {
         },
         body: JSON.stringify({
           create_initial_goal: true,
-          goal_category: category
+          goal_category: categoryObj.value
         })
       });
 
@@ -220,7 +244,7 @@ export default function GoalsScreen() {
                         fontWeight: 400,
                         lineHeight: 1.3,
                         color: '#1a1a1a',
-                        fontSize: { xs: '1.75rem', md: '2.125rem' },
+                        fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.7rem', lg: '3.15rem' }, // Match standard intro text
                         mb: 2
                       }}
                     >
@@ -485,7 +509,7 @@ What does your life look and feel like? How will you know you've succeeded?"
                 {GOAL_CATEGORIES.map((category, index) => (
                   <Button
                     key={index}
-                    variant={selectedCategory === category ? 'contained' : 'outlined'}
+                    variant={selectedCategory === category.display ? 'contained' : 'outlined'}
                     onClick={() => handleCategorySelect(category)}
                     disabled={isLoading}
                     sx={{
@@ -495,15 +519,15 @@ What does your life look and feel like? How will you know you've succeeded?"
                       textTransform: 'none',
                       fontSize: { xs: '0.95rem', md: '1.0625rem' },
                       borderRadius: 2,
-                      borderWidth: selectedCategory === category ? 0 : 1.5,
+                      borderWidth: selectedCategory === category.display ? 0 : 1.5,
                       transition: 'all 200ms var(--ease-confident)',
                       '&:hover': {
-                        backgroundColor: selectedCategory === category ? 'primary.dark' : 'primary.50',
+                        backgroundColor: selectedCategory === category.display ? 'primary.dark' : 'primary.50',
                         transform: 'translateX(4px)',
                       }
                     }}
                   >
-                    {category}
+                    {category.display}
                   </Button>
                 ))}
               </Stack>

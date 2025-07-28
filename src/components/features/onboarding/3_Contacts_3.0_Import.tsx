@@ -368,7 +368,7 @@ export default function ContactImportScreen() {
               )}
 
               {/* Contact Input Field */}
-              <PremiumCard>
+              <PremiumCard sx={{ mb: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <Typography variant="h6" sx={{ fontWeight: 500 }}>
                     Strategic Connection Profile
@@ -440,7 +440,7 @@ export default function ContactImportScreen() {
                   onClick={handleAnalyzeContact}
                   disabled={!canProceed || isLoading}
                 >
-                  {isLoading ? 'Discovering strategic intelligence...' : 'Analyze strategic value'}
+                  {isLoading ? 'Adding contact...' : 'Add contact to your goal'}
                 </ExecutiveButton>
                 
                 {contact.isValid && !contactVoiceMemoId && (

@@ -294,5 +294,4 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - **Current**: Limited use of Next.js Image component
   - **Improvement**: Use Image component throughout, add blur placeholders
   - **Impact**: Medium priority - improves perceived performance
-  - **Implementation**: Replace img tags with next/image, generate placeholders 
->>>>>>> origin/main
+  - **Implementation**: Replace img tags with next/image, generate placeholders

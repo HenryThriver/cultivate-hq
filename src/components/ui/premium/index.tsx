@@ -70,6 +70,13 @@ export const ExecutiveButton = styled(Button)<ButtonProps>(() => ({
       background: 'linear-gradient(135deg, #1976D2 0%, #0D47A1 100%)',
       boxShadow: '0 6px 20px rgba(33, 150, 243, 0.4)',
     },
+    
+    '&:disabled': {
+      background: 'linear-gradient(135deg, #9E9E9E 0%, #757575 100%)',
+      boxShadow: '0 2px 6px rgba(158, 158, 158, 0.2)',
+      color: '#FFFFFF',
+      opacity: 1, // Override MUI's default opacity reduction
+    },
   },
 }));
 

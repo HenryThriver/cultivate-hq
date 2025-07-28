@@ -6,7 +6,7 @@
 -   [ ] **Visual Polish:** Refine the display of the LinkedIn modal when accessed from the artifact timeline. (Lower priority)
 -   [ ] **Email Address Validation:** Fix basic email validation (`@` check) to use proper regex validation in onboarding flow (`3_Contacts_3.1_Confirm.tsx:357`)
 -   [ ] **Unreachable Code:** Remove duplicate return statement in VoiceMemoInsight query logic (`3_Contacts_3.1_Confirm.tsx:73-74`)
--   [ ] **ESLint Apostrophe Warnings:** Clean up unescaped apostrophes across all React components to stop triggering lint warnings
+-   [ ] **ESLint Apostrophe Warnings:** Clean up unescaped apostrophes across all React components to stop triggering lint warnings (currently suppressed in builds via next.config.ts)
 
 ## ✨ New Features: Artifact Types & Integrations
 

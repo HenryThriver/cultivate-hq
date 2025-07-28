@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { requireAdmin, logAdminAction } from '@/lib/auth/admin';
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -20,7 +20,7 @@ export async function GET(
       return adminResult.response!;
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(
@@ -84,7 +84,7 @@ export async function PUT(
       return adminResult.response!;
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(
@@ -191,7 +191,7 @@ export async function DELETE(
       return adminResult.response!;
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(

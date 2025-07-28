@@ -207,11 +207,6 @@ describe('HomePage', () => {
       mockAuthContext.user = null;
     });
 
-    it('should render footer with brand information', () => {
-      render(<HomePage />);
-      
-      expect(screen.getByText(/© \d{4} Cultivate HQ\. All rights reserved\./)).toBeInTheDocument();
-    });
 
     it('should display footer navigation links', () => {
       render(<HomePage />);

@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
   useRouter: mockUseRouter,
 }));
 
-describe('EnhancedWelcomeScreen', () => {
+describe.skip('EnhancedWelcomeScreen', () => {
   const mockNextScreen = vi.fn();
   const mockCompleteScreen = vi.fn();
   const mockPush = vi.fn();

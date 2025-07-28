@@ -114,7 +114,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
       {/* Main Content Area - Consistent spacing below header */}
       <Box sx={{ 
         flex: 1, // Take remaining space
-        pt: 3, // Consistent padding below header
+        pt: 6, // Consistent padding below header
         position: 'relative',
         minHeight: 0 // Allow flex shrinking
       }}>

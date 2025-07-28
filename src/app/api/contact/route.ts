@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
       subject: emailSubject,
       html: emailContent,
       // Add reply-to so responses go directly to the user
-      reply_to: email,
+      replyTo: email,
     });
 
     if (error) {

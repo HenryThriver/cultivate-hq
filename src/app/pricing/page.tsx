@@ -33,7 +33,7 @@ import { PRODUCT_CONFIG } from '@/lib/stripe';
 export default function PricingPage() {
   const { loading } = useAuth();
   const theme = useTheme();
-  // Remove the toggle state since we're now showing all three tiers
+  // Remove the toggle state since we&apos;re now showing all three tiers
   const { createCheckoutSession, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
 
   // Allow all users (authenticated and unauthenticated) to view pricing page
@@ -713,7 +713,7 @@ export default function PricingPage() {
                     opacity: 0.9
                   }}
                 >
-                  Stop networking. Start cultivating. Join leaders who've transformed relationship chaos into systematic advantage—because your next breakthrough is one strategic connection away.
+                  Stop networking. Start cultivating. Join leaders who&apos;ve transformed relationship chaos into systematic advantage—because your next breakthrough is one strategic connection away.
                 </Typography>
                 <Button
                   onClick={() => handleGetStarted('annual')}

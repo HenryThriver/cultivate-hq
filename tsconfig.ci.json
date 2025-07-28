@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "exclude": [
     "node_modules",
+    ".next/**/*",
     "supabase/functions/**/*",
     "**/*.test.ts",
     "**/*.test.tsx",

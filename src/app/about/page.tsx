@@ -59,7 +59,7 @@ export default function AboutPage() {
                     color: 'text.primary'
                   }}
                 >
-                  Hi, I'm{' '}
+                  Hi, I&apos;m{' '}
                   <Typography
                     component="span"
                     variant="inherit"
@@ -96,7 +96,7 @@ export default function AboutPage() {
                     maxWidth: '600px'
                   }}
                 >
-                  Founder of Cultivate HQ, where I'm building the relationship intelligence system I always wanted (to share).
+                  Founder of Cultivate HQ, where I&apos;m building the relationship intelligence system I always wanted (to share).
                 </Typography>
               </Stack>
             </Stack>
@@ -181,7 +181,7 @@ export default function AboutPage() {
                       color: 'transparent'
                     }}
                   >
-                    Why I'm building Cultivate HQ
+                    Why I&apos;m building Cultivate HQ
                   </Typography>
 
                   <Typography
@@ -204,7 +204,7 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    You know why they call it net-work? Because it's usually miserable. Conferences, mixers, LinkedIn QR codes, oh my! Check out my follower count!
+                    You know why they call it net-work? Because it&apos;s usually miserable. Conferences, mixers, LinkedIn QR codes, oh my! Check out my follower count!
                   </Typography>
 
                   <Typography
@@ -216,7 +216,7 @@ export default function AboutPage() {
                     }}
                   >
                     For those who care about genuine connection grounded in generosity and care, tools have hardly evolved since Lotus123 and hand written rolodex notes.
-                    Do you also have boxes and boxes of unused cards from past roles gathering dust somewhere? And don't get me started on the mindnumbing volume over value of social media.
+                    Do you also have boxes and boxes of unused cards from past roles gathering dust somewhere? And don&apos;t get me started on the mindnumbing volume over value of social media.
                   </Typography>
 
                   <Typography
@@ -227,7 +227,7 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    Building meaningful relationships doesn't have to suck. Today's technology unlocks something fundamentally different. 
+                    Building meaningful relationships doesn&apos;t have to suck. Today&apos;s technology unlocks something fundamentally different. 
                     A truly intelligent system that scans the public-sphere, understands historical context, suggests meaningful just-in-time actions, 
                     and makes connection building feel fluid and fun. Elegant efficiency for busy professionals who care too much to waste their time, or yours.
                   </Typography>
@@ -240,8 +240,8 @@ export default function AboutPage() {
                       color: 'text.secondary'
                     }}
                   >
-                    What I want, and know is possible, simply didn't exist. I got inspired by Keith Ferrazzi, Ronen Olshansky, and the amazing people at Beyond Connections, and I started building.
-                    I hope you enjoy deepening connections that matter with a modern toolkit. Try it, get your mind (lovingly) blown, and you're welcome.
+                    What I want, and know is possible, simply didn&apos;t exist. I got inspired by Keith Ferrazzi, Ronen Olshansky, and the amazing people at Beyond Connections, and I started building.
+                    I hope you enjoy deepening connections that matter with a modern toolkit. Try it, get your mind (lovingly) blown, and you&apos;re welcome.
                   </Typography>
 
                   <Box
@@ -323,7 +323,7 @@ export default function AboutPage() {
                     color: 'transparent'
                   }}
                 >
-                  I'd love to hear your feedback
+                  I&apos;d love to hear your feedback
                 </Typography>
                 
                 <Typography
@@ -334,9 +334,9 @@ export default function AboutPage() {
                     maxWidth: '600px'
                   }}
                 >
-                  This journey is just beginning, and I'm excited to learn from fellow relationship builders. 
-                  Whether you try Cultivate HQ or not, I'd genuinely appreciate hearing about your own 
-                  networking challenges and what's worked (or hasn't worked) for you.
+                  This journey is just beginning, and I&apos;m excited to learn from fellow relationship builders. 
+                  Whether you try Cultivate HQ or not, I&apos;d genuinely appreciate hearing about your own 
+                  networking challenges and what&apos;s worked (or hasn&apos;t worked) for you.
                 </Typography>
                 
                 <Stack 

@@ -14,7 +14,7 @@ const getResendClient = () => {
 
 // Initialize DOMPurify for server-side sanitization
 const window = new JSDOM('').window;
-const purify = DOMPurify(window as any);
+const purify = DOMPurify(window as unknown as Window & typeof globalThis);
 
 // Input validation constants
 const INPUT_LIMITS = {

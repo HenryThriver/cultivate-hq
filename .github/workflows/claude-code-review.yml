@@ -7,6 +7,10 @@ on:
       - develop  # For feature → develop PRs
       - staging  # For develop → staging PRs  
       - main     # For staging → main PRs
+  push:
+    branches:
+      - develop  # When commits are merged to develop, review open develop → staging PRs
+      - staging  # When commits are merged to staging, review open staging → main PRs
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"
@@ -16,11 +20,13 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Run on PR events, or on push events when there might be open PRs
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && (
+        (github.ref == 'refs/heads/develop') ||
+        (github.ref == 'refs/heads/staging')
+      ))
     
     runs-on: ubuntu-latest
     permissions:
@@ -46,14 +52,23 @@ jobs:
           
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
-            Please review this pull request and provide feedback on:
+            ${{ github.event_name == 'pull_request' && 
+            'Please review this pull request and provide feedback on:
             - Code quality and best practices
             - Potential bugs or issues
             - Performance considerations
             - Security concerns
             - Test coverage
             
-            Be constructive and helpful in your feedback.
+            Be constructive and helpful in your feedback.' ||
+            'New commits have been pushed to this branch. Please review the recent changes and provide feedback on:
+            - Code quality and best practices
+            - Potential bugs or issues
+            - Performance considerations
+            - Security concerns
+            - Test coverage
+            
+            Focus on the most recent commits and their impact on open pull requests.' }}
 
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
           # use_sticky_comment: true

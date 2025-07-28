@@ -87,20 +87,19 @@ describe('HomePage', () => {
     it('should render primary CTA buttons', () => {
       render(<HomePage />);
       
-      const primaryCTA = screen.getAllByText('Begin strategic analysis')[0];
-      const secondaryCTA = screen.getAllByText('Watch demo')[0];
+      const primaryCTA = screen.getByText('Supercharge your relationship building');
       
       expect(primaryCTA).toBeInTheDocument();
-      expect(secondaryCTA).toBeInTheDocument();
       
       // Check that primary CTA links to pricing
       expect(primaryCTA.closest('a')).toHaveAttribute('href', '/pricing');
     });
 
-    it('should display pricing information', () => {
+    it('should display final CTA section', () => {
       render(<HomePage />);
       
-      expect(screen.getByText('Professional • $30/month • No setup fees')).toBeInTheDocument();
+      expect(screen.getByText('Ready to transform your relationship building?')).toBeInTheDocument();
+      expect(screen.getByText('Get started today')).toBeInTheDocument();
     });
   });
 

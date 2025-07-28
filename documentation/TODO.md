@@ -4,6 +4,9 @@
 
 -   [ ] **Voice Memo Listening:** Investigate and fix issues with the "listen to voice memo" functionality not generating/working properly.
 -   [ ] **Visual Polish:** Refine the display of the LinkedIn modal when accessed from the artifact timeline. (Lower priority)
+-   [ ] **Email Address Validation:** Fix basic email validation (`@` check) to use proper regex validation in onboarding flow (`3_Contacts_3.1_Confirm.tsx:357`)
+-   [ ] **Unreachable Code:** Remove duplicate return statement in VoiceMemoInsight query logic (`3_Contacts_3.1_Confirm.tsx:73-74`)
+-   [ ] **ESLint Apostrophe Warnings:** Clean up unescaped apostrophes across all React components to stop triggering lint warnings
 
 ## ✨ New Features: Artifact Types & Integrations
 
@@ -161,6 +164,22 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - Create reusable test data factories to reduce duplication
   - Implement database seeding utilities for consistent test state
 
+### Onboarding Flow Test Coverage (PR #30 Review)
+- [ ] **Email Collection Tests**
+  - Add tests for email collection functionality in 3.1 Confirm screen
+  - Test add/remove email operations and validation
+  - Test loading existing emails from database
+  
+- [ ] **Animation Sequence Tests**  
+  - Add tests for animation sequences in challenges screen
+  - Verify proper cleanup of timeouts on unmount
+  - Test animation state transitions
+  
+- [ ] **Goal Category Selection Tests**
+  - Test goal category selection logic and validation
+  - Verify backend/frontend category mapping
+  - Test error handling for invalid categories
+
 ## 🔥 High Priority (Post-Consolidation)
 
 ### Calendar Sync RLS Issues
@@ -171,7 +190,7 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
 - **Next Steps**: 
   - Debug the exact RLS policy conflict between UI and background sync
   - May need additional policy for authenticated users vs service role context
-  - Check if there are multiple conflicting policies still active 
+  - Check if there are multiple conflicting policies still active
 
 ## 🔐 Subscription Management Security & Testing (Post-Claude Review)
 
@@ -239,3 +258,72 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - **Issue**: Multiple rapid calls to `redirectToPortal` could overlap
   - **Solution**: Added early return if already loading
   - **Impact**: Prevents duplicate portal session creation
+
+## 🚀 Performance Optimizations (Post-Launch)
+
+*Note: Loading states for AI processing are already well-implemented. These are performance enhancements for future consideration.*
+
+### React Performance Optimizations
+- [ ] **Implement React Optimization Hooks**
+  - **Current**: No usage of `React.memo`, `useMemo`, or `useCallback` found
+  - **Improvement**: Add memoization to frequently re-rendering components
+  - **Impact**: Medium priority - could significantly improve re-render performance
+  - **Implementation**: Start with high-traffic components (ContactList, Timeline, Dashboard)
+
+- [ ] **Leverage TanStack Query for Server State**
+  - **Current**: TanStack Query installed but not actively used
+  - **Improvement**: Replace manual data fetching with TanStack Query for caching
+  - **Impact**: High value - automatic caching, background refetching, optimistic updates
+  - **Implementation**: Migrate data fetching in hooks to use useQuery/useMutation
+
+### Code Splitting & Bundle Optimization
+- [ ] **Expand Lazy Loading Implementation**
+  - **Current**: Only VoiceRecorder uses dynamic imports
+  - **Improvement**: Lazy load heavy components (modals, charts, editors)
+  - **Impact**: Medium priority - reduces initial bundle size
+  - **Implementation**: Use Next.js dynamic() for ContactDetail, Timeline, etc.
+
+- [ ] **Add Bundle Analysis Tools**
+  - **Current**: No bundle analyzer configured
+  - **Improvement**: Add webpack-bundle-analyzer or next-bundle-analyzer
+  - **Impact**: High value for identifying optimization opportunities
+  - **Implementation**: Add to build process, analyze and optimize large dependencies
+
+### Client-Side Optimizations
+- [ ] **Implement Virtual Scrolling for Large Lists**
+  - **Current**: Contact lists handle 100+ items but no virtualization
+  - **Improvement**: Add react-window or similar for contact/artifact lists
+  - **Impact**: High priority when user base grows
+  - **Implementation**: Virtual scrolling for ContactList, Timeline components
+
+- [ ] **Add Debouncing/Throttling for User Inputs**
+  - **Current**: Direct event handlers without rate limiting
+  - **Improvement**: Debounce search inputs, throttle scroll handlers
+  - **Impact**: Medium priority - prevents excessive API calls
+  - **Implementation**: Add lodash.debounce or custom hooks for input handlers
+
+### Onboarding Flow Performance (PR #30 Review)
+- [ ] **Batch Email Queries**
+  - **Current**: Multiple individual queries for loading contact emails
+  - **Improvement**: Implement batch loading for multiple contacts' emails
+  - **Impact**: Medium priority - reduces database round trips
+  - **Implementation**: Single query with contact_id IN clause
+  
+- [ ] **Animation Cleanup**
+  - **Current**: Comment suggests timing doesn't need cleanup but unclear
+  - **Improvement**: Ensure all setTimeout/setInterval are properly cleared
+  - **Impact**: Low priority - prevents memory leaks
+  - **Implementation**: Add proper cleanup in useEffect return functions
+
+### Infrastructure Optimizations
+- [ ] **Implement Service Worker/PWA Features**
+  - **Current**: No offline caching or PWA features
+  - **Improvement**: Add service worker for offline support and caching
+  - **Impact**: Low priority initially, high value for mobile users
+  - **Implementation**: Next.js PWA plugin with workbox configuration
+
+- [ ] **Optimize Image Loading**
+  - **Current**: Limited use of Next.js Image component
+  - **Improvement**: Use Image component throughout, add blur placeholders
+  - **Impact**: Medium priority - improves perceived performance
+  - **Implementation**: Replace img tags with next/image, generate placeholders

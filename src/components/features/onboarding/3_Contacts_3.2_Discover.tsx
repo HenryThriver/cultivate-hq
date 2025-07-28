@@ -258,6 +258,9 @@ export default function ContextDiscoveryScreen() {
       
       // Step 2: Contacts section appears
       setTimeout(() => setAnimationStep(2), 1500);
+      
+      // Step 3: Services section appears
+      setTimeout(() => setAnimationStep(3), 3000);
     };
 
     setTimeout(startAnimationSequence, 500);
@@ -594,8 +597,8 @@ export default function ContextDiscoveryScreen() {
             </Fade>
           )}
 
-          {/* Service Connections - Only show after emails are added */}
-          {shouldShowServices() && animationStep >= 3 && (
+          {/* Service Connections - Always show */}
+          {animationStep >= 3 && (
             <Fade in={true} timeout={1000}>
               <Card sx={{ 
                 mb: 4, 

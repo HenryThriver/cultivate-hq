@@ -28,7 +28,7 @@ import { useUserProfile } from '@/lib/hooks/useUserProfile';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
-import { PremiumCard, InsightCard, ExecutiveButton } from '@/components/ui/premium';
+import { PremiumCard, ExecutiveButton } from '@/components/ui/premium';
 
 interface ImportedContact {
   id: string;
@@ -206,19 +206,39 @@ export default function ContactConfirmationScreen() {
   const [editedGoalDescription, setEditedGoalDescription] = useState('');
   const [isSavingGoal, setIsSavingGoal] = useState(false);
 
+  // Email management state
+  const [contactEmails, setContactEmails] = useState<{[contactId: string]: string[]}>({});
+  const [emailInputs, setEmailInputs] = useState<{[contactId: string]: string}>({});
+  const [isAddingEmail, setIsAddingEmail] = useState<{[contactId: string]: boolean}>({});
+
   // Trigger fade-in animation on mount
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
-  // Load the imported contacts from onboarding state
+  // Load the imported contacts from onboarding state and their existing emails
   useEffect(() => {
     const loadImportedContacts = async () => {
       try {
         if (state?.imported_goal_contacts && state.imported_goal_contacts.length > 0) {
           // Use real imported contacts data
           setImportedContacts(state.imported_goal_contacts);
+          
+          // Load existing emails for each contact
+          const emailData: {[contactId: string]: string[]} = {};
+          await Promise.all(
+            state.imported_goal_contacts.map(async (contact) => {
+              const { data: existingEmails } = await supabase
+                .from('contact_emails')
+                .select('email')
+                .eq('contact_id', contact.id);
+              
+              emailData[contact.id] = existingEmails?.map((e: { email: string }) => e.email) || [];
+            })
+          );
+          setContactEmails(emailData);
+          
         } else if (state?.goal_contact_urls && state.goal_contact_urls.length > 0) {
           // Fallback: Create display data from URLs if contacts data not available
           const fallbackContacts: ImportedContact[] = state.goal_contact_urls.map((url, index) => {
@@ -233,8 +253,8 @@ export default function ContactConfirmationScreen() {
               id: `imported-${index}`,
               name: displayName || `Contact ${index + 1}`,
               linkedin_url: url,
-              company: 'LinkedIn Analysis Pending',
-              title: 'Profile Analysis Pending'
+              company: 'Company details processing...',
+              title: 'Role details processing...'
             };
           });
           setImportedContacts(fallbackContacts);
@@ -332,6 +352,65 @@ export default function ContactConfirmationScreen() {
     setEditedGoalDescription('');
   };
 
+  const handleAddEmail = async (contactId: string) => {
+    const email = emailInputs[contactId]?.trim();
+    if (!email || !email.includes('@')) return;
+
+    setIsAddingEmail(prev => ({ ...prev, [contactId]: true }));
+    
+    try {
+      // Add email to database
+      const { error } = await supabase
+        .from('contact_emails')
+        .insert({
+          contact_id: contactId,
+          email: email,
+          email_type: 'other',
+          is_primary: false
+        });
+
+      if (error) throw error;
+
+      // Update local state
+      setContactEmails(prev => ({
+        ...prev,
+        [contactId]: [...(prev[contactId] || []), email]
+      }));
+      
+      setEmailInputs(prev => ({ ...prev, [contactId]: '' }));
+      
+    } catch (error) {
+      console.error('Error adding email:', error);
+    } finally {
+      setIsAddingEmail(prev => ({ ...prev, [contactId]: false }));
+    }
+  };
+
+  const handleRemoveEmail = async (contactId: string, emailIndex: number) => {
+    const email = contactEmails[contactId]?.[emailIndex];
+    if (!email) return;
+
+    try {
+      // Remove email from database
+      const { error } = await supabase
+        .from('contact_emails')
+        .delete()
+        .eq('contact_id', contactId)
+        .eq('email', email);
+
+      if (error) throw error;
+
+      // Update local state
+      setContactEmails(prev => ({
+        ...prev,
+        [contactId]: prev[contactId]?.filter((_, index) => index !== emailIndex) || []
+      }));
+      
+    } catch (error) {
+      console.error('Error removing email:', error);
+    }
+  };
+
   const handleSaveGoal = async () => {
     if (!editedGoalText.trim()) return;
     
@@ -407,18 +486,15 @@ export default function ContactConfirmationScreen() {
 
   return (
     <Box sx={{ 
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'white',
-      py: 4
+      px: 3,
+      pb: 4,
+      pt: 2
     }}>
       <Fade in={showContent} timeout={800}>
         <Box sx={{ maxWidth: 800, mx: 'auto', px: 3 }}>
           
           {/* Success Header */}
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Typography 
               variant="h4" 
               component="h1" 
@@ -448,7 +524,7 @@ export default function ContactConfirmationScreen() {
 
           {/* Goal Display */}
           {profile?.primary_goal && (
-            <Card sx={{ mb: 4, borderRadius: 3, backgroundColor: '#f0f9ff' }}>
+            <Card sx={{ mb: 3, borderRadius: 3, backgroundColor: '#f0f9ff' }}>
               <CardContent sx={{ p: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography variant="h6" sx={{ color: 'primary.dark', fontWeight: 500 }}>
@@ -549,7 +625,7 @@ export default function ContactConfirmationScreen() {
 
           {/* Contact Card */}
           {importedContacts.length > 0 && (
-            <PremiumCard accent="sage">
+            <PremiumCard accent="sage" sx={{ mb: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <People sx={{ color: theme.palette.sage.main }} />
                 <Typography variant="h6" sx={{ fontWeight: 500 }}>
@@ -629,14 +705,17 @@ export default function ContactConfirmationScreen() {
                           variant="body1" 
                           sx={{ 
                             mb: 1.5, 
-                            fontWeight: 500, 
-                            color: 'text.primary',
-                            fontSize: '1rem'
+                            fontWeight: contact.company?.includes('processing') || contact.title?.includes('processing') ? 400 : 500,
+                            color: contact.company?.includes('processing') || contact.title?.includes('processing') ? 'text.secondary' : 'text.primary',
+                            fontSize: '1rem',
+                            fontStyle: contact.company?.includes('processing') || contact.title?.includes('processing') ? 'italic' : 'normal'
                           }}
                         >
-                          {contact.title && contact.company ? `${contact.title} at ${contact.company}` :
-                           contact.title ? contact.title :
-                           contact.company ? `Works at ${contact.company}` : ''}
+                          {contact.title && contact.company && !contact.title.includes('processing') && !contact.company.includes('processing') ? 
+                            `${contact.title} at ${contact.company}` :
+                           contact.title && !contact.title.includes('processing') ? contact.title :
+                           contact.company && !contact.company.includes('processing') ? `Works at ${contact.company}` :
+                           'Professional details being analyzed...'}
                         </Typography>
                       )}
                       
@@ -679,16 +758,76 @@ export default function ContactConfirmationScreen() {
                         <Typography variant="body2" sx={{ color: theme.palette.sage.dark, fontWeight: 500 }}>
                           Strategic Opportunity Detected
                         </Typography>
-                                                 <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                           {typeof contact.recent_posts_count === 'number' && contact.recent_posts_count > 0
-                             ? `Active thought leader with ${contact.recent_posts_count} recent insights on LinkedIn`
-                             : 'Profile analysis reveals key industry positioning'
-                           }
+                        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                          High-value connection identified for your goal achievement. Relationship intelligence processing will reveal specific collaboration pathways.
                         </Typography>
                       </Box>
                       
                       {/* Voice Memo Insight */}
                       <VoiceMemoInsight contact={contact} />
+
+                      {/* Email Address Collection */}
+                      <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
+                          Email Address
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Add any email addresses you know for this contact to help us find your communication history.
+                        </Typography>
+                        
+                        {/* Show existing emails */}
+                        {contactEmails[contact.id] && contactEmails[contact.id].length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                              Added emails:
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                              {contactEmails[contact.id].map((email, index) => (
+                                <Chip
+                                  key={index}
+                                  label={email}
+                                  size="small"
+                                  variant="outlined"
+                                  color="primary"
+                                  onDelete={() => handleRemoveEmail(contact.id, index)}
+                                  sx={{ maxWidth: '250px' }}
+                                />
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+                        
+                        {/* Email input form */}
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', maxWidth: '400px' }}>
+                          <TextField
+                            size="small"
+                            placeholder="email@example.com"
+                            value={emailInputs[contact.id] || ''}
+                            onChange={(e) => setEmailInputs(prev => ({ ...prev, [contact.id]: e.target.value }))}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddEmail(contact.id);
+                              }
+                            }}
+                            fullWidth
+                            sx={{ flex: 1 }}
+                          />
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleAddEmail(contact.id)}
+                            disabled={isAddingEmail[contact.id] || !emailInputs[contact.id]?.trim()}
+                            sx={{ 
+                              px: 3,
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 500
+                            }}
+                          >
+                            {isAddingEmail[contact.id] ? 'Adding...' : 'Add'}
+                          </Button>
+                        </Box>
+                      </Box>
                     </Box>
                   </Box>
                 ))}
@@ -696,7 +835,7 @@ export default function ContactConfirmationScreen() {
           )}
 
           {/* Next Steps Info */}
-          <InsightCard>
+          <PremiumCard>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 500 }}>
               Your strategic intelligence gathering begins
             </Typography>
@@ -712,10 +851,10 @@ export default function ContactConfirmationScreen() {
                 <strong>Serendipity Design:</strong> Discover non-obvious connection opportunities
               </Typography>
             </Box>
-          </InsightCard>
+          </PremiumCard>
 
           {/* Continue Button */}
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ textAlign: 'center', mb: 4, mt: 3 }}>
             <ExecutiveButton
               variant="contained"
               size="large"

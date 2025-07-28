@@ -68,6 +68,38 @@ This document centralizes all vendor API documentation and CLI command reference
 - **Webhooks**: https://stripe.com/docs/webhooks
 - **Node.js Library**: https://github.com/stripe/stripe-node
 
+## Email Services
+
+### Resend (SMTP & API)
+- **Main Documentation**: https://resend.com/docs
+- **Supabase Integration**: https://resend.com/docs/send-with-supabase-smtp
+- **API Reference**: https://resend.com/docs/api-reference
+- **Node.js SDK**: https://resend.com/docs/send-with-nodejs
+
+#### Resend Implementation for Contact Forms (2025-07-27)
+We are implementing Resend for both `/contact` and `/enterprise` contact form submissions:
+
+- **Setup**: Using Resend Node.js SDK with API key authentication
+- **API Route**: `/api/contact/route.ts` handles both standard and enterprise form submissions
+- **Environment Variable**: `RESEND_API_KEY` (required in `.env.local`)
+- **Email Routing**: 
+  - Standard contact forms → `hello@cultivate-hq.com`
+  - Enterprise forms → `enterprise@cultivate-hq.com`
+- **Template Differentiation**: Enterprise emails include additional fields (company, budget, etc.)
+- **From Address**: `contact@cultivate-hq.com` (requires domain verification in Resend)
+
+**Implementation Notes**:
+- Using `formType` parameter to distinguish between contact and enterprise submissions
+- Enterprise forms include additional fields: company, companySize, industry, budget, timeline
+- Both forms include basic spam protection via simple math captcha
+- Error handling for both API failures and validation errors
+
+**Required Resend Configuration**:
+1. Domain verification for `cultivate-hq.com` 
+2. DNS records for SPF, DKIM, DMARC
+3. API key with send permissions
+4. Verified sender addresses: `contact@cultivate-hq.com`, `hello@cultivate-hq.com`, `enterprise@cultivate-hq.com`
+
 ## AI & LLM Services
 
 ### Anthropic Claude

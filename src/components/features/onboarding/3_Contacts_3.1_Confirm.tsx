@@ -28,7 +28,7 @@ import { useUserProfile } from '@/lib/hooks/useUserProfile';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
-import { PremiumCard, InsightCard, ExecutiveButton } from '@/components/ui/premium';
+import { PremiumCard, ExecutiveButton } from '@/components/ui/premium';
 
 interface ImportedContact {
   id: string;

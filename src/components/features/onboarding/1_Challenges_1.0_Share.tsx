@@ -22,8 +22,6 @@ export default function ChallengesScreen() {
   
   // Animation orchestration states - renamed for clarity
   const [showHonestLine, setShowHonestLine] = useState(false); // "Let's be honest about networking -"
-  const [showHateLine, setShowHateLine] = useState(false); // "most people hate it."
-  const [showSuckLine, setShowSuckLine] = useState(false); // "Or suck at it."
   const [showBothLine, setShowBothLine] = useState(false); // "Or both."
   const [fadeOutHeader, setFadeOutHeader] = useState(false); // Fade out the header after impact
   const [showSubtitle, setShowSubtitle] = useState(false); // Question subtitle

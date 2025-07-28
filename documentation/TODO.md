@@ -4,6 +4,9 @@
 
 -   [ ] **Voice Memo Listening:** Investigate and fix issues with the "listen to voice memo" functionality not generating/working properly.
 -   [ ] **Visual Polish:** Refine the display of the LinkedIn modal when accessed from the artifact timeline. (Lower priority)
+-   [ ] **Email Address Validation:** Fix basic email validation (`@` check) to use proper regex validation in onboarding flow (`3_Contacts_3.1_Confirm.tsx:357`)
+-   [ ] **Unreachable Code:** Remove duplicate return statement in VoiceMemoInsight query logic (`3_Contacts_3.1_Confirm.tsx:73-74`)
+-   [ ] **ESLint Apostrophe Warnings:** Clean up unescaped apostrophes across all React components to stop triggering lint warnings
 
 ## ✨ New Features: Artifact Types & Integrations
 
@@ -161,6 +164,22 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - Create reusable test data factories to reduce duplication
   - Implement database seeding utilities for consistent test state
 
+### Onboarding Flow Test Coverage (PR #30 Review)
+- [ ] **Email Collection Tests**
+  - Add tests for email collection functionality in 3.1 Confirm screen
+  - Test add/remove email operations and validation
+  - Test loading existing emails from database
+  
+- [ ] **Animation Sequence Tests**  
+  - Add tests for animation sequences in challenges screen
+  - Verify proper cleanup of timeouts on unmount
+  - Test animation state transitions
+  
+- [ ] **Goal Category Selection Tests**
+  - Test goal category selection logic and validation
+  - Verify backend/frontend category mapping
+  - Test error handling for invalid categories
+
 ## 🔥 High Priority (Post-Consolidation)
 
 ### Calendar Sync RLS Issues
@@ -283,6 +302,19 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - **Impact**: Medium priority - prevents excessive API calls
   - **Implementation**: Add lodash.debounce or custom hooks for input handlers
 
+### Onboarding Flow Performance (PR #30 Review)
+- [ ] **Batch Email Queries**
+  - **Current**: Multiple individual queries for loading contact emails
+  - **Improvement**: Implement batch loading for multiple contacts' emails
+  - **Impact**: Medium priority - reduces database round trips
+  - **Implementation**: Single query with contact_id IN clause
+  
+- [ ] **Animation Cleanup**
+  - **Current**: Comment suggests timing doesn't need cleanup but unclear
+  - **Improvement**: Ensure all setTimeout/setInterval are properly cleared
+  - **Impact**: Low priority - prevents memory leaks
+  - **Implementation**: Add proper cleanup in useEffect return functions
+
 ### Infrastructure Optimizations
 - [ ] **Implement Service Worker/PWA Features**
   - **Current**: No offline caching or PWA features
@@ -294,5 +326,4 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
   - **Current**: Limited use of Next.js Image component
   - **Improvement**: Use Image component throughout, add blur placeholders
   - **Impact**: Medium priority - improves perceived performance
-  - **Implementation**: Replace img tags with next/image, generate placeholders 
->>>>>>> origin/main
+  - **Implementation**: Replace img tags with next/image, generate placeholders

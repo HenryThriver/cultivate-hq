@@ -26,19 +26,19 @@ export default function TermsOfServicePage(): React.JSX.Element {
           1. Definitions
         </Typography>
         <Typography variant="body1" paragraph>
-          Let's make sure we're on the same page about what certain terms mean:
+          Let&apos;s make sure we&apos;re on the same page about what certain terms mean:
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>"Service" or "Services"</strong> means Cultivate HQ, including our web application, AI processing, integrations, and any related features we provide.
+          <strong>&quot;Service&quot; or &quot;Services&quot;</strong> means Cultivate HQ, including our web application, AI processing, integrations, and any related features we provide.
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>"Customer," "you," or "your"</strong> means the person or company using our Services.
+          <strong>&quot;Customer,&quot; &quot;you,&quot; or &quot;your&quot;</strong> means the person or company using our Services.
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>"Customer Data"</strong> means any data you input into the Service or that we collect on your behalf, including contact information, communications, and relationship data.
+          <strong>&quot;Customer Data&quot;</strong> means any data you input into the Service or that we collect on your behalf, including contact information, communications, and relationship data.
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>"AI Services"</strong> means our artificial intelligence and machine learning features that analyze your data to provide insights and suggestions.
+          <strong>&quot;AI Services&quot;</strong> means our artificial intelligence and machine learning features that analyze your data to provide insights and suggestions.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -47,7 +47,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           2. Acceptance of Terms
         </Typography>
         <Typography variant="body1" paragraph>
-          Welcome to Cultivate HQ! By using our service, you're agreeing to these terms. Think of this as our agreement about how we work together. If you don't agree with these terms, please don't use our service.
+          Welcome to Cultivate HQ! By using our service, you&apos;re agreeing to these terms. Think of this as our agreement about how we work together. If you don&apos;t agree with these terms, please don&apos;t use our service.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -65,7 +65,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           4. User Accounts and Authentication
         </Typography>
         <Typography variant="body1" paragraph>
-          You'll need to create an account to use Cultivate HQ, which you can do through secure third-party authentication services. You're responsible for keeping your account secure and for everything that happens with your account. Please provide accurate information when signing up and keep it updated.
+          You&apos;ll need to create an account to use Cultivate HQ, which you can do through secure third-party authentication services. You&apos;re responsible for keeping your account secure and for everything that happens with your account. Please provide accurate information when signing up and keep it updated.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -77,13 +77,13 @@ export default function TermsOfServicePage(): React.JSX.Element {
           When you use Cultivate HQ, you agree to:
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>Keep your account secure:</strong> Use strong passwords, enable two-factor authentication when available, and don't share your login credentials.
+          <strong>Keep your account secure:</strong> Use strong passwords, enable two-factor authentication when available, and don&apos;t share your login credentials.
         </Typography>
         <Typography variant="body1" paragraph>
           <strong>Use the service legally:</strong> Only use Cultivate HQ for lawful purposes and in compliance with all applicable laws and regulations.
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>Respect others' rights:</strong> Don't upload or process data that infringes on others' intellectual property, privacy rights, or confidentiality.
+          <strong>Respect others&apos; rights:</strong> Don&apos;t upload or process data that infringes on others&apos; intellectual property, privacy rights, or confidentiality.
         </Typography>
         <Typography variant="body1" paragraph>
           <strong>Maintain data accuracy:</strong> Ensure that the contact and relationship data you input is accurate and you have the right to use it.
@@ -98,10 +98,10 @@ export default function TermsOfServicePage(): React.JSX.Element {
           6. Subscription and Payment Terms
         </Typography>
         <Typography variant="body1" paragraph>
-          Cultivate HQ operates on a subscription model. We use secure third-party payment processors to handle billing. When you subscribe, you're agreeing to pay the subscription fees and any applicable taxes.
+          Cultivate HQ operates on a subscription model. We use secure third-party payment processors to handle billing. When you subscribe, you&apos;re agreeing to pay the subscription fees and any applicable taxes.
         </Typography>
         <Typography variant="body1" paragraph>
-          You can cancel your subscription anytime through your account settings. Subscription fees are generally non-refundable, but we'll follow applicable laws in your jurisdiction.
+          You can cancel your subscription anytime through your account settings. Subscription fees are generally non-refundable, but we&apos;ll follow applicable laws in your jurisdiction.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -110,7 +110,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           7. Data Usage and Processing
         </Typography>
         <Typography variant="body1" paragraph>
-          When you use Cultivate HQ, you're giving us permission to process your data to provide our services. This means we'll analyze your contact information and interactions using AI to generate insights and suggestions that help you manage your relationships better. We only use your data as described in our Privacy Policy and only to make the service work for you.
+          When you use Cultivate HQ, you&apos;re giving us permission to process your data to provide our services. This means we&apos;ll analyze your contact information and interactions using AI to generate insights and suggestions that help you manage your relationships better. We only use your data as described in our Privacy Policy and only to make the service work for you.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -119,7 +119,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           8. Acceptable Use Policy
         </Typography>
         <Typography variant="body1" paragraph>
-          Please use Cultivate HQ responsibly. Don't use our service for anything illegal or to harm others. This includes not uploading harmful content, trying to hack into our systems or other users' accounts, using the service to spam or harass people, or attempting to reverse engineer our software. Basically, be respectful and follow the law.
+          Please use Cultivate HQ responsibly. Don&apos;t use our service for anything illegal or to harm others. This includes not uploading harmful content, trying to hack into our systems or other users&apos; accounts, using the service to spam or harass people, or attempting to reverse engineer our software. Basically, be respectful and follow the law.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -137,7 +137,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           10. Data Ownership
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>Your data is yours.</strong> You retain all rights to your Customer Data. By using our Service, you grant us a limited license to process your data solely to provide the Service to you. We can't use your data for any other purpose without your permission.
+          <strong>Your data is yours.</strong> You retain all rights to your Customer Data. By using our Service, you grant us a limited license to process your data solely to provide the Service to you. We can&apos;t use your data for any other purpose without your permission.
         </Typography>
         <Typography variant="body1" paragraph>
           <strong>Our insights are part of the Service.</strong> While your underlying data remains yours, the AI-generated insights, suggestions, and analysis we provide are part of our Service offering.
@@ -149,7 +149,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           11. Confidentiality
         </Typography>
         <Typography variant="body1" paragraph>
-          We understand that relationship data is sensitive. We'll treat your Customer Data as confidential information and won't disclose it to third parties except as necessary to provide the Service or as required by law. Similarly, if we share any confidential information with you about our Service, you agree to keep it confidential.
+          We understand that relationship data is sensitive. We&apos;ll treat your Customer Data as confidential information and won&apos;t disclose it to third parties except as necessary to provide the Service or as required by law. Similarly, if we share any confidential information with you about our Service, you agree to keep it confidential.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -158,7 +158,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           12. Third-Party Integrations
         </Typography>
         <Typography variant="body1" paragraph>
-          Cultivate HQ works with other services like email providers and social platforms. When you connect these services, you're also agreeing to their terms and privacy policies. We can't control how these other services work, so we're not responsible for any issues with them.
+          Cultivate HQ works with other services like email providers and social platforms. When you connect these services, you&apos;re also agreeing to their terms and privacy policies. We can&apos;t control how these other services work, so we&apos;re not responsible for any issues with them.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -167,7 +167,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           13. Service Availability and Modifications
         </Typography>
         <Typography variant="body1" paragraph>
-          We work hard to keep Cultivate HQ running smoothly, but like any online service, we can't promise it will be available 100% of the time. We may need to update, modify, or temporarily suspend the service for maintenance. If we ever need to make major changes or discontinue the service, we'll give you reasonable notice.
+          We work hard to keep Cultivate HQ running smoothly, but like any online service, we can&apos;t promise it will be available 100% of the time. We may need to update, modify, or temporarily suspend the service for maintenance. If we ever need to make major changes or discontinue the service, we&apos;ll give you reasonable notice.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -176,10 +176,10 @@ export default function TermsOfServicePage(): React.JSX.Element {
           14. Warranties and Disclaimers
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>We provide Cultivate HQ "as-is" and "as available."</strong> While we work hard to make our service reliable and useful, we can't guarantee it will always work perfectly or meet all your needs.
+          <strong>We provide Cultivate HQ &quot;as-is&quot; and &quot;as available.&quot;</strong> While we work hard to make our service reliable and useful, we can&apos;t guarantee it will always work perfectly or meet all your needs.
         </Typography>
         <Typography variant="body1" paragraph>
-          To the maximum extent permitted by law, we disclaim all warranties, whether express, implied, or statutory, including warranties of merchantability, fitness for a particular purpose, and non-infringement. We don't warrant that the Service will be uninterrupted, secure, or error-free.
+          To the maximum extent permitted by law, we disclaim all warranties, whether express, implied, or statutory, including warranties of merchantability, fitness for a particular purpose, and non-infringement. We don&apos;t warrant that the Service will be uninterrupted, secure, or error-free.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -191,7 +191,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           <strong>We limit our liability to protect both of us.</strong> To the maximum extent permitted by law, neither Cultivate HQ nor its suppliers will be liable for any indirect, incidental, special, consequential, or punitive damages, including lost profits, data loss, or business interruption.
         </Typography>
         <Typography variant="body1" paragraph>
-          Our total liability for any claims under these terms won't exceed the amount you paid us in the twelve months before the claim arose. This limitation applies regardless of the legal theory behind the claim.
+          Our total liability for any claims under these terms won&apos;t exceed the amount you paid us in the twelve months before the claim arose. This limitation applies regardless of the legal theory behind the claim.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -200,7 +200,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           16. Indemnification
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>We'll have each other's backs.</strong> You agree to defend and indemnify us from claims arising from your use of the Service, your violation of these terms, or your infringement of others' rights. Similarly, we'll defend and indemnify you from claims that our Service infringes third-party intellectual property rights.
+          <strong>We&apos;ll have each other&apos;s backs.</strong> You agree to defend and indemnify us from claims arising from your use of the Service, your violation of these terms, or your infringement of others&apos; rights. Similarly, we&apos;ll defend and indemnify you from claims that our Service infringes third-party intellectual property rights.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -212,7 +212,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           <strong>Either of us can end this relationship.</strong> You can cancel your subscription anytime through your account settings. We may suspend or terminate your account if you violate these terms or if we need to discontinue the Service.
         </Typography>
         <Typography variant="body1" paragraph>
-          Upon termination, your right to use the Service ends immediately. We'll provide you a reasonable opportunity to export your data unless we're terminating for cause.
+          Upon termination, your right to use the Service ends immediately. We&apos;ll provide you a reasonable opportunity to export your data unless we&apos;re terminating for cause.
         </Typography>
         <Divider sx={{ my: 4 }} />
 
@@ -220,10 +220,10 @@ export default function TermsOfServicePage(): React.JSX.Element {
           18. Dispute Resolution
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>Let's try to work things out.</strong> If we have a dispute, we'll first try to resolve it informally. Contact us at legal@cultivatehq.com and we'll work with you to find a solution.
+          <strong>Let&apos;s try to work things out.</strong> If we have a dispute, we&apos;ll first try to resolve it informally. Contact us at legal@cultivatehq.com and we&apos;ll work with you to find a solution.
         </Typography>
         <Typography variant="body1" paragraph>
-          If we can't resolve things informally, any disputes will be resolved through binding arbitration in accordance with the American Arbitration Association rules. The arbitration will be conducted in Delaware, and judgment on the award may be entered in any court having jurisdiction.
+          If we can&apos;t resolve things informally, any disputes will be resolved through binding arbitration in accordance with the American Arbitration Association rules. The arbitration will be conducted in Delaware, and judgment on the award may be entered in any court having jurisdiction.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -250,7 +250,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           21. Beta Features
         </Typography>
         <Typography variant="body1" paragraph>
-          We may offer beta features that are still in development. These features are provided "as-is" without any warranties, and we may modify or discontinue them at any time. Your use of beta features is at your own risk.
+          We may offer beta features that are still in development. These features are provided &quot;as-is&quot; without any warranties, and we may modify or discontinue them at any time. Your use of beta features is at your own risk.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -277,7 +277,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           24. Changes to Terms
         </Typography>
         <Typography variant="body1" paragraph>
-          We may need to update these terms from time to time. When we make significant changes, we'll let you know by updating this page and changing the "last updated" date at the top. For major changes, we'll do our best to give you additional notice.
+          We may need to update these terms from time to time. When we make significant changes, we&apos;ll let you know by updating this page and changing the &quot;last updated&quot; date at the top. For major changes, we&apos;ll do our best to give you additional notice.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -286,7 +286,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
           25. Contact Information
         </Typography>
         <Typography variant="body1" paragraph>
-          Have questions about these terms? We're here to help! You can reach us at: legal@cultivatehq.com
+          Have questions about these terms? We&apos;re here to help! You can reach us at: legal@cultivatehq.com
         </Typography>
       </Paper>
 

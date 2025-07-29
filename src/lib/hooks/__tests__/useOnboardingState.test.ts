@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useOnboardingState } from '../useOnboardingState';
 
 // Mock Supabase client
-const mockSupabase = {
+const mockSupabase = vi.hoisted(() => ({
   from: vi.fn(() => ({
     select: vi.fn(() => ({
       eq: vi.fn(() => ({
@@ -24,7 +24,7 @@ const mockSupabase = {
     })),
     upsert: vi.fn(() => Promise.resolve({ data: {}, error: null }))
   }))
-};
+}));
 
 vi.mock('@/lib/supabase/client', () => ({
   supabase: mockSupabase

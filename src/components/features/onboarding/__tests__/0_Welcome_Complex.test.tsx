@@ -8,12 +8,14 @@ import { useRouter } from 'next/navigation';
 // Unused animation test utilities removed
 
 // Mock the hooks
+const mockUseOnboardingState = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
-  useOnboardingState: vi.fn(),
+  useOnboardingState: mockUseOnboardingState,
 }));
 
+const mockUseRouter = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(),
+  useRouter: mockUseRouter,
 }));
 
 // Keep original implementation but with much faster timing for tests
@@ -41,7 +43,7 @@ describe.skip('EnhancedWelcomeScreen', () => {
     vi.useFakeTimers();
     
     // Setup mock implementations
-    vi.mocked(useOnboardingState).mockReturnValue({
+    mockUseOnboardingState.mockReturnValue({
       ...mockHooks.useOnboardingState(),
       nextScreen: mockNextScreen,
       completeScreen: mockCompleteScreen,
@@ -49,7 +51,7 @@ describe.skip('EnhancedWelcomeScreen', () => {
       currentScreenName: 'welcome',
     });
 
-    vi.mocked(useRouter).mockReturnValue({
+    mockUseRouter.mockReturnValue({
       ...mockHooks.useRouter(),
       push: mockPush,
     });

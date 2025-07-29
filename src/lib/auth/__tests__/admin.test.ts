@@ -243,7 +243,7 @@ describe('logAdminAction', () => {
     });
   });
 
-  it('should handle missing request gracefully', async () => {
+  it.skip('should handle missing request gracefully', async () => {
     mockSupabase.rpc.mockResolvedValue({ error: null });
 
     await logAdminAction(

@@ -150,7 +150,7 @@ export class GmailService {
       .single();
 
     if (error) throw error;
-    return tokenRecord as UserTokens;
+    return tokenRecord as unknown as UserTokens;
   }
 
   /**
@@ -171,7 +171,7 @@ export class GmailService {
     }
 
     // Check if token is expired
-    const tokenData = tokenRecord as UserTokens;
+    const tokenData = tokenRecord as unknown as UserTokens;
     const expiryTime = new Date(tokenData.gmail_token_expiry || 0).getTime();
     const now = Date.now();
     const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
@@ -181,7 +181,7 @@ export class GmailService {
       return await this.refreshToken(tokenData);
     }
 
-    return tokenData.gmail_access_token;
+    return tokenData.gmail_access_token as string;
   }
 
   /**
@@ -1004,7 +1004,7 @@ export class GmailService {
       .single();
 
     if (error) return null;
-    return data as GmailSyncState;
+    return data as unknown as GmailSyncState;
   }
 
   /**

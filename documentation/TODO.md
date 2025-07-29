@@ -161,6 +161,12 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
     - Update text expectations to match current component content
     - Consider adding `data-testid` for reliable test selectors
 
+- [ ] **useOnboardingState Hook Tests** - Missing TanStack Query Provider
+  - **Status**: Temporarily skipped with `describe.skip()`
+  - **File**: `src/lib/hooks/__tests__/useOnboardingState.test.ts`
+  - **Issues**: "No QueryClient set, use QueryClientProvider to set one"
+  - **Implementation**: Add QueryClient wrapper to test setup or mock TanStack Query
+
 - [ ] **Features Page Tests** - Content outdated after UI updates
   - **Status**: Temporarily skipped with `describe.skip()`
   - **File**: `src/app/features/__tests__/page.test.tsx`

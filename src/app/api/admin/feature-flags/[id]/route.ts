@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin, logAdminAction } from '@/lib/auth/admin';
+import { logger } from '@/lib/utils/logger';
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -14,13 +15,15 @@ export async function GET(
   request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse> {
+  let id: string | undefined;
   try {
     const adminResult = await requireAdmin();
     if (!adminResult.isAdmin) {
       return adminResult.response!;
     }
 
-    const { id } = params;
+    const paramId = await params;
+    id = paramId.id;
     
     if (!id) {
       return NextResponse.json(
@@ -44,7 +47,10 @@ export async function GET(
           { status: 404 }
         );
       }
-      console.error('Error fetching feature flag:', error);
+      logger.adminError('Failed to fetch feature flag', error, { 
+        flagId: id, 
+        userId: adminResult.user?.id 
+      });
       return NextResponse.json(
         { error: 'Failed to fetch feature flag' },
         { status: 500 }
@@ -62,7 +68,9 @@ export async function GET(
 
     return NextResponse.json({ flag });
   } catch (error) {
-    console.error('Unexpected error:', error);
+    logger.adminError('Unexpected error in feature flag operation', error as Error, {
+      flagId: id
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -78,13 +86,15 @@ export async function PUT(
   request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse> {
+  let id: string | undefined;
   try {
     const adminResult = await requireAdmin();
     if (!adminResult.isAdmin) {
       return adminResult.response!;
     }
 
-    const { id } = params;
+    const paramId = await params;
+    id = paramId.id;
     
     if (!id) {
       return NextResponse.json(
@@ -149,7 +159,11 @@ export async function PUT(
           { status: 409 }
         );
       }
-      console.error('Error updating feature flag:', error);
+      logger.adminError('Failed to update feature flag', error, { 
+        flagId: id, 
+        userId: adminResult.user?.id,
+        updateData 
+      });
       return NextResponse.json(
         { error: 'Failed to update feature flag' },
         { status: 500 }
@@ -169,7 +183,9 @@ export async function PUT(
 
     return NextResponse.json({ flag });
   } catch (error) {
-    console.error('Unexpected error:', error);
+    logger.adminError('Unexpected error in feature flag operation', error as Error, {
+      flagId: id
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -185,13 +201,15 @@ export async function DELETE(
   request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse> {
+  let id: string | undefined;
   try {
     const adminResult = await requireAdmin();
     if (!adminResult.isAdmin) {
       return adminResult.response!;
     }
 
-    const { id } = params;
+    const paramId = await params;
+    id = paramId.id;
     
     if (!id) {
       return NextResponse.json(
@@ -222,7 +240,10 @@ export async function DELETE(
           { status: 404 }
         );
       }
-      console.error('Error deleting feature flag:', error);
+      logger.adminError('Failed to delete feature flag', error, { 
+        flagId: id, 
+        userId: adminResult.user?.id 
+      });
       return NextResponse.json(
         { error: 'Failed to delete feature flag' },
         { status: 500 }
@@ -245,7 +266,9 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
-    console.error('Unexpected error:', error);
+    logger.adminError('Unexpected error in feature flag operation', error as Error, {
+      flagId: id
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

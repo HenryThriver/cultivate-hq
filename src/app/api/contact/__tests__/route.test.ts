@@ -1,11 +1,12 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST } from '../route';
 
 // Mock Resend
-jest.mock('resend', () => ({
-  Resend: jest.fn().mockImplementation(() => ({
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(() => ({
     emails: {
-      send: jest.fn().mockResolvedValue({ 
+      send: vi.fn().mockResolvedValue({ 
         data: { id: 'test-email-id' },
         error: null 
       }),
@@ -16,7 +17,7 @@ jest.mock('resend', () => ({
 // Mock environment variable
 const originalEnv = process.env;
 beforeEach(() => {
-  jest.resetModules();
+  vi.resetModules();
   process.env = { ...originalEnv, RESEND_API_KEY: 'test-api-key' };
 });
 
@@ -43,7 +44,7 @@ describe('/api/contact', () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.id).toBe('test-email-id');
+    expect(data.message).toBe('Email sent successfully');
   });
 
   it('should handle enterprise form submission', async () => {

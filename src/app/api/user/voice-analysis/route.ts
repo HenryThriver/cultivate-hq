@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/supabase/auth';
 
 // interface VoiceAnalysisRequest {
 //   linkedin_url?: string;
@@ -16,6 +14,10 @@ interface VoiceAnalysisResponse {
 
 export async function POST(request: NextRequest): Promise<NextResponse<VoiceAnalysisResponse>> {
   try {
+    // Lazy load Supabase modules to avoid build-time issues
+    const { createClient } = await import('@/lib/supabase/server');
+    const { getCurrentUser } = await import('@/lib/supabase/auth');
+    
     const supabase = await createClient();
     const user = await getCurrentUser();
     

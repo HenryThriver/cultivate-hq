@@ -3,8 +3,6 @@ import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render, mockHooks } from './test-utils';
 import { EnhancedWelcomeScreen } from '../0_Welcome';
-import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
-import { useRouter } from 'next/navigation';
 // Unused animation test utilities removed
 
 // Mock the hooks

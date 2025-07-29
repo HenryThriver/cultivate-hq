@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           1. Introduction
         </Typography>
         <Typography variant="body1" paragraph>
-          Your privacy matters to us. This policy explains what information we collect when you use Cultivate HQ, why we collect it, and how we protect it. We believe in being transparent about our data practices, so here's everything you need to know.
+          Your privacy matters to us. This policy explains what information we collect when you use Cultivate HQ, why we collect it, and how we protect it. We believe in being transparent about our data practices, so here&apos;s everything you need to know.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -77,13 +77,13 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           We process your personal data based on several legal grounds:
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>Contract:</strong> We need to process your data to provide the Service you've subscribed to.
+          <strong>Contract:</strong> We need to process your data to provide the Service you&apos;ve subscribed to.
         </Typography>
         <Typography variant="body1" paragraph>
           <strong>Legitimate Interests:</strong> We process data to improve our Service, ensure security, and prevent fraud.
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>Consent:</strong> For certain processing activities, like marketing communications, we'll ask for your explicit consent.
+          <strong>Consent:</strong> For certain processing activities, like marketing communications, we&apos;ll ask for your explicit consent.
         </Typography>
         <Typography variant="body1" paragraph>
           <strong>Legal Obligations:</strong> Sometimes we need to process data to comply with laws or legal orders.
@@ -107,7 +107,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           6. Automated Decision Making
         </Typography>
         <Typography variant="body1" paragraph>
-          Our AI makes automated suggestions about your relationships, but <strong>you're always in control</strong>. We don't make any fully automated decisions that would significantly affect you without human involvement. All AI suggestions are just that - suggestions for you to review and act on as you see fit.
+          Our AI makes automated suggestions about your relationships, but <strong>you&apos;re always in control</strong>. We don&apos;t make any fully automated decisions that would significantly affect you without human involvement. All AI suggestions are just that - suggestions for you to review and act on as you see fit.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           7. Information Sharing and Disclosure
         </Typography>
         <Typography variant="body1" paragraph>
-          We don't sell your personal information. Period. We only share your data in very specific circumstances to provide our service or comply with the law:
+          We don&apos;t sell your personal information. Period. We only share your data in very specific circumstances to provide our service or comply with the law:
         </Typography>
         
         <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 2 }}>
@@ -130,7 +130,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           5.2 Legal Requirements
         </Typography>
         <Typography variant="body1" paragraph>
-          If we're legally required to share your information (like by court order) or if we need to protect the safety of our users, we may disclose your data. We'll only do this when absolutely necessary.
+          If we&apos;re legally required to share your information (like by court order) or if we need to protect the safety of our users, we may disclose your data. We&apos;ll only do this when absolutely necessary.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -139,7 +139,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           8. Third-Party Integrations
         </Typography>
         <Typography variant="body1" paragraph>
-          When you connect external services like Gmail or LinkedIn to Cultivate HQ, you're giving us permission to access relevant data from those services to provide our relationship intelligence features. Remember that these external services have their own privacy policies that also apply to your data.
+          When you connect external services like Gmail or LinkedIn to Cultivate HQ, you&apos;re giving us permission to access relevant data from those services to provide our relationship intelligence features. Remember that these external services have their own privacy policies that also apply to your data.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -148,7 +148,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           9. Data Security
         </Typography>
         <Typography variant="body1" paragraph>
-          We take protecting your data seriously. We encrypt your information when it's stored and when it's being transmitted, use strong access controls to limit who can see your data, regularly monitor our systems for security issues, and follow industry best practices for data protection.
+          We take protecting your data seriously. We encrypt your information when it&apos;s stored and when it&apos;s being transmitted, use strong access controls to limit who can see your data, regularly monitor our systems for security issues, and follow industry best practices for data protection.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -217,7 +217,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           <strong>Preference Cookies:</strong> These remember your settings and preferences.
         </Typography>
         <Typography variant="body1" paragraph>
-          You can control cookies through your browser settings, but disabling essential cookies might prevent you from using certain features. We respect "Do Not Track" signals from your browser.
+          You can control cookies through your browser settings, but disabling essential cookies might prevent you from using certain features. We respect &quot;Do Not Track&quot; signals from your browser.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -226,7 +226,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           14. Children&apos;s Privacy
         </Typography>
         <Typography variant="body1" paragraph>
-          Cultivate HQ is designed for adults and we don't knowingly collect information from children under 13. If you think we've accidentally collected a child's information, please let us know right away so we can delete it.
+          Cultivate HQ is designed for adults and we don&apos;t knowingly collect information from children under 13. If you think we&apos;ve accidentally collected a child&apos;s information, please let us know right away so we can delete it.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -235,7 +235,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           15. Changes to This Privacy Policy
         </Typography>
         <Typography variant="body1" paragraph>
-          We may update this privacy policy occasionally. When we make significant changes, we'll let you know by updating this page and changing the "last updated" date at the top. For major changes, we'll give you additional notice.
+          We may update this privacy policy occasionally. When we make significant changes, we&apos;ll let you know by updating this page and changing the &quot;last updated&quot; date at the top. For major changes, we&apos;ll give you additional notice.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -244,7 +244,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           16. Marketing Communications
         </Typography>
         <Typography variant="body1" paragraph>
-          We'll only send you marketing emails if you opt in. You can unsubscribe anytime by clicking the link in our emails or contacting us. Even if you opt out of marketing, we'll still send you important service updates about your account.
+          We&apos;ll only send you marketing emails if you opt in. You can unsubscribe anytime by clicking the link in our emails or contacting us. Even if you opt out of marketing, we&apos;ll still send you important service updates about your account.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -253,7 +253,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           17. Data Breach Notification
         </Typography>
         <Typography variant="body1" paragraph>
-          If a data breach occurs that's likely to result in a risk to your rights and freedoms, we'll notify you without undue delay. We'll tell you what happened, what data was affected, and what steps we're taking to address it.
+          If a data breach occurs that&apos;s likely to result in a risk to your rights and freedoms, we&apos;ll notify you without undue delay. We&apos;ll tell you what happened, what data was affected, and what steps we&apos;re taking to address it.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -262,7 +262,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           18. Jurisdiction-Specific Rights
         </Typography>
         <Typography variant="body1" paragraph>
-          <strong>California Residents:</strong> You have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information we collect, the right to delete your information, and the right to opt-out of any "sales" of personal information (though we don't sell your data).
+          <strong>California Residents:</strong> You have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information we collect, the right to delete your information, and the right to opt-out of any &quot;sales&quot; of personal information (though we don&apos;t sell your data).
         </Typography>
         <Typography variant="body1" paragraph>
           <strong>European Users:</strong> Under GDPR, you have the right to data portability, the right to restrict processing, and the right to lodge a complaint with your local data protection authority.
@@ -277,7 +277,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           19. Data Minimization
         </Typography>
         <Typography variant="body1" paragraph>
-          We believe in collecting only what we need. We don't collect personal information that isn't necessary for providing our Service, and we regularly review our data collection practices to ensure we're not keeping more than we need.
+          We believe in collecting only what we need. We don&apos;t collect personal information that isn&apos;t necessary for providing our Service, and we regularly review our data collection practices to ensure we&apos;re not keeping more than we need.
         </Typography>
 
         <Divider sx={{ my: 4 }} />
@@ -310,7 +310,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
           21. Contact Information
         </Typography>
         <Typography variant="body1" paragraph>
-          Have questions about this privacy policy or how we handle your data? We're here to help! You can reach us at:
+          Have questions about this privacy policy or how we handle your data? We&apos;re here to help! You can reach us at:
         </Typography>
         <Typography variant="body1" paragraph>
           Email: privacy@cultivatehq.com

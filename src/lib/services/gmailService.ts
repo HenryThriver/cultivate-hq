@@ -23,10 +23,21 @@ const REQUIRED_SCOPES = [
 ];
 
 export class GmailService {
-  private supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  private supabase: ReturnType<typeof createClient> | null = null;
+
+  private getSupabaseClient() {
+    if (!this.supabase) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!url || !key) {
+        throw new Error('Supabase environment variables are not configured');
+      }
+      
+      this.supabase = createClient(url, key);
+    }
+    return this.supabase;
+  }
 
   /**
    * Get OAuth authorization URL for Gmail access
@@ -120,12 +131,12 @@ export class GmailService {
     const data = await response.json();
     
     // Store tokens in database
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const { data: { user } } = await this.getSupabaseClient().auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const expiryDate = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
 
-    const { data: tokenRecord, error } = await this.supabase
+    const { data: tokenRecord, error } = await this.getSupabaseClient()
       .from('user_tokens')
       .upsert({
         user_id: user.id,
@@ -139,17 +150,17 @@ export class GmailService {
       .single();
 
     if (error) throw error;
-    return tokenRecord;
+    return tokenRecord as unknown as UserTokens;
   }
 
   /**
    * Get current user's Gmail access token, refreshing if necessary
    */
   private async getAccessToken(): Promise<string> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const { data: { user } } = await this.getSupabaseClient().auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const { data: tokenRecord, error } = await this.supabase
+    const { data: tokenRecord, error } = await this.getSupabaseClient()
       .from('user_tokens')
       .select('*')
       .eq('user_id', user.id)
@@ -160,16 +171,17 @@ export class GmailService {
     }
 
     // Check if token is expired
-    const expiryTime = new Date(tokenRecord.gmail_token_expiry || 0).getTime();
+    const tokenData = tokenRecord as unknown as UserTokens;
+    const expiryTime = new Date(tokenData.gmail_token_expiry || 0).getTime();
     const now = Date.now();
     const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
 
     if (expiryTime <= now + bufferTime) {
       // Token is expired or about to expire, refresh it
-      return await this.refreshToken(tokenRecord);
+      return await this.refreshToken(tokenData);
     }
 
-    return tokenRecord.gmail_access_token;
+    return tokenData.gmail_access_token as string;
   }
 
   /**
@@ -201,7 +213,7 @@ export class GmailService {
     const expiryDate = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
 
     // Update stored token
-    const { error } = await this.supabase
+    const { error } = await this.getSupabaseClient()
       .from('user_tokens')
       .update({
         gmail_access_token: data.access_token,
@@ -741,7 +753,7 @@ export class GmailService {
                 metadata: emailContent,
                 updated_at: new Date().toISOString(),
               })
-              .eq('id', existing.id);
+              .eq('id', (existing as { id: string }).id);
 
             if (error) throw error;
             progress.updated_artifacts++;
@@ -850,7 +862,7 @@ export class GmailService {
       progress.current_status = 'Processing emails...';
 
       // Process each message
-      const { data: { user } } = await this.supabase.auth.getUser();
+      const { data: { user } } = await this.getSupabaseClient().auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       for (const messageRef of searchResult.messages || []) {
@@ -867,7 +879,7 @@ export class GmailService {
           const emailContent = await this.transformGmailMessage(message, threadPosition, threadLength);
 
           // Check if artifact already exists
-          const { data: existing } = await this.supabase
+          const { data: existing } = await this.getSupabaseClient()
             .from('artifacts')
             .select('id')
             .eq('type', 'email')
@@ -877,20 +889,20 @@ export class GmailService {
 
           if (existing) {
             // Update existing artifact
-            const { error } = await this.supabase
+            const { error } = await this.getSupabaseClient()
               .from('artifacts')
               .update({
                 content: emailContent.snippet,
                 metadata: emailContent,
                 updated_at: new Date().toISOString(),
               })
-              .eq('id', existing.id);
+              .eq('id', (existing as { id: string }).id);
 
             if (error) throw error;
             progress.updated_artifacts++;
           } else {
             // Create new artifact with AI parsing enabled
-            const { error } = await this.supabase
+            const { error } = await this.getSupabaseClient()
               .from('artifacts')
               .insert({
                 user_id: user.id,
@@ -943,10 +955,10 @@ export class GmailService {
    * Update Gmail sync state
    */
   private async updateSyncState(updates: Partial<GmailSyncState>): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const { data: { user } } = await this.getSupabaseClient().auth.getUser();
     if (!user) return;
 
-    const { error } = await this.supabase
+    const { error } = await this.getSupabaseClient()
       .from('gmail_sync_state')
       .upsert({
         user_id: user.id,
@@ -982,28 +994,28 @@ export class GmailService {
    * Get current sync state (client-side version)
    */
   async getSyncState(): Promise<GmailSyncState | null> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const { data: { user } } = await this.getSupabaseClient().auth.getUser();
     if (!user) return null;
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getSupabaseClient()
       .from('gmail_sync_state')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
     if (error) return null;
-    return data;
+    return data as unknown as GmailSyncState;
   }
 
   /**
    * Disconnect Gmail
    */
   async disconnect(): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const { data: { user } } = await this.getSupabaseClient().auth.getUser();
     if (!user) return;
 
     // Clear tokens
-    await this.supabase
+    await this.getSupabaseClient()
       .from('user_tokens')
       .update({
         gmail_access_token: undefined,
@@ -1013,7 +1025,7 @@ export class GmailService {
       .eq('user_id', user.id);
 
     // Clear sync state
-    await this.supabase
+    await this.getSupabaseClient()
       .from('gmail_sync_state')
       .delete()
       .eq('user_id', user.id);

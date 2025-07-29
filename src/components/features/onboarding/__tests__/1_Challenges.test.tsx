@@ -5,8 +5,9 @@ import { render, mockHooks } from './test-utils';
 import ChallengesScreen from '../1_Challenges_1.0_Share';
 
 // Mock the hooks and APIs
+const mockUseOnboardingState = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
-  useOnboardingState: vi.fn(),
+  useOnboardingState: mockUseOnboardingState,
 }));
 
 interface VoiceRecorderProps {
@@ -29,7 +30,8 @@ vi.mock('../OnboardingVoiceRecorder', () => ({
 }));
 
 // Mock fetch for voice memo API
-global.fetch = vi.fn();
+const mockFetch = vi.hoisted(() => vi.fn());
+global.fetch = mockFetch;
 
 describe('ChallengesScreen', () => {
   const mockNextScreen = vi.fn();
@@ -39,7 +41,7 @@ describe('ChallengesScreen', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    vi.mocked(mockHooks.useOnboardingState).mockReturnValue({
+    mockUseOnboardingState.mockReturnValue({
       ...mockHooks.useOnboardingState(),
       nextScreen: mockNextScreen,
       completeScreen: mockCompleteScreen,
@@ -48,7 +50,7 @@ describe('ChallengesScreen', () => {
     });
 
     // Mock successful API response
-    vi.mocked(fetch).mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
         success: true,

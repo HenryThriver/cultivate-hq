@@ -103,7 +103,16 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       const { goal_category } = body;
 
       // Validate goal category
-      const VALID_GOAL_CATEGORIES = ['career', 'business', 'personal', 'learning', 'networking', 'health'];
+      const VALID_GOAL_CATEGORIES = [
+        'career_transition',
+        'startup', 
+        'client_relationships',
+        'investors_partners',
+        'industry_expansion',
+        'learning_mentorship',
+        'community_deepening',
+        'other'
+      ];
       if (!goal_category || !VALID_GOAL_CATEGORIES.includes(goal_category)) {
         return NextResponse.json(
           { error: 'Invalid goal category. Must be one of: ' + VALID_GOAL_CATEGORIES.join(', ') },
@@ -120,7 +129,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
           description: 'Goal details will be added from voice memo analysis.',
           category: goal_category,
           created_from: 'onboarding',
-          status: 'draft', // Draft until voice memo is processed
+          status: 'active', // Set as active immediately
           is_primary: true
         })
         .select()

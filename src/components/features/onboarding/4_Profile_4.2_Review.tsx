@@ -219,7 +219,7 @@ export default function ProfileScreen() {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Typography variant="h4" component="h1" sx={{ 
                       fontWeight: 'bold', 
-                      fontSize: { xs: '1.75rem', md: '2rem' }, 
+                      fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.7rem', lg: '3.15rem' }, // Match standard intro text 
                       color: '#111827',
                       mr: 1.5 
                     }}>

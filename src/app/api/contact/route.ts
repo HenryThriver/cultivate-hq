@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
+import { logger } from '@/lib/utils/logger';
 
 // Initialize Resend only when API key is available
 const getResendClient = () => {
@@ -14,7 +15,7 @@ const getResendClient = () => {
 
 // Initialize DOMPurify for server-side sanitization
 const window = new JSDOM('').window;
-const purify = DOMPurify(window as any);
+const purify = DOMPurify(window as unknown as Window & typeof globalThis);
 
 // Input validation constants
 const INPUT_LIMITS = {
@@ -180,15 +181,14 @@ export async function POST(request: NextRequest) {
       subject: emailSubject,
       html: emailContent,
       // Add reply-to so responses go directly to the user
-      reply_to: email,
+      replyTo: email,
     });
 
     if (error) {
       // Log error securely without exposing details to client
-      console.error('Email sending failed:', {
-        timestamp: new Date().toISOString(),
+      logger.error('Email sending failed', error as Error, 'CONTACT_FORM', {
         formType,
-        error: process.env.NODE_ENV === 'development' ? error : 'Email service error'
+        timestamp: new Date().toISOString()
       });
       return NextResponse.json(
         { error: 'Failed to send email. Please try again later.' }, 
@@ -197,10 +197,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Log success securely
-    console.log('Email sent successfully:', {
-      timestamp: new Date().toISOString(),
+    logger.info('Email sent successfully', 'CONTACT_FORM', {
       formType,
-      emailId: data?.id
+      emailId: data?.id,
+      timestamp: new Date().toISOString()
     });
 
     // Return success response
@@ -211,10 +211,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     // Secure error logging
-    console.error('Contact form error:', {
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: process.env.NODE_ENV === 'development' ? (error as Error)?.stack : undefined
+    logger.error('Contact form error', error as Error, 'CONTACT_FORM', {
+      timestamp: new Date().toISOString()
     });
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' }, 

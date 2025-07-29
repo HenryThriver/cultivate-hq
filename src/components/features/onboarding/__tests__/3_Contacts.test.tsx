@@ -5,8 +5,9 @@ import { render, mockHooks } from './test-utils';
 import ContactImportScreen from '../3_Contacts_3.0_Import';
 
 // Mock hooks and components
+const mockUseOnboardingState = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
-  useOnboardingState: vi.fn(),
+  useOnboardingState: mockUseOnboardingState,
 }));
 
 vi.mock('@/lib/hooks/useUserProfile', () => ({
@@ -40,7 +41,7 @@ describe('ContactImportScreen', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    vi.mocked(mockHooks.useOnboardingState).mockReturnValue({
+    mockUseOnboardingState.mockReturnValue({
       ...mockHooks.useOnboardingState(),
       nextScreen: mockNextScreen,
       completeScreen: mockCompleteScreen,

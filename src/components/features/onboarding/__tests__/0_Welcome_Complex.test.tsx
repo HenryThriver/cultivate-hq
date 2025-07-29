@@ -3,17 +3,17 @@ import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render, mockHooks } from './test-utils';
 import { EnhancedWelcomeScreen } from '../0_Welcome';
-import { useOnboardingState } from '@/lib/hooks/useOnboardingState';
-import { useRouter } from 'next/navigation';
 // Unused animation test utilities removed
 
 // Mock the hooks
+const mockUseOnboardingState = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
-  useOnboardingState: vi.fn(),
+  useOnboardingState: mockUseOnboardingState,
 }));
 
+const mockUseRouter = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(),
+  useRouter: mockUseRouter,
 }));
 
 // Keep original implementation but with much faster timing for tests
@@ -41,7 +41,7 @@ describe('EnhancedWelcomeScreen', () => {
     vi.useFakeTimers();
     
     // Setup mock implementations
-    vi.mocked(useOnboardingState).mockReturnValue({
+    mockUseOnboardingState.mockReturnValue({
       ...mockHooks.useOnboardingState(),
       nextScreen: mockNextScreen,
       completeScreen: mockCompleteScreen,
@@ -49,7 +49,7 @@ describe('EnhancedWelcomeScreen', () => {
       currentScreenName: 'welcome',
     });
 
-    vi.mocked(useRouter).mockReturnValue({
+    mockUseRouter.mockReturnValue({
       ...mockHooks.useRouter(),
       push: mockPush,
     });

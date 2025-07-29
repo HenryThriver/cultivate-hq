@@ -119,7 +119,7 @@ export default function ContactPage() {
                 color: 'text.primary'
               }}
             >
-              Let's cultivate{' '}
+              Let&apos;s cultivate{' '}
               <GradientText
                 component="span"
                 variant="inherit"
@@ -142,7 +142,7 @@ export default function ContactPage() {
                 opacity: 0.9
               }}
             >
-              Strategic minds deserve strategic support. Share your vision and we'll explore how Cultivate HQ can accelerate your relationship intelligence.
+              Strategic minds deserve strategic support. Share your vision and we&apos;ll explore how Cultivate HQ can accelerate your relationship intelligence.
             </Typography>
           </Stack>
         </Stack>
@@ -183,7 +183,7 @@ export default function ContactPage() {
                           color: 'success.dark'
                         }}
                       >
-                        Strategic connection established. We'll respond within 24 hours.
+                        Strategic connection established. We&apos;ll respond within 24 hours.
                       </Alert>
                     )}
                     
@@ -297,7 +297,7 @@ export default function ContactPage() {
                       fullWidth
                       variant="outlined"
                       type="number"
-                      helperText="Quick verification that you're a strategic thinker, not a bot"
+                      helperText="Quick verification that you&apos;re a strategic thinker, not a bot"
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,

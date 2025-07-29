@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useOnboardingState } from '../useOnboardingState';
+import React from 'react';
 
 // Mock Supabase client
-const mockSupabase = {
+const mockSupabase = vi.hoisted(() => ({
   from: vi.fn(() => ({
     select: vi.fn(() => ({
       eq: vi.fn(() => ({
@@ -24,7 +26,7 @@ const mockSupabase = {
     })),
     upsert: vi.fn(() => Promise.resolve({ data: {}, error: null }))
   }))
-};
+}));
 
 vi.mock('@/lib/supabase/client', () => ({
   supabase: mockSupabase
@@ -41,13 +43,26 @@ vi.mock('@/lib/contexts/AuthContext', () => ({
 }));
 
 describe('useOnboardingState', () => {
+  let queryClient: QueryClient;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
   });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 
   describe('Initialization', () => {
     it('initializes with default state', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
       
       // Should start loading
       expect(result.current.isNavigating).toBe(true);
@@ -80,7 +95,7 @@ describe('useOnboardingState', () => {
         })
       }));
 
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -97,7 +112,7 @@ describe('useOnboardingState', () => {
 
   describe('Screen Navigation', () => {
     it('advances to next screen', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -134,7 +149,7 @@ describe('useOnboardingState', () => {
         })
       }));
 
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -148,7 +163,7 @@ describe('useOnboardingState', () => {
     });
 
     it('prevents going to previous screen from first screen', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -165,7 +180,7 @@ describe('useOnboardingState', () => {
     });
 
     it('goes to specific screen', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -181,7 +196,7 @@ describe('useOnboardingState', () => {
 
   describe('Screen Completion', () => {
     it('marks screen as completed', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -215,7 +230,7 @@ describe('useOnboardingState', () => {
         })
       }));
 
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -234,7 +249,7 @@ describe('useOnboardingState', () => {
 
   describe('State Management', () => {
     it('updates onboarding state', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -275,7 +290,7 @@ describe('useOnboardingState', () => {
         })
       }));
 
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -296,7 +311,7 @@ describe('useOnboardingState', () => {
 
   describe('Onboarding Completion', () => {
     it('completes onboarding', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -310,7 +325,7 @@ describe('useOnboardingState', () => {
     });
 
     it('resets onboarding state', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -334,7 +349,7 @@ describe('useOnboardingState', () => {
 
   describe('Screen Name Mapping', () => {
     it('maps screen numbers to names correctly', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -356,7 +371,7 @@ describe('useOnboardingState', () => {
     });
 
     it('handles invalid screen numbers', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -385,7 +400,7 @@ describe('useOnboardingState', () => {
         })
       }));
 
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -397,7 +412,7 @@ describe('useOnboardingState', () => {
     });
 
     it('handles update errors', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -422,7 +437,7 @@ describe('useOnboardingState', () => {
 
   describe('Loading States', () => {
     it('manages navigation loading state', async () => {
-      const { result } = renderHook(() => useOnboardingState());
+      const { result } = renderHook(() => useOnboardingState(), { wrapper });
 
       expect(result.current.isNavigating).toBe(true);
 

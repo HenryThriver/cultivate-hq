@@ -66,7 +66,7 @@ export default function BridgeScreen() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   color: '#1a1a1a',
-                  fontSize: { xs: '1.75rem', md: '2.125rem' }
+                  fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.7rem', lg: '3.15rem' } // Match standard intro text
                 }}
               >
                 When your networking becomes masterful and effortless...
@@ -84,7 +84,7 @@ export default function BridgeScreen() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   color: '#1a1a1a',
-                  fontSize: { xs: '1.75rem', md: '2.125rem' }
+                  fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.7rem', lg: '3.15rem' } // Match standard intro text
                 }}
               >
                 You&apos;ll feel confident, generous, and genuinely excited about connecting.
@@ -102,7 +102,7 @@ export default function BridgeScreen() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   color: 'primary.main',
-                  fontSize: { xs: '1.5rem', md: '2rem' }
+                  fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.7rem', lg: '3.15rem' } // Match standard intro text
                 }}
               >
                 We&apos;ll guide you on your path to mastery:

@@ -44,7 +44,7 @@ describe('/api/contact', () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.id).toBe('test-email-id');
+    expect(data.message).toBe('Email sent successfully');
   });
 
   it('should handle enterprise form submission', async () => {

@@ -5,8 +5,8 @@ import { render, mockHooks } from './test-utils';
 import { EnhancedWelcomeScreen } from '../0_Welcome';
 
 // Mock the hooks
-const mockUseOnboardingState = vi.fn();
-const mockUseRouter = vi.fn();
+const mockUseOnboardingState = vi.hoisted(() => vi.fn());
+const mockUseRouter = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/hooks/useOnboardingState', () => ({
   useOnboardingState: mockUseOnboardingState,

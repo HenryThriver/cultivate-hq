@@ -33,7 +33,7 @@ vi.mock('../OnboardingVoiceRecorder', () => ({
 // Mock fetch for API calls
 global.fetch = vi.fn();
 
-describe.skip('ContactImportScreen', () => {
+describe('ContactImportScreen', () => {
   const mockNextScreen = vi.fn();
   const mockCompleteScreen = vi.fn();
   const mockUpdateState = vi.fn();

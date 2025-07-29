@@ -31,7 +31,7 @@ vi.mock('../0_Welcome_Components/PreviewCardsContainer', () => ({
   PreviewCardsContainer: () => 'div',
 }));
 
-describe.skip('EnhancedWelcomeScreen', () => {
+describe('EnhancedWelcomeScreen', () => {
   const mockNextScreen = vi.fn();
   const mockCompleteScreen = vi.fn();
   const mockPush = vi.fn();

@@ -33,7 +33,7 @@ vi.mock('../OnboardingVoiceRecorder', () => ({
 const mockFetch = vi.hoisted(() => vi.fn());
 global.fetch = mockFetch;
 
-describe.skip('ChallengesScreen', () => {
+describe('ChallengesScreen', () => {
   const mockNextScreen = vi.fn();
   const mockCompleteScreen = vi.fn();
   const mockUpdateState = vi.fn();

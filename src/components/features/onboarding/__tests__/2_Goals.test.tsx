@@ -10,12 +10,14 @@ vi.mock('@/lib/hooks/useOnboardingState', () => ({
   useOnboardingState: mockUseOnboardingState,
 }));
 
+const mockUseUserProfile = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/hooks/useUserProfile', () => ({
-  useUserProfile: vi.fn(),
+  useUserProfile: mockUseUserProfile,
 }));
 
+const mockUseAuth = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/contexts/AuthContext', () => ({
-  useAuth: vi.fn(),
+  useAuth: mockUseAuth,
 }));
 
 vi.mock('../OnboardingVoiceRecorder', () => ({
@@ -37,7 +39,7 @@ vi.mock('../OnboardingVoiceRecorder', () => ({
 // Mock fetch for API calls
 global.fetch = vi.fn();
 
-describe.skip('GoalsScreen', () => {
+describe('GoalsScreen', () => {
   const mockNextScreen = vi.fn();
   const mockCompleteScreen = vi.fn();
   const mockUpdateState = vi.fn();
@@ -53,12 +55,12 @@ describe.skip('GoalsScreen', () => {
       currentScreen: 'goals',
     });
 
-    vi.mocked(mockHooks.useUserProfile).mockReturnValue({
+    mockUseUserProfile.mockReturnValue({
       ...mockHooks.useUserProfile(),
       isLoading: false,
     });
 
-    vi.mocked(mockHooks.useAuth).mockReturnValue(mockHooks.useAuth());
+    mockUseAuth.mockReturnValue(mockHooks.useAuth());
 
     // Mock successful API responses
     vi.mocked(fetch).mockImplementation((url) => {

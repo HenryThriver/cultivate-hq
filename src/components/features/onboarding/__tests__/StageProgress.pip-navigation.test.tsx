@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { render } from './test-utils';
 import { StageProgress } from '../StageProgress';
 
-describe.skip('StageProgress - Pip Navigation', () => {
+describe('StageProgress - Pip Navigation', () => {
   const mockOnNavigateToStage = vi.fn();
   const mockOnNavigateToScreen = vi.fn();
 

@@ -5,6 +5,21 @@ import PricingPage from '../page';
 import { useStripeCheckout } from '@/hooks/useStripeCheckout';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+// Extend MUI theme type for custom colors
+declare module '@mui/material/styles' {
+  interface Palette {
+    sage: Palette['primary'];
+    plum: Palette['primary'];
+    amber: Palette['primary'];
+  }
+  
+  interface PaletteOptions {
+    sage?: PaletteOptions['primary'];
+    plum?: PaletteOptions['primary'];
+    amber?: PaletteOptions['primary'];
+  }
+}
+
 // Mock dependencies
 vi.mock('@/hooks/useStripeCheckout');
 vi.mock('@/lib/contexts/AuthContext');
@@ -12,15 +27,36 @@ vi.mock('@/components/layout/MarketingLayout', () => ({
   MarketingLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }));
 
-// Create a basic theme
-const theme = createTheme();
+// Create theme with custom palette colors to match production
+const theme = createTheme({
+  palette: {
+    sage: {
+      light: '#ECFDF5',
+      main: '#059669',
+      dark: '#047857',
+      contrastText: '#fff',
+    },
+    plum: {
+      light: '#F3E8FF',
+      main: '#7C3AED',
+      dark: '#5B21B6',
+      contrastText: '#fff',
+    },
+    amber: {
+      light: '#FEF3C7',
+      main: '#F59E0B',
+      dark: '#D97706',
+      contrastText: '#fff',
+    },
+  },
+});
 
 // Wrapper component for theme
 const ThemeWrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider theme={theme}>{children}</ThemeProvider>
 );
 
-describe.skip('Pricing Page', () => {
+describe('Pricing Page', () => {
   const mockCreateCheckoutSession = vi.fn();
 
   beforeEach(() => {

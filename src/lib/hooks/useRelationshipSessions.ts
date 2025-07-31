@@ -14,6 +14,9 @@ interface CreateSessionAction {
   goal_id?: string;
   meeting_artifact_id?: string;
   contact_id?: string;
+  title?: string;
+  description?: string;
+  action_id?: string; // For existing actions
 }
 
 // interface SessionAction {
@@ -50,6 +53,156 @@ interface CreateSessionAction {
 //   created_at: string;
 //   actions: SessionAction[];
 // }
+
+// ===============================================
+// PENDING ACTIONS ROLL-UP
+// ===============================================
+
+interface PendingActionCounts {
+  pogs: number;
+  asks: number;
+  followUps: number;
+  meetings: number;
+  contacts: number;
+}
+
+export function usePendingActions() {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['pending-actions', user?.id],
+    queryFn: async (): Promise<PendingActionCounts> => {
+      if (!user) {
+        return { pogs: 0, asks: 0, followUps: 0, meetings: 0, contacts: 0 };
+      }
+      
+      const counts = { pogs: 0, asks: 0, followUps: 0, meetings: 0, contacts: 0 };
+      
+      // Query pending actions from the new actions table
+      const { data: actions } = await supabase
+        .from('actions')
+        .select('action_type')
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .is('session_id', null); // Only unassigned actions
+      
+      // Count actions by type
+      (actions || []).forEach(action => {
+        switch (action.action_type) {
+          case 'deliver_pog':
+          case 'make_introduction':
+          case 'share_content':
+            counts.pogs++;
+            break;
+          case 'follow_up_ask':
+          case 'send_follow_up':
+            counts.asks++;
+            break;
+          case 'reconnect_with_contact':
+          case 'schedule_meeting':
+            counts.followUps++;
+            break;
+          case 'add_meeting_notes':
+            counts.meetings++;
+            break;
+          case 'add_contact_to_goal':
+            counts.contacts++;
+            break;
+          default:
+            // Other action types don't map to our display categories
+            break;
+        }
+      });
+      
+      return counts;
+    },
+    enabled: !!user
+  });
+}
+
+// ===============================================
+// RECENT SESSIONS FOR MOMENTUM DISPLAY
+// ===============================================
+
+interface RecentSessionData {
+  lastSessionDate: string | null;
+  daysSinceLastSession: number | null;
+  totalSessions: number;
+  averageSessionsPerWeek: number;
+  momentumMessage: string;
+}
+
+export function useRecentSessions() {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['recent-sessions', user?.id],
+    queryFn: async (): Promise<RecentSessionData> => {
+      if (!user) {
+        return {
+          lastSessionDate: null,
+          daysSinceLastSession: null,
+          totalSessions: 0,
+          averageSessionsPerWeek: 0,
+          momentumMessage: 'Ready to start your first relationship-building session?'
+        };
+      }
+      
+      // Get recent sessions (last 30 days for average calculation)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { data: sessions } = await supabase
+        .from('relationship_sessions')
+        .select('started_at, completed_at, status')
+        .eq('user_id', user.id)
+        .gte('started_at', thirtyDaysAgo.toISOString())
+        .order('started_at', { ascending: false });
+      
+      const totalSessions = sessions?.length || 0;
+      
+      // Calculate days since last session
+      let daysSinceLastSession: number | null = null;
+      let lastSessionDate: string | null = null;
+      
+      if (sessions && sessions.length > 0) {
+        const lastSession = sessions[0];
+        lastSessionDate = lastSession.started_at;
+        const lastSessionTime = new Date(lastSession.started_at);
+        const now = new Date();
+        daysSinceLastSession = Math.floor((now.getTime() - lastSessionTime.getTime()) / (1000 * 60 * 60 * 24));
+      }
+      
+      // Calculate average sessions per week (last 30 days)
+      const averageSessionsPerWeek = totalSessions > 0 ? (totalSessions / 30) * 7 : 0;
+      
+      // Generate momentum message
+      let momentumMessage = '';
+      if (daysSinceLastSession === null) {
+        momentumMessage = 'Ready to start your first relationship-building session?';
+      } else if (daysSinceLastSession === 0) {
+        momentumMessage = 'Great momentum! Ready for another productive session?';
+      } else if (daysSinceLastSession <= 2) {
+        momentumMessage = 'Excellent consistency! Keep the relationship momentum going.';
+      } else if (daysSinceLastSession <= 7) {
+        momentumMessage = 'Perfect timing for your next relationship-building session.';
+      } else if (daysSinceLastSession <= 14) {
+        momentumMessage = 'Your network is ready for some attention. Let\'s reconnect!';
+      } else {
+        momentumMessage = 'Your relationships are waiting - time to strengthen those connections.';
+      }
+      
+      return {
+        lastSessionDate,
+        daysSinceLastSession,
+        totalSessions,
+        averageSessionsPerWeek: Math.round(averageSessionsPerWeek * 10) / 10, // Round to 1 decimal
+        momentumMessage
+      };
+    },
+    enabled: !!user
+  });
+}
 
 // ===============================================
 // GOALS FOR RELATIONSHIP BUILDING
@@ -258,13 +411,13 @@ export function useGoalSessionActions(goalId: string) {
         } as CreateSessionAction);
       }
       
-      // 1. Get orphaned session actions (created during calendar sync)
+      // 1. Get orphaned actions (created during calendar sync)
       const { data: orphanedActions, error: orphanedError } = await supabase
-        .from('session_actions')
+        .from('actions')
         .select(`
-          id, action_type, contact_id, meeting_artifact_id, action_data, created_at,
+          id, action_type, contact_id, artifact_id, action_data, created_at, title, description,
           contacts(id, name),
-          artifacts!meeting_artifact_id(id, metadata, created_at)
+          artifacts!artifact_id(id, metadata, created_at)
         `)
         .eq('user_id', user.id)
         .eq('goal_id', goalId)
@@ -283,10 +436,12 @@ export function useGoalSessionActions(goalId: string) {
           
           actions.push({
             type: action.action_type as 'add_contact' | 'add_meeting_notes',
-            session_action_id: action.id, // Track the existing session action
-            meeting_artifact_id: action.meeting_artifact_id || undefined,
+            action_id: action.id, // Track the existing action
+            meeting_artifact_id: action.artifact_id || undefined,
             contact_id: action.contact_id || undefined,
             contact_name: contactData?.name || 'Unknown Contact',
+            title: action.title,
+            description: action.description,
             meeting_title: (actionData && typeof actionData === 'object' && 'meeting_title' in actionData ? actionData.meeting_title as string : undefined) || (artifactData?.metadata && typeof artifactData.metadata === 'object' && 'title' in artifactData.metadata ? artifactData.metadata.title as string : undefined) || 'Meeting',
             meeting_date: artifactData?.created_at || action.created_at,
             created_from: (actionData && typeof actionData === 'object' && 'created_from' in actionData ? actionData.created_from as string : undefined) || 'orphaned'
@@ -317,7 +472,7 @@ export function useGoalSessionActions(goalId: string) {
         } else {
           // Filter meetings that need notes and aren't already covered by orphaned actions
           const existingMeetingIds = new Set(
-            (orphanedActions || []).map(action => action.meeting_artifact_id).filter(Boolean)
+            (orphanedActions || []).map(action => action.artifact_id).filter(Boolean)
           );
           
           (meetings || []).forEach(meeting => {
@@ -414,32 +569,46 @@ export function useCreateSession() {
           session_id: string;
           user_id: string;
           action_type: string;
+          title: string;
+          description: string;
+          priority: string;
+          status: string;
           contact_id?: string;
           goal_id?: string;
-          meeting_artifact_id?: string;
+          artifact_id?: string;
+          estimated_duration_minutes: number;
           action_data: Json;
-          status: string;
+          created_source: string;
         }> = [];
         const orphanedActionsToUpdate: string[] = [];
         
         for (const action of params.actions) {
-          // Check if this action already exists as an orphaned session action
-          const isOrphanedAction = (action as CreateSessionAction & { session_action_id?: string }).session_action_id;
+          // Check if this action already exists as an orphaned action
+          const isOrphanedAction = (action as CreateSessionAction & { action_id?: string }).action_id;
           
           if (isOrphanedAction) {
             // Link existing orphaned action to this session
-            orphanedActionsToUpdate.push((action as CreateSessionAction & { session_action_id: string }).session_action_id);
+            orphanedActionsToUpdate.push((action as CreateSessionAction & { action_id: string }).action_id);
           } else {
-            // Create new session action
+            // Create new action
+            const title = action.title || action.type.split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            
             actionsToCreate.push({
               session_id: session.id,
               user_id: user.id,
               action_type: action.type,
+              title: title,
+              description: action.description || `Complete ${action.type.replace(/_/g, ' ')} action`,
+              priority: 'medium',
+              status: 'pending',
               contact_id: action.contact_id,
               goal_id: action.goal_id,
-              meeting_artifact_id: action.meeting_artifact_id,
+              artifact_id: action.meeting_artifact_id,
+              estimated_duration_minutes: 15,
               action_data: {} as Json,
-              status: 'pending'
+              created_source: 'session_creation'
             });
           }
         }
@@ -447,7 +616,7 @@ export function useCreateSession() {
         // Update orphaned actions to link them to this session
         if (orphanedActionsToUpdate.length > 0) {
           const { error: updateError } = await supabase
-            .from('session_actions')
+            .from('actions')
             .update({ session_id: session.id })
             .in('id', orphanedActionsToUpdate);
           
@@ -457,10 +626,10 @@ export function useCreateSession() {
           }
         }
         
-        // Create new session actions
+        // Create new actions
         if (actionsToCreate.length > 0) {
           const { error: actionsError } = await supabase
-            .from('session_actions')
+            .from('actions')
             .insert(actionsToCreate);
           
           if (actionsError) {
@@ -494,10 +663,10 @@ export function useSession(sessionId: string) {
               contacts!inner(id, name, email)
             )
           ),
-          actions:session_actions(
+          actions:actions(
             *,
             contact:contacts(id, name),
-            meeting_artifact:artifacts!meeting_artifact_id(id, metadata, created_at),
+            artifact:artifacts!artifact_id(id, metadata, created_at),
             goal:goals(
               id, title, description, target_contact_count,
               goal_contacts(
@@ -531,11 +700,12 @@ export function useCompleteSessionAction() {
       actionData?: Record<string, unknown>;
     }) => {
       const { error } = await supabase
-        .from('session_actions')
+        .from('actions')
         .update({
           status,
           action_data: (actionData || {}) as Json,
-          completed_at: new Date().toISOString()
+          completed_at: new Date().toISOString(),
+          completed_by_user_id: (await supabase.auth.getUser()).data.user?.id
         })
         .eq('id', actionId);
       

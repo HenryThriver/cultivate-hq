@@ -129,46 +129,46 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
     return [
       {
         title: 'Relationship Momentum',
-        value: displayKpis.relationshipMomentum.actionsCompleted,
-        subtitle: `${displayKpis.relationshipMomentum.currentStreak} week streak`,
+        value: `${displayKpis.relationshipMomentum.actionsCompleted} actions completed`,
+        subtitle: `Last 90 days • ${displayKpis.relationshipMomentum.currentStreak} week streak`,
         valueStory: "You're putting in the work consistently",
         icon: <MomentumIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.primary.main,
         trend: displayKpis.relationshipMomentum.weeklyTrend,
-        trendLabel: 'Actions completed',
+        trendLabel: 'Actions completed per week',
         insight: 'Your consistent effort is building momentum across your relationship portfolio'
       },
       {
         title: 'Portfolio Activation',
-        value: `${displayKpis.portfolioActivation.responseRate}%`,
-        subtitle: `${displayKpis.portfolioActivation.connectedContacts} connected`,
+        value: `${displayKpis.portfolioActivation.responseRate}% response rate`,
+        subtitle: `${displayKpis.portfolioActivation.connectedContacts} of ${displayKpis.portfolioActivation.reachedOutTo || 4} reached out to (90 days)`,
         valueStory: 'Your network is engaged, not dormant',
         icon: <NetworkIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.sage?.main || '#059669',
         trend: displayKpis.portfolioActivation.weeklyTrend,
-        trendLabel: 'Response rate %',
+        trendLabel: 'Response rate % over time',
         insight: `Strong ${displayKpis.portfolioActivation.responseRate}% response rate shows your outreach is valued`
       },
       {
         title: 'Relationship Depth',
-        value: displayKpis.relationshipDepth.qualityIndex.toFixed(1),
-        subtitle: `${displayKpis.relationshipDepth.strategicContacts} strategic contacts`,
+        value: `${displayKpis.relationshipDepth.qualityIndex.toFixed(1)} avg quality score`,
+        subtitle: `Across ${displayKpis.relationshipDepth.strategicContacts} strategic contacts`,
         valueStory: "You're building champions and amplifiers",
         icon: <DepthIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.amber?.main || '#F59E0B',
         trend: displayKpis.relationshipDepth.weeklyTrend,
-        trendLabel: 'Quality index',
+        trendLabel: 'Quality index over time',
         insight: 'Deep relationships with key contacts are strengthening your influence'
       },
       {
         title: 'Strategic Wins',
-        value: displayKpis.strategicWins.asksCompleted + displayKpis.strategicWins.milestonesAchieved,
-        subtitle: `${displayKpis.strategicWins.asksCompleted} asks, ${displayKpis.strategicWins.milestonesAchieved} milestones`,
+        value: `${displayKpis.strategicWins.asksCompleted + displayKpis.strategicWins.milestonesAchieved} total wins`,
+        subtitle: `${displayKpis.strategicWins.asksCompleted} asks + ${displayKpis.strategicWins.milestonesAchieved} milestones (90 days)`,
         valueStory: 'Your relationships are advancing objectives',
         icon: <WinsIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.plum?.main || '#7C3AED',
         trend: displayKpis.strategicWins.weeklyTrend,
-        trendLabel: 'Total wins achieved',
+        trendLabel: 'Cumulative wins over time',
         insight: `${displayKpis.strategicWins.avgGoalProgress}% average progress across active goals`
       }
     ];

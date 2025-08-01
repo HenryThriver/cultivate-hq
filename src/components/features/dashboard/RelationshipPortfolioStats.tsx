@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -66,6 +66,27 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
 }) => {
   const theme = useTheme();
   const { data: kpis, isLoading, error } = usePortfolioKPIs();
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  const handleCardClick = (title: string) => {
+    setExpandedCard(expandedCard === title ? null : title);
+  };
+
+  const getTrendInsight = (trend: number[], title: string) => {
+    const recent = trend.slice(-4).reduce((a, b) => a + b, 0) / 4;
+    const earlier = trend.slice(0, 4).reduce((a, b) => a + b, 0) / 4;
+    const growth = ((recent - earlier) / earlier * 100);
+    
+    if (growth > 20) {
+      return `Strong upward momentum: ${growth.toFixed(0)}% growth in recent weeks`;
+    } else if (growth > 5) {
+      return `Steady growth trend: ${growth.toFixed(0)}% improvement recently`;
+    } else if (growth < -10) {
+      return `Declining trend: ${Math.abs(growth).toFixed(0)}% decrease - needs attention`;
+    } else {
+      return `Stable performance with consistent ${title.toLowerCase()} metrics`;
+    }
+  };
 
   // Show fallback data if there's an error or no data, instead of disappearing
   const fallbackKpis = {
@@ -209,13 +230,14 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
               }}
             >
               <Card
+                onClick={() => handleCardClick(metric.title)}
                 sx={{
-                  height: 280,
+                  height: expandedCard === metric.title ? 400 : 280,
                   position: 'relative',
                   overflow: 'hidden',
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafffe 100%)',
                   border: '1px solid',
-                  borderColor: alpha(metric.color, 0.1),
+                  borderColor: expandedCard === metric.title ? alpha(metric.color, 0.3) : alpha(metric.color, 0.1),
                   borderRadius: 3,
                   transition: 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)',
                   cursor: 'pointer',
@@ -264,13 +286,26 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                       {metric.icon}
                     </Box>
                     
-                    <ChartIcon 
-                      sx={{ 
-                        fontSize: 20, 
-                        color: 'text.secondary',
-                        opacity: 0.5
-                      }} 
-                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ChartIcon 
+                        sx={{ 
+                          fontSize: 20, 
+                          color: expandedCard === metric.title ? metric.color : 'text.secondary',
+                          opacity: expandedCard === metric.title ? 1 : 0.5,
+                          transition: 'all 200ms ease'
+                        }} 
+                      />
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: 'text.secondary', 
+                          fontSize: '10px',
+                          opacity: 0.7
+                        }}
+                      >
+                        {expandedCard === metric.title ? 'Click to collapse' : 'Click to expand'}
+                      </Typography>
+                    </Box>
                   </Box>
 
                   {/* Value and Title */}
@@ -330,7 +365,16 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
 
                   {/* Trend Chart */}
                   {metric.trend && metric.trend.length > 0 && (
-                    <Box sx={{ flexGrow: 1, minHeight: 80, position: 'relative', mt: 2 }}>
+                    <Box sx={{ 
+                      flexGrow: 1, 
+                      minHeight: expandedCard === metric.title ? 180 : 100, 
+                      position: 'relative', 
+                      mt: 2,
+                      p: 1,
+                      borderRadius: 2,
+                      backgroundColor: alpha(metric.color, 0.02),
+                      transition: 'all 400ms ease-in-out'
+                    }}>
                       <Line
                         data={{
                           labels: metric.trend.map((_, i) => `W${i + 1}`),
@@ -341,8 +385,8 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                             borderWidth: 2,
                             fill: true,
                             tension: 0.4,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
                             pointBackgroundColor: metric.color,
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2
@@ -363,17 +407,77 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                           },
                           scales: {
                             x: {
-                              display: false,
-                              grid: { display: false }
+                              display: true,
+                              position: 'bottom',
+                              grid: { display: false },
+                              ticks: {
+                                display: true,
+                                color: alpha(metric.color, 0.6),
+                                font: { size: expandedCard === metric.title ? 11 : 10 },
+                                maxTicksLimit: expandedCard === metric.title ? 6 : 4
+                              }
                             },
                             y: {
-                              display: false,
-                              grid: { display: false },
+                              display: true,
+                              position: 'left',
+                              grid: { 
+                                display: true,
+                                color: alpha(metric.color, 0.1)
+                              },
+                              ticks: {
+                                display: true,
+                                color: alpha(metric.color, 0.6),
+                                font: { size: expandedCard === metric.title ? 11 : 10 },
+                                maxTicksLimit: expandedCard === metric.title ? 5 : 3
+                              },
                               beginAtZero: true
                             }
                           }
                         }}
                       />
+                      {/* Expanded trend insights */}
+                      {expandedCard === metric.title && (
+                        <Box sx={{ 
+                          mt: 2, 
+                          p: 2, 
+                          borderRadius: 2, 
+                          backgroundColor: alpha(metric.color, 0.05),
+                          border: `1px solid ${alpha(metric.color, 0.1)}`
+                        }}>
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: 'text.secondary',
+                              fontWeight: 600,
+                              display: 'block',
+                              mb: 1
+                            }}
+                          >
+                            12-Week Trend Analysis
+                          </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              Peak: {Math.max(...metric.trend)}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              Avg: {(metric.trend.reduce((a, b) => a + b, 0) / metric.trend.length).toFixed(1)}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              Current: {metric.trend[metric.trend.length - 1]}
+                            </Typography>
+                          </Box>
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: metric.color,
+                              fontStyle: 'italic',
+                              fontSize: '11px'
+                            }}
+                          >
+                            {getTrendInsight(metric.trend, metric.title)}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   )}
                 </CardContent>

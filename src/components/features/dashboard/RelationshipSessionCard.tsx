@@ -11,7 +11,6 @@ import {
   Fade,
   Grow,
   Chip,
-  Stack,
   CircularProgress,
 } from '@mui/material';
 import {
@@ -25,7 +24,7 @@ import {
   AutoAwesome as AutoAwesomeIcon,
 } from '@mui/icons-material';
 import { SessionStartModal } from '@/components/features/relationship-sessions';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 
 // ===============================================
 // TYPES
@@ -214,7 +213,7 @@ export const RelationshipSessionCard: React.FC<RelationshipSessionCardProps> = (
   onSessionCreated
 }) => {
   const theme = useTheme();
-  const router = useRouter();
+  // const router = useRouter(); // Reserved for future session navigation
   const [showStartModal, setShowStartModal] = useState(false);
 
   const handleStartSession = () => {

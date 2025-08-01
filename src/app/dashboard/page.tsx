@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useUserProfile } from '@/lib/hooks/useUserProfile';
-import { useGoalsForRelationshipBuilding, usePendingActions, useRecentSessions } from '@/lib/hooks/useRelationshipSessions';
+import { usePendingActions, useRecentSessions } from '@/lib/hooks/useRelationshipSessions';
 import { useRouter } from 'next/navigation';
 import {
   RelationshipPortfolioStats,
@@ -22,7 +22,7 @@ export default function DashboardPage(): React.JSX.Element {
   const { profile } = useUserProfile();
   const router = useRouter();
   
-  const { data: goals, isLoading: loadingGoals } = useGoalsForRelationshipBuilding();
+  // Goals will be used in future iterations
   const { data: pendingActions, isLoading: loadingActions } = usePendingActions();
   const { data: recentSessions, isLoading: loadingSessions } = useRecentSessions();
 

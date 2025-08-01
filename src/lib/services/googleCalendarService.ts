@@ -206,12 +206,13 @@ export class GoogleCalendarService {
     events: GoogleCalendarEvent[], 
     userId: string
   ): Promise<Map<string, ContactEmailMatch[]>> {
-    // Get all user's contacts with their primary emails and email_addresses array, EXCLUDING self-contacts
+    // Get all user's contacts with their primary emails and email_addresses array
+    // Note: All contacts in the contacts table belong to this user (user_id = userId)
+    // Self-contact identification is no longer done via is_self_contact flag
     const { data: contacts, error } = await this.supabase
       .from('contacts')
       .select('id, name, email, email_addresses')
-      .eq('user_id', userId)
-      .eq('is_self_contact', false); // Only include external contacts
+      .eq('user_id', userId);
 
     if (error || !contacts) {
       throw new Error(`Failed to fetch contacts: ${error?.message}`);

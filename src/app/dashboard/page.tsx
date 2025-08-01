@@ -23,6 +23,7 @@ export default function DashboardPage(): React.JSX.Element {
   const router = useRouter();
   
   // Goals will be used in future iterations
+  const loadingGoals = false; // Temporary until goals are implemented
   const { data: pendingActions, isLoading: loadingActions } = usePendingActions();
   const { data: recentSessions, isLoading: loadingSessions } = useRecentSessions();
 

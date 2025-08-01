@@ -107,7 +107,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
     portfolioActivation: {
       responseRate: 75,
       connectedContacts: 3,
-      weeklyTrend: [60, 65, 70, 72, 75, 75, 75, 75, 75, 75, 75, 75]
+      weeklyTrend: [0, 0, 25, 40, 50, 60, 65, 70, 72, 75, 75, 75]
     },
     relationshipDepth: {
       qualityIndex: 7.8,
@@ -115,10 +115,10 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
       weeklyTrend: [7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.8, 7.8, 7.8, 7.8, 7.8]
     },
     strategicWins: {
-      asksCompleted: 1,
-      milestonesAchieved: 2,
+      asksCompleted: 3,
+      milestonesAchieved: 7,
       avgGoalProgress: 60,
-      weeklyTrend: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2]
+      weeklyTrend: [0, 0, 0, 0, 0, 1, 1, 1, 2, 5, 9, 10]
     }
   };
 
@@ -162,13 +162,13 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
       },
       {
         title: 'Strategic Wins',
-        value: displayKpis.strategicWins.asksCompleted,
-        subtitle: `${displayKpis.strategicWins.milestonesAchieved} milestones achieved`,
+        value: displayKpis.strategicWins.asksCompleted + displayKpis.strategicWins.milestonesAchieved,
+        subtitle: `${displayKpis.strategicWins.asksCompleted} asks, ${displayKpis.strategicWins.milestonesAchieved} milestones`,
         valueStory: 'Your relationships are advancing objectives',
         icon: <WinsIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.plum?.main || '#7C3AED',
         trend: displayKpis.strategicWins.weeklyTrend,
-        trendLabel: 'Wins achieved',
+        trendLabel: 'Total wins achieved',
         insight: `${displayKpis.strategicWins.avgGoalProgress}% average progress across active goals`
       }
     ];

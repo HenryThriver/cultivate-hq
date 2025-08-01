@@ -71,7 +71,7 @@ export function usePortfolioKPIs() {
             responseRate: 75,
             connectedContacts: 3,
             reachedOutTo: 4,
-            weeklyTrend: [60, 65, 70, 72, 75, 75, 75, 75, 75, 75, 75, 75],
+            weeklyTrend: [0, 0, 25, 40, 50, 60, 65, 70, 72, 75, 75, 75],
           },
           relationshipDepth: {
             qualityIndex: 7.8,
@@ -79,10 +79,10 @@ export function usePortfolioKPIs() {
             weeklyTrend: [7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.8, 7.8, 7.8, 7.8, 7.8],
           },
           strategicWins: {
-            asksCompleted: 1,
-            milestonesAchieved: 2,
+            asksCompleted: 3,
+            milestonesAchieved: 7,
             avgGoalProgress: 60,
-            weeklyTrend: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2],
+            weeklyTrend: [0, 0, 0, 0, 0, 1, 1, 1, 2, 5, 9, 10],
           },
         };
       }

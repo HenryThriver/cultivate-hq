@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import {
   RelationshipPortfolioStats,
   IntelligenceInsights,
-  ActionPriorityHub,
   MomentumCelebration,
   RelationshipSessionCard
 } from '@/components/features/dashboard';
@@ -99,23 +98,8 @@ export default function DashboardPage(): React.JSX.Element {
       {/* Strategic Overview - Portfolio Stats */}
       <RelationshipPortfolioStats />
 
-      {/* Main Dashboard Grid */}
-      <Box sx={{ 
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
-        gap: 4,
-        mb: 4
-      }}>
-        {/* Intelligence Column */}
-        <Box>
-          <IntelligenceInsights />
-        </Box>
-
-        {/* Actions Column */}
-        <Box>
-          <ActionPriorityHub />
-        </Box>
-      </Box>
+      {/* Intelligence Insights */}
+      <IntelligenceInsights />
 
       {/* Momentum & Celebration Section */}
       <MomentumCelebration />

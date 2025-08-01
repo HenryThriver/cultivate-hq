@@ -58,31 +58,30 @@ export function usePortfolioKPIs() {
       } catch (error) {
         console.error('Error fetching KPIs:', error);
         
-        // Return empty but valid data structure
-        // Return realistic fallback data instead of zeros
+        // Return fallback data on error
         return {
           relationshipMomentum: {
-            actionsCompleted: 2,
-            sessionsCompleted: 1,
-            currentStreak: 1,
-            weeklyTrend: [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2],
+            actionsCompleted: 0,
+            sessionsCompleted: 0,
+            currentStreak: 0,
+            weeklyTrend: Array(12).fill(0),
           },
           portfolioActivation: {
-            responseRate: 75,
-            connectedContacts: 3,
-            reachedOutTo: 4,
-            weeklyTrend: [0, 0, 25, 40, 50, 60, 65, 70, 72, 75, 75, 75],
+            responseRate: 0,
+            connectedContacts: 0,
+            reachedOutTo: 0,
+            weeklyTrend: Array(12).fill(0),
           },
           relationshipDepth: {
-            qualityIndex: 7.8,
-            strategicContacts: 3,
-            weeklyTrend: [7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.8, 7.8, 7.8, 7.8, 7.8],
+            qualityIndex: 0,
+            strategicContacts: 0,
+            weeklyTrend: Array(12).fill(0),
           },
           strategicWins: {
-            asksCompleted: 3,
-            milestonesAchieved: 7,
-            avgGoalProgress: 60,
-            weeklyTrend: [0, 0, 0, 0, 0, 1, 1, 1, 2, 5, 9, 10],
+            asksCompleted: 0,
+            milestonesAchieved: 0,
+            avgGoalProgress: 0,
+            weeklyTrend: Array(12).fill(0),
           },
         };
       }
@@ -170,10 +169,10 @@ async function calculatePortfolioActivation(
     ? (connectedContacts.size / reachedOutContacts.size) * 100
     : 0;
 
-  // Calculate weekly trend for response rate
-  const weeklyResponseRates = calculateWeeklyResponseRates(
-    outreachActions || [],
+  // Calculate weekly trend for connections (simpler approach)
+  const weeklyTrend = calculateWeeklyTrend(
     connections || [],
+    'created_at',
     12
   );
 
@@ -181,44 +180,41 @@ async function calculatePortfolioActivation(
     responseRate: Math.round(responseRate),
     connectedContacts: connectedContacts.size,
     reachedOutTo: reachedOutContacts.size,
-    weeklyTrend: weeklyResponseRates,
+    weeklyTrend: weeklyTrend,
   };
 }
 
 async function calculateRelationshipDepth(userId: string) {
-  // Get goal contacts with their relationship scores
-  const { data: goalContacts, error } = await supabase
-    .from('goal_contacts')
-    .select(`
-      contact_id,
-      relevance_score,
-      contacts!inner (
-        id,
-        relationship_score
-      )
-    `)
+  // Get user's email to exclude self-contacts
+  const { data: { user } } = await supabase.auth.getUser();
+  const userEmail = user?.email;
+
+  // Get all contacts for this user (excluding self-contacts)
+  const { data: contacts, error } = await supabase
+    .from('contacts')
+    .select('id, relationship_score, email')
     .eq('user_id', userId)
-    .eq('status', 'active');
+    .or(`email.is.null,email.neq.${userEmail}`); // Include NULL emails but exclude self-contacts
 
   if (error) throw error;
 
-  // Calculate average quality index
+  // Calculate average quality index across all contacts
   let totalScore = 0;
   let count = 0;
 
-  for (const gc of goalContacts || []) {
+  for (const contact of contacts || []) {
     // Get interaction frequency (last 90 days)
     const { count: interactionCount } = await supabase
       .from('artifacts')
       .select('*', { count: 'exact', head: true })
-      .eq('contact_id', gc.contact_id)
+      .eq('contact_id', contact.id)
       .gte('created_at', subDays(new Date(), 90).toISOString());
 
     // Get reciprocity score from loop analytics
     const { data: loopData } = await supabase
       .from('loop_analytics')
       .select('reciprocity_impact')
-      .eq('contact_id', gc.contact_id)
+      .eq('contact_id', contact.id)
       .order('created_at', { ascending: false })
       .limit(5);
 
@@ -229,7 +225,7 @@ async function calculateRelationshipDepth(userId: string) {
     // Calculate composite score
     const frequencyScore = Math.min((interactionCount || 0) * 2, 10);
     const reciprocityScore = avgReciprocity;
-    const manualScore = gc.contacts?.relationship_score || 5;
+    const manualScore = contact.relationship_score || 5;
 
     const compositeScore = (frequencyScore * 0.4) + (reciprocityScore * 0.3) + (manualScore * 0.3);
     
@@ -307,7 +303,7 @@ async function calculateStrategicWins(
 
 // Helper functions
 function calculateWeeklyTrend(
-  items: Array<{ completed_at?: string | null }>,
+  items: Array<{ completed_at?: string | null } | { created_at?: string | null }>,
   dateField: string,
   weeks: number
 ): number[] {
@@ -325,81 +321,50 @@ function calculateWeeklyTrend(
     }
   });
 
-  // Convert to cumulative
-  for (let i = 1; i < trend.length; i++) {
-    trend[i] += trend[i - 1];
-  }
-
   return trend;
 }
 
 function calculateActivityStreak(actions: Array<{ completed_at?: string | null }>): number {
-  const weeks = new Set<string>();
+  if (!actions.length) return 0;
   
-  actions.forEach(action => {
-    if (action.completed_at) {
-      const week = startOfWeek(new Date(action.completed_at)).toISOString();
-      weeks.add(week);
-    }
+  // Sort actions by completion date (most recent first)
+  const sortedActions = actions
+    .filter(action => action.completed_at)
+    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime());
+  
+  if (!sortedActions.length) return 0;
+  
+  // Get unique weeks with activity
+  const activeWeeks = new Set<string>();
+  sortedActions.forEach(action => {
+    const week = startOfWeek(new Date(action.completed_at!)).toISOString();
+    activeWeeks.add(week);
   });
-
-  // Check consecutive weeks from most recent
-  let streak = 0;
-  const now = new Date();
   
-  for (let i = 0; i < 52; i++) {
-    const weekStart = startOfWeek(subDays(now, i * 7)).toISOString();
-    if (weeks.has(weekStart)) {
+  // Convert to sorted array (most recent first)
+  const sortedWeeks = Array.from(activeWeeks).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  
+  // Count consecutive weeks from most recent activity
+  let streak = 1; // Start with 1 since we have at least one week of activity
+  
+  for (let i = 1; i < sortedWeeks.length; i++) {
+    const currentWeek = new Date(sortedWeeks[i - 1]);
+    const nextWeek = new Date(sortedWeeks[i]);
+    
+    // Check if the weeks are consecutive (7 days apart)
+    const daysDiff = Math.abs(currentWeek.getTime() - nextWeek.getTime()) / (1000 * 60 * 60 * 24);
+    
+    if (daysDiff <= 7) {
       streak++;
-    } else if (i > 0) {
-      break;
+    } else {
+      break; // End of consecutive streak
     }
   }
-
+  
   return streak;
 }
 
-function calculateWeeklyResponseRates(
-  outreach: Array<{ contact_id?: string | null; created_at?: string | null }>,
-  connections: Array<{ contact_id?: string | null; created_at?: string | null }>,
-  weeks: number
-): number[] {
-  const trend: number[] = [];
-  const now = new Date();
-
-  for (let w = weeks - 1; w >= 0; w--) {
-    const weekStart = subDays(now, (w + 1) * 7);
-    const weekEnd = subDays(now, w * 7);
-
-    const weekOutreach = new Set(
-      outreach
-        .filter(o => {
-          if (!o.created_at) return false;
-          const date = new Date(o.created_at);
-          return date >= weekStart && date < weekEnd;
-        })
-        .map(o => o.contact_id)
-    );
-
-    const weekConnections = new Set(
-      connections
-        .filter(c => {
-          if (!c.created_at || !weekOutreach.has(c.contact_id)) return false;
-          const date = new Date(c.created_at);
-          return date >= weekStart && date < weekEnd;
-        })
-        .map(c => c.contact_id)
-    );
-
-    const rate = weekOutreach.size > 0
-      ? (weekConnections.size / weekOutreach.size) * 100
-      : 0;
-
-    trend.push(Math.round(rate));
-  }
-
-  return trend;
-}
+// Removed unused function calculateWeeklyResponseRates
 
 function generateGrowthTrend(
   currentValue: number,

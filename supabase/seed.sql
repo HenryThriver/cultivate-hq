@@ -995,6 +995,138 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================
+-- EXPANDED CONTACT NETWORK (21 NEW CONTACTS)
+-- Add realistic diverse professional network with varied relationship scores
+-- ============================================================================
+INSERT INTO contacts (
+  id, user_id, name, company, title, relationship_score, created_at, updated_at
+) VALUES
+  -- High value contacts (1 score of 6, 3 scores of 5)
+  ('c1001001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Alex Rivera', 'TechVenture Capital', 'Partner', 6, NOW(), NOW()),
+  ('c1002002-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Jordan Kim', 'InnovateLabs', 'Head of Product', 5, NOW(), NOW()),
+  ('c1003003-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Taylor Watson', 'Growth Partners', 'Senior Director', 5, NOW(), NOW()),
+  ('c1004004-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Morgan Lee', 'ScaleUp Ventures', 'VP Strategy', 5, NOW(), NOW()),
+
+  -- Medium value contacts (most with scores of 1-2)
+  ('c1005005-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Casey Brown', 'StartupHub', 'Community Manager', 2, NOW(), NOW()),
+  ('c1006006-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Riley Davis', 'CodeCraft Solutions', 'Lead Engineer', 2, NOW(), NOW()),
+  ('c1007007-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Avery Johnson', 'DataFlow Inc', 'Product Manager', 2, NOW(), NOW()),
+  ('c1008008-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Cameron Smith', 'CloudTech Systems', 'Solutions Architect', 1, NOW(), NOW()),
+  ('c1009009-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Drew Wilson', 'AgileWorks', 'Scrum Master', 1, NOW(), NOW()),
+  ('c1010010-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Quinn Martinez', 'DevOps Pro', 'Site Reliability Engineer', 1, NOW(), NOW()),
+  ('c1011011-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Sage Garcia', 'UX Innovations', 'Design Lead', 2, NOW(), NOW()),
+  ('c1012012-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'River Thompson', 'Analytics Edge', 'Data Scientist', 1, NOW(), NOW()),
+  ('c1013013-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Phoenix Chen', 'Mobile First', 'iOS Developer', 1, NOW(), NOW()),
+  ('c1014014-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Dakota Rodriguez', 'Security Systems', 'InfoSec Specialist', 2, NOW(), NOW()),
+  ('c1015015-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Skyler Anderson', 'FinTech Solutions', 'Business Analyst', 1, NOW(), NOW()),
+  ('c1016016-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Rowan Taylor', 'AI Research Lab', 'Research Scientist', 2, NOW(), NOW()),
+  ('c1017017-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Ember White', 'Growth Marketing Co', 'Marketing Director', 1, NOW(), NOW()),
+  ('c1018018-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Sage Williams', 'Customer Success Inc', 'VP Customer Success', 2, NOW(), NOW()),
+  ('c1019019-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'River Jackson', 'Sales Excellence', 'Sales Director', 1, NOW(), NOW()),
+  ('c1020020-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Ocean Miller', 'Partnership Dynamics', 'VP Partnerships', 2, NOW(), NOW()),
+  ('c1021021-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'Storm Moore', 'Innovation Labs', 'Innovation Manager', 1, NOW(), NOW());
+
+-- ============================================================================
+-- EXPANDED GOAL CONTACTS (9 NEW STRATEGIC RELATIONSHIPS)
+-- Add high-value contacts to goals for comprehensive relationship depth
+-- ============================================================================
+INSERT INTO goal_contacts (goal_id, contact_id, user_id, relevance_score, status, relationship_type, created_at, updated_at) VALUES
+  -- Add high-value contacts to AI/ML goal  
+  ('e1111111-89ab-cdef-0123-456789abcdef'::uuid, 'c1001001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.9, 'active', 'investor', NOW(), NOW()),
+  ('e1111111-89ab-cdef-0123-456789abcdef'::uuid, 'c1002002-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.8, 'active', 'collaborator', NOW(), NOW()),
+  ('e1111111-89ab-cdef-0123-456789abcdef'::uuid, 'c1016016-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.9, 'active', 'industry_expert', NOW(), NOW()),
+  ('e1111111-89ab-cdef-0123-456789abcdef'::uuid, 'c1013013-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.7, 'active', 'peer', NOW(), NOW()),
+
+  -- Add contacts to Board Advisory goal
+  ('e2222222-89ab-cdef-0123-456789abcdef'::uuid, 'c1003003-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.8, 'active', 'advisor', NOW(), NOW()),
+  ('e2222222-89ab-cdef-0123-456789abcdef'::uuid, 'c1004004-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.8, 'active', 'advisor', NOW(), NOW()),
+  ('e2222222-89ab-cdef-0123-456789abcdef'::uuid, 'c1020020-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.7, 'active', 'connector', NOW(), NOW()),
+
+  -- Add contacts to AI Ethics goal
+  ('e3333333-89ab-cdef-0123-456789abcdef'::uuid, 'c1012012-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.7, 'active', 'industry_expert', NOW(), NOW()),
+  ('e3333333-89ab-cdef-0123-456789abcdef'::uuid, 'c1014014-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 0.6, 'active', 'industry_expert', NOW(), NOW());
+
+-- ============================================================================
+-- COMPREHENSIVE QUARTERLY ACTIVITY (37 COMPLETED ACTIONS)
+-- Realistic relationship building activity distributed across 12 weeks
+-- ============================================================================
+INSERT INTO actions (id, user_id, contact_id, action_type, title, description, status, created_at, updated_at, completed_at, created_source) VALUES
+  -- Week 12 (most recent) - 4 actions
+  ('ac121111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1001001-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Introduction to portfolio company CEO', 'Asked Alex for intro to portfolio company in AI space', 'completed', NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days', 'manual'),
+  ('ac122222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1005005-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Follow up on event connection', 'Followed up with Casey after startup meetup', 'completed', NOW() - INTERVAL '4 days', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days', 'manual'),
+  ('ac123333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a2222222-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Shared industry report', 'Sent Marcus latest industry analysis report', 'completed', NOW() - INTERVAL '5 days', NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days', 'manual'),
+  ('ac124444-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1002002-89ab-cdef-0123-456789abcdef'::uuid, 'schedule_meeting', 'Product strategy discussion', 'Scheduled call with Jordan about product roadmap', 'completed', NOW() - INTERVAL '6 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', 'manual'),
+
+  -- Week 11 - 3 actions  
+  ('ac111111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1003003-89ab-cdef-0123-456789abcdef'::uuid, 'make_introduction', 'Connected with growth advisor', 'Introduced Taylor to growth marketing expert', 'completed', NOW() - INTERVAL '8 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days', 'manual'),
+  ('ac112222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1008008-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Technical discussion follow-up', 'Followed up with Cameron on architecture patterns', 'completed', NOW() - INTERVAL '10 days', NOW() - INTERVAL '9 days', NOW() - INTERVAL '9 days', 'manual'),
+  ('ac113333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a3333333-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Event invitation', 'Invited Emily to exclusive tech summit', 'completed', NOW() - INTERVAL '12 days', NOW() - INTERVAL '11 days', NOW() - INTERVAL '11 days', 'manual'),
+
+  -- Week 10 - 4 actions
+  ('ac101111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1004004-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Strategic partnership discussion', 'Asked Morgan about potential partnership opportunities', 'completed', NOW() - INTERVAL '15 days', NOW() - INTERVAL '14 days', NOW() - INTERVAL '14 days', 'manual'),
+  ('ac102222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1009009-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Agile methodology chat', 'Followed up with Drew on agile implementation', 'completed', NOW() - INTERVAL '16 days', NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days', 'manual'),
+  ('ac103333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1012012-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Data science resource', 'Shared advanced analytics whitepaper with River', 'completed', NOW() - INTERVAL '18 days', NOW() - INTERVAL '17 days', NOW() - INTERVAL '17 days', 'manual'),
+  ('ac104444-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a1111111-89ab-cdef-0123-456789abcdef'::uuid, 'schedule_meeting', 'Quarterly check-in', 'Scheduled quarterly review with Sarah', 'completed', NOW() - INTERVAL '19 days', NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days', 'manual'),
+
+  -- Week 9 - 3 actions
+  ('ac091111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1006006-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Code review best practices', 'Asked Riley for feedback on development processes', 'completed', NOW() - INTERVAL '22 days', NOW() - INTERVAL '21 days', NOW() - INTERVAL '21 days', 'manual'),
+  ('ac092222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1015015-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'FinTech trends discussion', 'Followed up with Skyler on market analysis', 'completed', NOW() - INTERVAL '24 days', NOW() - INTERVAL '23 days', NOW() - INTERVAL '23 days', 'manual'),
+  ('ac093333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1018018-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Customer success playbook', 'Shared customer onboarding templates with Sage', 'completed', NOW() - INTERVAL '25 days', NOW() - INTERVAL '24 days', NOW() - INTERVAL '24 days', 'manual'),
+
+  -- Week 8 - 4 actions
+  ('ac081111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1011011-89ab-cdef-0123-456789abcdef'::uuid, 'make_introduction', 'UX designer connection', 'Connected Sage Garcia with freelance UX expert', 'completed', NOW() - INTERVAL '29 days', NOW() - INTERVAL '28 days', NOW() - INTERVAL '28 days', 'manual'),
+  ('ac082222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a4444444-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Research collaboration', 'Asked Dr. Patel about joint research opportunity', 'completed', NOW() - INTERVAL '30 days', NOW() - INTERVAL '29 days', NOW() - INTERVAL '29 days', 'manual'),
+  ('ac083333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1013013-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Mobile dev insights', 'Followed up with Phoenix on iOS development trends', 'completed', NOW() - INTERVAL '32 days', NOW() - INTERVAL '31 days', NOW() - INTERVAL '31 days', 'manual'),
+  ('ac084444-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1020020-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Partnership playbook', 'Shared partnership strategy guide with Ocean', 'completed', NOW() - INTERVAL '33 days', NOW() - INTERVAL '32 days', NOW() - INTERVAL '32 days', 'manual'),
+
+  -- Week 7 - 3 actions
+  ('ac071111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1014014-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Security best practices', 'Asked Dakota about InfoSec implementation', 'completed', NOW() - INTERVAL '36 days', NOW() - INTERVAL '35 days', NOW() - INTERVAL '35 days', 'manual'),
+  ('ac072222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1016016-89ab-cdef-0123-456789abcdef'::uuid, 'schedule_meeting', 'AI research discussion', 'Scheduled research collaboration call with Rowan', 'completed', NOW() - INTERVAL '38 days', NOW() - INTERVAL '37 days', NOW() - INTERVAL '37 days', 'manual'),
+  ('ac073333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a1111111-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Industry insights', 'Shared market research with Sarah', 'completed', NOW() - INTERVAL '40 days', NOW() - INTERVAL '39 days', NOW() - INTERVAL '39 days', 'manual'),
+
+  -- Week 6 - 2 actions
+  ('ac061111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1017017-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Marketing strategy follow-up', 'Followed up with Ember on growth marketing tactics', 'completed', NOW() - INTERVAL '43 days', NOW() - INTERVAL '42 days', NOW() - INTERVAL '42 days', 'manual'),
+  ('ac062222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1019019-89ab-cdef-0123-456789abcdef'::uuid, 'make_introduction', 'Sales leader connection', 'Connected River Jackson with enterprise sales expert', 'completed', NOW() - INTERVAL '45 days', NOW() - INTERVAL '44 days', NOW() - INTERVAL '44 days', 'manual'),
+
+  -- Week 5 - 3 actions
+  ('ac051111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1021021-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Innovation lab insights', 'Asked Storm about innovation processes', 'completed', NOW() - INTERVAL '50 days', NOW() - INTERVAL '49 days', NOW() - INTERVAL '49 days', 'manual'),
+  ('ac052222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1010010-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'DevOps resources', 'Shared SRE best practices with Quinn', 'completed', NOW() - INTERVAL '52 days', NOW() - INTERVAL '51 days', NOW() - INTERVAL '51 days', 'manual'),
+  ('ac053333-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a2222222-89ab-cdef-0123-456789abcdef'::uuid, 'schedule_meeting', 'Project planning session', 'Scheduled planning call with Marcus', 'completed', NOW() - INTERVAL '54 days', NOW() - INTERVAL '53 days', NOW() - INTERVAL '53 days', 'manual'),
+
+  -- Week 4 - 2 actions  
+  ('ac041111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1007007-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Product roadmap discussion', 'Followed up with Avery on product strategy', 'completed', NOW() - INTERVAL '57 days', NOW() - INTERVAL '56 days', NOW() - INTERVAL '56 days', 'manual'),
+  ('ac042222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1001001-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'VC industry report', 'Shared venture capital trends with Alex', 'completed', NOW() - INTERVAL '59 days', NOW() - INTERVAL '58 days', NOW() - INTERVAL '58 days', 'manual'),
+
+  -- Week 3 - 2 actions
+  ('ac031111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a3333333-89ab-cdef-0123-456789abcdef'::uuid, 'make_introduction', 'Strategy consultant intro', 'Connected Jennifer with business strategy expert', 'completed', NOW() - INTERVAL '64 days', NOW() - INTERVAL '63 days', NOW() - INTERVAL '63 days', 'manual'),
+  ('ac032222-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1002002-89ab-cdef-0123-456789abcdef'::uuid, 'follow_up_ask', 'Product feedback request', 'Asked Jordan for product input on new features', 'completed', NOW() - INTERVAL '66 days', NOW() - INTERVAL '65 days', NOW() - INTERVAL '65 days', 'manual'),
+
+  -- Week 2 - 1 action
+  ('ac021111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1003003-89ab-cdef-0123-456789abcdef'::uuid, 'send_follow_up', 'Growth strategy chat', 'Followed up with Taylor on scaling strategies', 'completed', NOW() - INTERVAL '71 days', NOW() - INTERVAL '70 days', NOW() - INTERVAL '70 days', 'manual'),
+
+  -- Week 1 - 1 action
+  ('ac011111-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1004004-89ab-cdef-0123-456789abcdef'::uuid, 'deliver_pog', 'Strategic planning template', 'Shared strategy framework with Morgan', 'completed', NOW() - INTERVAL '78 days', NOW() - INTERVAL '77 days', NOW() - INTERVAL '77 days', 'manual');
+
+-- ============================================================================
+-- REALISTIC CONNECTION ARTIFACTS (12 ARTIFACTS)
+-- Email and meeting responses that demonstrate 52% activation rate
+-- ============================================================================
+INSERT INTO artifacts (id, user_id, contact_id, type, content, created_at) VALUES
+  -- Recent connections (12 artifacts from different contacts)
+  ('a1210001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1001001-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'Thanks for the intro request. Happy to make that connection next week.', NOW() - INTERVAL '2 days'),
+  ('a1210002-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1002002-89ab-cdef-0123-456789abcdef'::uuid, 'meeting', 'Discussed Q4 product roadmap and market positioning', NOW() - INTERVAL '4 days'),
+  ('a1110001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1003003-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'Perfect timing! I will intro you to Sarah from GrowthCo.', NOW() - INTERVAL '7 days'),
+  ('a1110002-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a1111111-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'Looking forward to our call tomorrow. I have some updates to share.', NOW() - INTERVAL '9 days'),
+  ('a1010001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1004004-89ab-cdef-0123-456789abcdef'::uuid, 'meeting', 'Explored potential collaboration opportunities', NOW() - INTERVAL '14 days'),
+  ('a1010002-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1006006-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'Great questions! Here are my thoughts on the architecture approach...', NOW() - INTERVAL '16 days'),
+  ('a0910001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1015015-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'Thanks for sharing your analysis. The mobile payments trend is fascinating.', NOW() - INTERVAL '23 days'),
+  ('a0810001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a4444444-89ab-cdef-0123-456789abcdef'::uuid, 'meeting', 'Discussed joint research project on AI applications', NOW() - INTERVAL '29 days'),
+  ('a0810002-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1013013-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'SwiftUI is definitely the way forward. Here are some resources...', NOW() - INTERVAL '31 days'),
+  ('a0710001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1016016-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'I would love to explore this further. When works for a call?', NOW() - INTERVAL '37 days'),
+  ('a0610001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'c1017017-89ab-cdef-0123-456789abcdef'::uuid, 'email', 'Your framework is exactly what we needed. Thank you!', NOW() - INTERVAL '42 days'),
+  ('a0510001-89ab-cdef-0123-456789abcdef'::uuid, '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid, 'a2222222-89ab-cdef-0123-456789abcdef'::uuid, 'meeting', 'Defined project scope and timeline for Q4 deliverables', NOW() - INTERVAL '53 days');
+
+-- ============================================================================
 -- COMPELLING DEMO DATA FOR STRATEGIC WINS KPI
 -- Add completed asks and milestones in last 90 days for impressive metrics
 -- ============================================================================

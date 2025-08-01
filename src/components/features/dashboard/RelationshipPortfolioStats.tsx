@@ -107,6 +107,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
     portfolioActivation: {
       responseRate: 75,
       connectedContacts: 3,
+      reachedOutTo: 4,
       weeklyTrend: [0, 0, 25, 40, 50, 60, 65, 70, 72, 75, 75, 75]
     },
     relationshipDepth: {
@@ -128,9 +129,9 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
   const metrics: PortfolioMetric[] = React.useMemo(() => {
     return [
       {
-        title: 'Relationship Momentum',
-        value: `${displayKpis.relationshipMomentum.actionsCompleted} actions completed`,
-        subtitle: `Last 90 days • ${displayKpis.relationshipMomentum.currentStreak} week streak`,
+        title: 'Momentum',
+        value: `${displayKpis.relationshipMomentum.actionsCompleted}`,
+        subtitle: `actions over ${displayKpis.relationshipMomentum.currentStreak} week streak`,
         valueStory: "You're putting in the work consistently",
         icon: <MomentumIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.primary.main,
@@ -139,21 +140,21 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
         insight: 'Your consistent effort is building momentum across your relationship portfolio'
       },
       {
-        title: 'Portfolio Activation',
-        value: `${displayKpis.portfolioActivation.responseRate}% response rate`,
-        subtitle: `${displayKpis.portfolioActivation.connectedContacts} of ${displayKpis.portfolioActivation.reachedOutTo || 4} reached out to (90 days)`,
+        title: 'Activation',
+        value: `${displayKpis.portfolioActivation.responseRate}%`,
+        subtitle: `${displayKpis.portfolioActivation.connectedContacts} of ${displayKpis.portfolioActivation.reachedOutTo || displayKpis.portfolioActivation.connectedContacts} contacts connected`,
         valueStory: 'Your network is engaged, not dormant',
         icon: <NetworkIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.sage?.main || '#059669',
         trend: displayKpis.portfolioActivation.weeklyTrend,
-        trendLabel: 'Response rate % over time',
+        trendLabel: 'Connections per week',
         insight: `Strong ${displayKpis.portfolioActivation.responseRate}% response rate shows your outreach is valued`
       },
       {
-        title: 'Relationship Depth',
-        value: `${displayKpis.relationshipDepth.qualityIndex.toFixed(1)} avg quality score`,
-        subtitle: `Across ${displayKpis.relationshipDepth.strategicContacts} strategic contacts`,
-        valueStory: "You're building champions and amplifiers",
+        title: 'Depth',
+        value: `${displayKpis.relationshipDepth.qualityIndex.toFixed(1)}`,
+        subtitle: `avg score across ${displayKpis.relationshipDepth.strategicContacts} contacts`,
+        valueStory: "You're cultivating champions",
         icon: <DepthIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.amber?.main || '#F59E0B',
         trend: displayKpis.relationshipDepth.weeklyTrend,
@@ -161,14 +162,14 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
         insight: 'Deep relationships with key contacts are strengthening your influence'
       },
       {
-        title: 'Strategic Wins',
-        value: `${displayKpis.strategicWins.asksCompleted + displayKpis.strategicWins.milestonesAchieved} total wins`,
-        subtitle: `${displayKpis.strategicWins.asksCompleted} asks + ${displayKpis.strategicWins.milestonesAchieved} milestones (90 days)`,
-        valueStory: 'Your relationships are advancing objectives',
+        title: 'Progress',
+        value: `${displayKpis.strategicWins.asksCompleted + displayKpis.strategicWins.milestonesAchieved}`,
+        subtitle: `total wins: ${displayKpis.strategicWins.asksCompleted} asks + ${displayKpis.strategicWins.milestonesAchieved} milestones`,
+        valueStory: 'Your relationships advance objectives',
         icon: <WinsIcon sx={{ fontSize: 28 }} />,
         color: theme.palette.plum?.main || '#7C3AED',
         trend: displayKpis.strategicWins.weeklyTrend,
-        trendLabel: 'Cumulative wins over time',
+        trendLabel: 'Wins per week',
         insight: `${displayKpis.strategicWins.avgGoalProgress}% average progress across active goals`
       }
     ];
@@ -209,7 +210,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
             letterSpacing: '-0.01em'
           }}
         >
-          Relationship Portfolio
+          Relationship progress over last 90 days
         </Typography>
         <Typography 
           variant="body2" 
@@ -223,9 +224,9 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
         </Typography>
       </Box>
 
-      <Grid container spacing={6}>
+      <Grid container spacing={4}>
         {metrics.map((metric) => (
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={metric.title}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={metric.title}>
             <Tooltip 
               title={metric.insight} 
               arrow 
@@ -275,24 +276,40 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                   }
                 }}
               >
-                <CardContent sx={{ p: 5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  {/* Header with Icon */}
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 3 }}>
-                    <Box
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 2,
-                        background: `linear-gradient(135deg, ${alpha(metric.color, 0.1)} 0%, ${alpha(metric.color, 0.05)} 100%)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: metric.color,
-                        flexShrink: 0,
-                        border: `2px solid ${alpha(metric.color, 0.15)}`
-                      }}
-                    >
-                      {metric.icon}
+                <CardContent sx={{ p: 5, height: '100%' }}>
+                  {/* Header with Icon, Title and Chart */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 2,
+                          background: `linear-gradient(135deg, ${alpha(metric.color, 0.1)} 0%, ${alpha(metric.color, 0.05)} 100%)`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: metric.color,
+                          flexShrink: 0,
+                          border: `2px solid ${alpha(metric.color, 0.15)}`
+                        }}
+                      >
+                        {metric.icon}
+                      </Box>
+                      
+                      <Typography
+                        variant="overline"
+                        component="h2"
+                        sx={{
+                          fontSize: '0.75rem',
+                          fontWeight: 500,
+                          color: 'text.secondary',
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        {metric.title}
+                      </Typography>
                     </Box>
                     
                     <ChartIcon 
@@ -305,117 +322,56 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                     />
                   </Box>
 
-                  {/* Value and Title */}
-                  <Box sx={{ mb: 2 }}>
-                    <Typography
-                      variant="h3"
-                      sx={{
-                        fontWeight: 700,
-                        color: 'text.primary',
-                        lineHeight: 1,
-                        mb: 1,
-                        letterSpacing: '-0.02em',
-                        fontSize: '2.5rem'
-                      }}
-                    >
-                      {metric.value}
-                    </Typography>
-                    
+                  {/* Large Value - Full Width */}
+                  <Typography
+                    variant="h1"
+                    sx={{
+                      fontWeight: 800,
+                      color: 'text.primary',
+                      lineHeight: 0.9,
+                      letterSpacing: '-0.03em',
+                      fontSize: '3rem',
+                      mb: 1,
+                      width: '100%'
+                    }}
+                  >
+                    {metric.value}
+                  </Typography>
+                  
+                  {/* Subtitle - Full Width */}
+                  {metric.subtitle && (
                     <Typography
                       variant="body2"
                       sx={{
-                        fontWeight: 600,
-                        color: 'text.primary',
+                        color: 'text.secondary',
                         fontSize: '0.875rem',
-                        letterSpacing: '-0.01em'
+                        lineHeight: 1.3,
+                        fontWeight: 500,
+                        mb: 2,
+                        width: '100%'
                       }}
                     >
-                      {metric.title}
+                      {metric.subtitle}
                     </Typography>
-                    
-                    {metric.subtitle && (
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: 'text.secondary',
-                          fontSize: '0.75rem'
-                        }}
-                      >
-                        {metric.subtitle}
-                      </Typography>
-                    )}
-                  </Box>
+                  )}
 
-                  {/* Value Story */}
+                  {/* Value Story - Full Width */}
                   <Typography
                     variant="caption"
                     sx={{
                       color: metric.color,
                       fontSize: '0.75rem',
                       fontStyle: 'italic',
-                      mb: 2.5,
-                      opacity: 0.9
+                      opacity: 0.9,
+                      lineHeight: 1.4,
+                      fontWeight: 500,
+                      width: '100%',
+                      display: 'block'
                     }}
                   >
                     {metric.valueStory}
                   </Typography>
 
-                  {/* Trend Chart */}
-                  {metric.trend && metric.trend.length > 0 && (
-                    <Box sx={{ 
-                      flexGrow: 1, 
-                      minHeight: 100, 
-                      position: 'relative', 
-                      mt: 2,
-                      p: 1,
-                      borderRadius: 2,
-                      backgroundColor: alpha(metric.color, 0.02)
-                    }}>
-                      <Line
-                        data={{
-                          labels: metric.trend.map((_, i) => `W${i + 1}`),
-                          datasets: [{
-                            data: metric.trend,
-                            borderColor: metric.color,
-                            backgroundColor: alpha(metric.color, 0.1),
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 2,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: metric.color,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
-                          }]
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                              enabled: true,
-                              callbacks: {
-                                title: (context) => `Week ${context[0].dataIndex + 1}`,
-                                label: (context) => `${metric.trendLabel}: ${context.parsed.y}`
-                              }
-                            }
-                          },
-                          scales: {
-                            x: {
-                              display: false,
-                              grid: { display: false }
-                            },
-                            y: {
-                              display: false,
-                              grid: { display: false },
-                              beginAtZero: true
-                            }
-                          }
-                        }}
-                      />
-                    </Box>
-                  )}
                 </CardContent>
               </Card>
             </Tooltip>
@@ -535,7 +491,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                       <Grid size={{ xs: 12, sm: 4 }}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
-                            {Math.max(...selectedMetric.trend)}
+                            {selectedMetric.trend ? Math.max(...selectedMetric.trend) : 0}
                           </Typography>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             Peak (12 weeks)
@@ -545,7 +501,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                       <Grid size={{ xs: 12, sm: 4 }}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
-                            {(selectedMetric.trend.reduce((a, b) => a + b, 0) / selectedMetric.trend.length).toFixed(1)}
+                            {selectedMetric.trend ? (selectedMetric.trend.reduce((a, b) => a + b, 0) / selectedMetric.trend.length).toFixed(1) : 0}
                           </Typography>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             Average
@@ -559,10 +515,10 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                   <Box sx={{ flexGrow: 1, position: 'relative', minHeight: 400 }}>
                     <Line
                       data={{
-                        labels: selectedMetric.trend.map((_, i) => `Week ${i + 1}`),
+                        labels: selectedMetric.trend?.map((_, i) => `Week ${i + 1}`) || [],
                         datasets: [{
                           label: selectedMetric.trendLabel,
-                          data: selectedMetric.trend,
+                          data: selectedMetric.trend || [],
                           borderColor: selectedMetric.color,
                           backgroundColor: alpha(selectedMetric.color, 0.1),
                           borderWidth: 3,
@@ -583,7 +539,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                             display: true,
                             position: 'top',
                             labels: {
-                              font: { size: 14, weight: '600' },
+                              font: { size: 14, weight: 600 },
                               color: 'rgb(55, 65, 81)'
                             }
                           },
@@ -595,7 +551,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                             borderColor: selectedMetric.color,
                             borderWidth: 2,
                             cornerRadius: 8,
-                            titleFont: { size: 14, weight: '600' },
+                            titleFont: { size: 14, weight: 600 },
                             bodyFont: { size: 13 },
                             callbacks: {
                               title: (context) => `Week ${context[0].dataIndex + 1}`,
@@ -609,7 +565,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                             title: {
                               display: true,
                               text: 'Timeline (12 Weeks)',
-                              font: { size: 14, weight: '600' },
+                              font: { size: 14, weight: 600 },
                               color: 'rgb(75, 85, 99)'
                             },
                             grid: { 
@@ -626,7 +582,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                             title: {
                               display: true,
                               text: selectedMetric.trendLabel,
-                              font: { size: 14, weight: '600' },
+                              font: { size: 14, weight: 600 },
                               color: 'rgb(75, 85, 99)'
                             },
                             grid: { 
@@ -672,7 +628,7 @@ export const RelationshipPortfolioStats: React.FC<RelationshipPortfolioStatsProp
                         fontSize: '1rem'
                       }}
                     >
-                      {getTrendInsight(selectedMetric.trend, selectedMetric.title)}
+                      {selectedMetric.trend ? getTrendInsight(selectedMetric.trend, selectedMetric.title) : 'No trend data available'}
                     </Typography>
                     <Typography 
                       variant="body2" 

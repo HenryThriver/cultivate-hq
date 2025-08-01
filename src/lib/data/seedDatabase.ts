@@ -11,7 +11,7 @@
  */
 
 import { supabase } from '@/lib/supabase/client';
-import { dummyContacts, dummyInsights, dummyActions, dummyAchievements } from './dummyData';
+import { dummyContacts } from './dummyData';
 import type { Contact } from '@/types';
 
 interface SeedOptions {
@@ -22,7 +22,7 @@ interface SeedOptions {
 }
 
 // Helper to generate realistic action counts across weeks
-let actionsThisWeek = 0;
+const actionsThisWeek = 0;
 
 /**
  * Seed the database with executive-level dummy data
@@ -33,8 +33,8 @@ export async function seedDatabase(options: SeedOptions) {
   console.log('🌱 Starting database seeding for sophisticated relationship portfolio...');
   
   try {
-    let seededContacts: Contact[] = [];
-    let seededGoals: any[] = [];
+    const seededContacts: Contact[] = [];
+    const seededGoals: Array<{id: string; title: string}> = [];
     
     // 1. Create Strategic Goals first
     console.log('🎯 Creating strategic goals...');
@@ -222,7 +222,7 @@ export async function seedDatabase(options: SeedOptions) {
           const artifact = {
             contact_id: seededContacts[contactIndex]?.id,
             user_id: userId,
-            type: artifactTypes[Math.floor(Math.random() * artifactTypes.length)] as any,
+            type: artifactTypes[Math.floor(Math.random() * artifactTypes.length)] as 'email' | 'meeting',
             content: 'Response to strategic outreach - positive engagement',
             timestamp: artifactDate.toISOString(),
             ai_parsing_status: 'completed'

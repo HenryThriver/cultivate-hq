@@ -2039,6 +2039,7 @@ export type Database = {
         | "linkedin_profile"
         | "voice_memo"
         | "loop"
+        | "milestone"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2703,6 +2704,7 @@ export const Constants = {
         "linkedin_profile",
         "voice_memo",
         "loop",
+        "milestone",
       ],
     },
   },

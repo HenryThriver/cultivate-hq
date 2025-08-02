@@ -496,12 +496,12 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                       ) : (
                         <AddMeetingNotesActionCard
                           actionId={currentAction.id}
-                          meetingArtifactId={currentAction.meeting_artifact_id || ''}
+                          meetingArtifactId={currentAction.artifact_id || ''}
                           contactId={currentAction.contact_id || ''}
                           contactName={currentAction.contact?.name || 'Unknown Contact'}
                           contactProfilePicture={null}
-                          meetingTitle={(currentAction.meeting_artifact?.metadata && typeof currentAction.meeting_artifact.metadata === 'object' && 'title' in currentAction.meeting_artifact.metadata ? currentAction.meeting_artifact.metadata.title as string : undefined) || 'Meeting'}
-                          meetingMetadata={currentAction.meeting_artifact?.metadata as MeetingArtifactContent || {} as MeetingArtifactContent}
+                          meetingTitle={(currentAction.artifact?.metadata && typeof currentAction.artifact.metadata === 'object' && 'title' in currentAction.artifact.metadata ? currentAction.artifact.metadata.title as string : undefined) || 'Meeting'}
+                          meetingMetadata={currentAction.artifact?.metadata as MeetingArtifactContent || {} as MeetingArtifactContent}
                           onComplete={handleActionComplete}
                           onSkip={handleActionSkip}
                         />

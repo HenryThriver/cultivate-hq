@@ -315,12 +315,12 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     }
 
     // Update self-contact if there are contact-level changes
+    // Self-contact is identified by matching user_id (no longer using is_self_contact flag)
     if (Object.keys(contactUpdates).length > 0) {
       const { error: contactUpdateError } = await supabase
         .from('contacts')
         .update(contactUpdates)
-        .eq('user_id', user.id)
-        .eq('is_self_contact', true);
+        .eq('user_id', user.id);
 
       if (contactUpdateError) {
         console.error('Error updating self-contact:', contactUpdateError);

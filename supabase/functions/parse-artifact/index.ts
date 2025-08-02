@@ -378,10 +378,11 @@ serve(async (req: Request) => {
       contentToAnalyze = fetchedArtifactRecord.transcription;
       
       // Check if this is an onboarding voice memo
-      // For profile_enhancement memos, we use the specialized parser regardless of is_self_contact
-      // For other onboarding memos, we require is_self_contact to be true
+      // For profile_enhancement memos, we use the specialized parser regardless of contact type
+      // For other onboarding memos, we check if this is a self-contact (contact.user_id matches artifact.user_id)
       const isProfileEnhancement = fetchedArtifactRecord.metadata?.memo_type === 'profile_enhancement';
-      const isOtherOnboardingMemo = contact.is_self_contact && 
+      const isSelfContact = contact.user_id === fetchedArtifactRecord.user_id;
+      const isOtherOnboardingMemo = isSelfContact && 
                                    (fetchedArtifactRecord.metadata?.is_onboarding === 'true' || 
                                     fetchedArtifactRecord.metadata?.source === 'onboarding_voice_recorder');
       
@@ -444,8 +445,8 @@ Engagement Metrics:
 
 ANALYSIS FOCUS: Extract professional updates, achievements, interests, company changes, project involvement, or relationship intelligence that can help maintain and strengthen the relationship with this contact.`;
     } else if (fetchedArtifactRecord.type === 'linkedin_profile') {
-      // Check if this is the user's own LinkedIn profile
-      isSelfLinkedInProfile = contact.is_self_contact;
+      // Check if this is the user's own LinkedIn profile (self-contact)
+      isSelfLinkedInProfile = contact.user_id === fetchedArtifactRecord.user_id;
       
       // For LinkedIn profiles, analyze the professional information
       const profileMetadata = fetchedArtifactRecord.metadata;

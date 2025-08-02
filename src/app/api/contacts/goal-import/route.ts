@@ -212,7 +212,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<GoalConta
               company: company,
               title: title,
               location: linkedinProfile?.geo?.full || linkedinProfile?.geo?.city,
-              is_self_contact: false,
               profile_completion_score: linkedinProfile ? 60 : 20, // Higher score if we have profile data
               relationship_score: 0,
               linkedin_data: linkedinProfile || null,

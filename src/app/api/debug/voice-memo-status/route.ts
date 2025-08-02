@@ -23,13 +23,13 @@ export async function GET(): Promise<NextResponse> {
     // Also get contact info to see if these are self-contact memos
     const { data: contacts } = await supabase
       .from('contacts')
-      .select('id, is_self_contact, name')
+      .select('id, name, user_id')
       .eq('user_id', user.id);
 
-    const contactMap = contacts?.reduce((acc: Record<string, { id: string; is_self_contact: boolean | null; name: string | null }>, contact: { id: string; is_self_contact: boolean | null; name: string | null }) => {
+    const contactMap = contacts?.reduce((acc: Record<string, { id: string; name: string | null; user_id: string }>, contact: { id: string; name: string | null; user_id: string }) => {
       acc[contact.id] = contact;
       return acc;
-    }, {} as Record<string, { id: string; is_self_contact: boolean | null; name: string | null }>) || {};
+    }, {} as Record<string, { id: string; name: string | null; user_id: string }>) || {};
 
     if (fetchError) {
       console.error('Error fetching voice memos:', fetchError);
@@ -55,8 +55,8 @@ export async function GET(): Promise<NextResponse> {
       summary: {
         total: voiceMemos?.length || 0,
         onboarding_memos: enhancedVoiceMemos.filter((vm: Record<string, unknown>) => vm.is_onboarding).length,
-        self_contact_memos: enhancedVoiceMemos.filter((vm: Record<string, unknown>) => (vm.contact_info as { is_self_contact?: boolean })?.is_self_contact).length,
-        regular_memos: enhancedVoiceMemos.filter((vm: Record<string, unknown>) => !(vm.contact_info as { is_self_contact?: boolean })?.is_self_contact).length,
+        self_contact_memos: enhancedVoiceMemos.filter((vm: Record<string, unknown>) => (vm.contact_info as { user_id?: string })?.user_id === user.id).length,
+        regular_memos: enhancedVoiceMemos.filter((vm: Record<string, unknown>) => (vm.contact_info as { user_id?: string })?.user_id !== user.id).length,
         pending_transcription: voiceMemos?.filter((vm: Record<string, unknown>) => vm.transcription_status === 'pending').length || 0,
         processing_transcription: voiceMemos?.filter((vm: Record<string, unknown>) => vm.transcription_status === 'processing').length || 0,
         completed_transcription: voiceMemos?.filter((vm: Record<string, unknown>) => vm.transcription_status === 'completed').length || 0,

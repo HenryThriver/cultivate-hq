@@ -31,11 +31,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<VoiceAnal
     await request.json();
     
     // Get user's LinkedIn profile data and recent posts
+    // Self-contact is identified by matching user_id
     const { data: profile, error: profileError } = await supabase
       .from('contacts')
       .select('id, linkedin_data, linkedin_url')
       .eq('user_id', user.id)
-      .eq('is_self_contact', true)
+      .limit(1)
       .single();
 
     if (profileError || !profile) {

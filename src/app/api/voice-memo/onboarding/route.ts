@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       .from('contacts')
       .select('id')
       .eq('user_id', user.id)
-      .eq('is_self_contact', true)
+      .limit(1)
       .single();
 
     selfContact = data;
@@ -77,7 +77,6 @@ export async function POST(request: NextRequest) {
         .from('contacts')
         .insert({
           user_id: user.id,
-          is_self_contact: true,
           linkedin_url: '', // Required field, will be filled later
           name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
           email: user.email
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
     // Verify self-contact exists and belongs to user (for RLS)
     const { data: verifyContact, error: verifyError } = await supabase
       .from('contacts')
-      .select('id, user_id, is_self_contact')
+      .select('id, user_id')
       .eq('id', selfContact.id)
       .eq('user_id', user.id)
       .single();

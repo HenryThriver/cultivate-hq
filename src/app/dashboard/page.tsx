@@ -34,7 +34,9 @@ export default function DashboardPage(): React.JSX.Element {
     
     // Check raw user metadata from profile (auth.users data)
     // Cast to any since raw_user_meta_data comes from database view but not in interface
-    const rawMetadata = (profile as Record<string, any>)?.raw_user_meta_data;
+    // Use a more specific type for the profile with raw_user_meta_data
+    const profileWithMetadata = profile as typeof profile & { raw_user_meta_data?: { full_name?: string } };
+    const rawMetadata = profileWithMetadata?.raw_user_meta_data;
     if (rawMetadata?.full_name) {
       return rawMetadata.full_name.split(' ')[0];
     }

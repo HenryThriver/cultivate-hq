@@ -148,7 +148,7 @@ export function useRecentAchievements() {
 
       // Process milestones
       milestoneArtifacts?.forEach(milestone => {
-        const metadata = milestone.metadata as Record<string, any>;
+        const metadata = milestone.metadata as { description?: string } | null;
         achievements.push({
           id: `milestone-${milestone.id}`,
           type: 'milestone_reached',

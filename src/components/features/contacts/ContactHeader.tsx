@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, Typography, Paper, Avatar, Button, Stack, Chip } from '@mui/material';
-import { Email } from '@mui/icons-material';
+import { Box, Typography, Paper, Avatar, Button, Stack, Chip, Tooltip } from '@mui/material';
+import { Email, Mic, Edit } from '@mui/icons-material';
 import { SuggestionBellBadge } from '../suggestions/UnifiedSuggestionManager';
+import { InlineEditableField } from './profile/InlineEditableField';
 import type { PersonalContext as PersonalContextType } from '@/types';
 
 // RQ Bubble Colors (from your HTML example)
@@ -15,7 +16,13 @@ const rqBubbleColors: { [key: number]: { backgroundColor: string; color: string;
   6: { backgroundColor: '#d97706', color: 'white' },      // amber-600
 };
 
-// Simplified props for now, matching Contact data structure from page.tsx
+interface Goal {
+  id: string;
+  title: string;
+  isActive: boolean;
+}
+
+// Enhanced props for redesigned contact header
 interface ContactHeaderProps {
   name?: string | null;
   title?: string | null;
@@ -27,13 +34,22 @@ interface ContactHeaderProps {
   personalContext?: PersonalContextType | null;
   connectDate?: Date;
   connectCadence?: string | null;
-  // Suggestion notification props - simplified with unified manager
+  
+  // Goal integration
+  goals?: Goal[];
+  onGoalClick?: (goalId: string) => void;
+  
+  // Suggestion notification props
   contactId?: string;
   suggestionPriority?: 'high' | 'medium' | 'low';
-  // Action handlers - to be implemented
-  onRecordNote?: () => void;
-  onSendPOG?: () => void;
-  onScheduleConnect?: () => void;
+  
+  // Enhanced action handlers
+  onRecordVoiceMemo?: () => void; // Primary CTA
+  onScheduleConnect?: () => void; // Context-based secondary
+  
+  // Inline editing
+  onUpdateRelationshipScore?: (newScore: number) => Promise<void>;
+  onUpdateCadence?: (newCadence: string) => Promise<void>;
 }
 
 export const ContactHeader: React.FC<ContactHeaderProps> = ({
@@ -46,35 +62,56 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
   relationshipScore,
   personalContext,
   connectCadence,
+  goals = [],
+  onGoalClick,
   contactId,
   suggestionPriority = 'medium',
-  onRecordNote,
-  onSendPOG,
+  onRecordVoiceMemo,
   onScheduleConnect,
+  onUpdateRelationshipScore,
+  onUpdateCadence,
 }) => {
 
   const rqStyle = rqBubbleColors[relationshipScore ?? 0] || rqBubbleColors[0];
 
   const userGoal = personalContext?.relationship_goal;
 
-  const actionButtonSx = {
-    backgroundColor: '#e5e7eb', // gray-200
-    color: '#1f2937', // gray-800
-    borderRadius: '0.5rem', // rounded-lg
-    padding: '0.625rem 1rem', // py-2.5 px-4
-    fontSize: '0.875rem', // text-sm
-    fontWeight: 500, // font-medium
-    textTransform: 'none', // Keep button text case as is
-    width: { xs: '100%', sm: 'auto' },
+  // Primary voice memo button styling
+  const primaryButtonSx = {
+    backgroundColor: '#3b82f6', // blue-500
+    color: 'white',
+    borderRadius: '0.5rem',
+    padding: '0.75rem 1.5rem', // Larger for prominence
+    fontSize: '0.875rem',
+    fontWeight: 600, // Bolder
+    textTransform: 'none',
+    minWidth: '140px',
     '&:hover': {
-      backgroundColor: '#d1d5db', // gray-300
+      backgroundColor: '#2563eb', // blue-600
     },
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    '.emoji': {
-        marginRight: '0.5rem'
-    }
+    gap: 1,
+    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)',
+  };
+
+  // Secondary action button styling
+  const secondaryButtonSx = {
+    backgroundColor: '#f3f4f6', // gray-100
+    color: '#374151', // gray-700
+    borderRadius: '0.5rem',
+    padding: '0.5rem 1rem',
+    fontSize: '0.8rem',
+    fontWeight: 500,
+    textTransform: 'none',
+    '&:hover': {
+      backgroundColor: '#e5e7eb', // gray-200
+    },
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 0.5,
   };
 
   return (
@@ -109,11 +146,25 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
             {name ? name.charAt(0).toUpperCase() : 'C'}
           </Avatar>
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', fontSize: {xs: '1.75rem', md: '2rem'}, color: '#111827' /* gray-900 */, mr: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5, flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', fontSize: {xs: '1.75rem', md: '2rem'}, color: '#111827' /* gray-900 */ }}>
                 {name || 'Unnamed Contact'}
               </Typography>
-              {relationshipScore !== undefined && (
+              
+              {relationshipScore !== undefined && onUpdateRelationshipScore && (
+                <InlineEditableField
+                  value={relationshipScore}
+                  fieldType="slider"
+                  fieldKey="relationship_score"
+                  min={0}
+                  max={6}
+                  step={1}
+                  onSave={async (newValue) => await onUpdateRelationshipScore(newValue)}
+                  displayVariant="body2"
+                />
+              )}
+              
+              {relationshipScore !== undefined && !onUpdateRelationshipScore && (
                 <Chip 
                     label={`RQ${relationshipScore}`}
                     size="small"
@@ -124,11 +175,12 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                         fontWeight: 600,
                         minWidth: '50px',
                         borderRadius: '9999px',
-                        height: 'auto', // to let padding define height
+                        height: 'auto',
                         padding: '0.3rem 0.75rem',
                     }}
                 />
               )}
+              
               {contactId && (
                 <SuggestionBellBadge
                   contactId={contactId}
@@ -136,6 +188,30 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 />
               )}
             </Box>
+            
+            {/* Goal badges */}
+            {goals.length > 0 && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                {goals.map((goal) => (
+                  <Chip
+                    key={goal.id}
+                    label={goal.title}
+                    size="small"
+                    clickable={!!onGoalClick}
+                    onClick={() => onGoalClick?.(goal.id)}
+                    sx={{
+                      backgroundColor: goal.isActive ? '#d1fae5' : '#f3f4f6',
+                      color: goal.isActive ? '#059669' : '#6b7280',
+                      fontSize: '0.75rem',
+                      fontWeight: 500,
+                      '&:hover': onGoalClick ? {
+                        backgroundColor: goal.isActive ? '#bbf7d0' : '#e5e7eb',
+                      } : {},
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
             <Typography sx={{ color: '#4b5563' /* gray-600 */, fontSize: {xs: '0.875rem', md: '1rem'}, display: 'flex', alignItems: 'center', mb: 0.5 }}>
               <Box component="span" className="emoji" sx={{ mr: 0.75, color: 'text.secondary'}}>💼</Box> 
               {title || 'No Title'} {company ? `at ${company}` : ''}
@@ -157,24 +233,48 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                     My Goal: {userGoal}
                 </Typography>
             )}
-            {connectCadence && (
-                 <Typography sx={{color: '#059669' /* green-600 */, fontSize: '0.75rem', fontWeight: 'medium', mt: 0.5, display: 'flex', alignItems: 'center'}}>
-                    <Box component="span" className="emoji" sx={{ mr: 0.75 }}>🟢</Box> {connectCadence}
-                </Typography>
+            {connectCadence && onUpdateCadence && (
+              <InlineEditableField
+                value={connectCadence}
+                fieldType="text"
+                fieldKey="connection_cadence"
+                label="Connection Cadence"
+                placeholder="e.g., Every 6 weeks"
+                onSave={async (newValue) => await onUpdateCadence(newValue)}
+                displayVariant="caption"
+                displayColor="#059669"
+              />
+            )}
+            
+            {connectCadence && !onUpdateCadence && (
+              <Typography sx={{color: '#059669' /* green-600 */, fontSize: '0.75rem', fontWeight: 'medium', mt: 0.5, display: 'flex', alignItems: 'center'}}>
+                <Box component="span" className="emoji" sx={{ mr: 0.75 }}>🟢</Box> {connectCadence}
+              </Typography>
             )}
           </Box>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'column' }} spacing={1} sx={{ minWidth: {sm: '180px'}, width: {xs: '100%', sm: 'auto'} }}>
-          <Button sx={actionButtonSx} onClick={onRecordNote} aria-label="Record Voice Note">
-            <Box component="span" className="emoji">🎙️</Box> Record Note
+        <Stack direction={{ xs: 'column', sm: 'column' }} spacing={1.5} sx={{ minWidth: {sm: '160px'}, width: {xs: '100%', sm: 'auto'} }}>
+          {/* Primary CTA - Voice Memo */}
+          <Button 
+            sx={primaryButtonSx} 
+            onClick={onRecordVoiceMemo} 
+            aria-label="Record Voice Memo"
+            startIcon={<Mic />}
+          >
+            Voice Memo
           </Button>
-          <Button sx={actionButtonSx} onClick={onSendPOG} aria-label="Send Packet of Generosity">
-            <Box component="span" className="emoji">🎁</Box> Send POG
-          </Button>
-          <Button sx={actionButtonSx} onClick={onScheduleConnect} aria-label="Schedule Connection">
-            <Box component="span" className="emoji">📆</Box> Schedule Connect
-          </Button>
+          
+          {/* Secondary CTA - Context-based */}
+          {onScheduleConnect && (
+            <Button 
+              sx={secondaryButtonSx} 
+              onClick={onScheduleConnect} 
+              aria-label="Schedule Connection"
+            >
+              📆 Schedule Connect
+            </Button>
+          )}
         </Stack>
       </Box>
     </Paper>

@@ -53,6 +53,10 @@ import { LinkedInPostsSyncStatus } from '@/components/features/linkedin';
 // Import OnboardingTour for walkthrough
 import { OnboardingTour } from '@/components/features/onboarding/OnboardingTour';
 
+// Import new redesigned components
+import { RelationshipPulseDashboard } from '@/components/features/contacts/profile/RelationshipPulseDashboard';
+import { ActionIntelligenceCenter } from '@/components/features/contacts/profile/ActionIntelligenceCenter';
+
 // Import hooks and types
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
 import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos';
@@ -668,6 +672,25 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           relationshipScore={contact.relationship_score}
           contactId={contactId}
           suggestionPriority={suggestionPriority}
+          // New enhanced props
+          goals={[]} // TODO: Fetch from goals hook
+          onGoalClick={(goalId) => console.log('Navigate to goal:', goalId)}
+          onRecordVoiceMemo={() => {
+            // This will trigger the voice recorder component
+            const voiceRecorderElement = document.querySelector('[data-voice-recorder]');
+            if (voiceRecorderElement) {
+              (voiceRecorderElement as HTMLElement).click();
+            }
+          }}
+          onScheduleConnect={() => console.log('Schedule connection')}
+          onUpdateRelationshipScore={async (newScore) => {
+            console.log('Update relationship score:', newScore);
+            // TODO: Implement update API call
+          }}
+          onUpdateCadence={async (newCadence) => {
+            console.log('Update cadence:', newCadence);
+            // TODO: Implement update API call
+          }}
         />
 
         {/* Demo content for walkthrough */}
@@ -757,19 +780,87 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
 
         <Box sx={{ mt: 3, display: 'flex', gap: 2, alignItems: 'flex-start' }}>
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <NextConnection 
-              contactId={contactId} 
-            />
             
-            <ActionQueues 
-              pogs={pogs}
-              asks={asks}
-              onUpdateStatus={handleUpdateStatus}
-              onBrainstormPogs={handleBrainstormPogs}
+            {/* New Relationship Pulse Dashboard */}
+            <RelationshipPulseDashboard
+              contactId={contactId}
+              contactName={contact.name || 'Contact'}
+              reciprocityBalance={0} // TODO: Calculate from data
+              reciprocityItems={{ given: 3, received: 2 }} // TODO: Get from data
+              cadenceDays={contact.connection_cadence_days || 42}
+              daysSinceLastInteraction={
+                contact.last_interaction_date 
+                  ? Math.floor((new Date().getTime() - new Date(contact.last_interaction_date).getTime()) / (1000 * 60 * 60 * 24))
+                  : 0
+              }
+              cadenceHealth={(() => {
+                if (!contact.last_interaction_date || !contact.connection_cadence_days) return 'on-track';
+                const daysSince = Math.floor((new Date().getTime() - new Date(contact.last_interaction_date).getTime()) / (1000 * 60 * 60 * 24));
+                const cadence = contact.connection_cadence_days;
+                if (daysSince > cadence) return 'overdue';
+                if (daysSince > cadence * 0.8) return 'due-soon';
+                return 'on-track';
+              })()}
+              openActionsCount={pogs.length + asks.length}
+              highPriorityActionsCount={0} // TODO: Calculate high priority
+              networkConnectionsCount={0} // TODO: Get from network data
+              recentIntroductions={0} // TODO: Get from network data
+              nextInteraction={{
+                type: 'suggested',
+                description: 'Follow up on last conversation'
+              }}
             />
 
-            <ReciprocityDashboard 
-              outstandingCommitments={undefined}
+            {/* New Action Intelligence Center */}
+            <ActionIntelligenceCenter
+              contactId={contactId}
+              contactName={contact.name || 'Contact'}
+              actions={[
+                // Convert POGs to actions
+                ...pogs.map(pog => ({
+                  id: pog.id,
+                  title: pog.content,
+                  type: 'pog' as const,
+                  status: pog.status,
+                  priority: 'medium' as const,
+                })),
+                // Convert Asks to actions
+                ...asks.map(ask => ({
+                  id: ask.id,
+                  title: ask.content,
+                  type: 'ask' as const,
+                  status: ask.status,
+                  priority: 'medium' as const,
+                }))
+              ]}
+              onUpdateActionStatus={(actionId, newStatus) => {
+                console.log('Update action status:', actionId, newStatus);
+                // TODO: Implement status update
+              }}
+              onCreateAction={(type) => {
+                console.log('Create action:', type);
+                // TODO: Implement action creation
+              }}
+              timingOpportunities={[]} // TODO: Generate from contact data
+              onActOnOpportunity={(opportunityId) => {
+                console.log('Act on opportunity:', opportunityId);
+              }}
+              nextBestAction={
+                pogs.length > 0 || asks.length > 0 
+                  ? {
+                      id: 'next-best',
+                      title: 'Follow up on recent conversation',
+                      type: 'follow_up',
+                      status: 'queued',
+                      priority: 'high',
+                    }
+                  : undefined
+              }
+            />
+
+            {/* Keep the existing NextConnection component for now */}
+            <NextConnection 
+              contactId={contactId} 
             />
 
             {/* Loop System Integration Point */}
@@ -824,9 +915,13 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           </Box>
           
           <Box sx={{ width: '300px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2, position: 'sticky', top: '70px' }}>
-            {isClient && <VoiceRecorder 
-              contactId={contactId} 
-            />}
+            {isClient && (
+              <Box data-voice-recorder>
+                <VoiceRecorder 
+                  contactId={contactId} 
+                />
+              </Box>
+            )}
             <QuickAdd 
               onAddNote={handleQuickAddNote}
               onAddMeeting={handleQuickAddMeeting}

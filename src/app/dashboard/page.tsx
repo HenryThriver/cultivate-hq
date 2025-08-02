@@ -27,17 +27,28 @@ export default function DashboardPage(): React.JSX.Element {
   const { data: recentSessions, isLoading: loadingSessions } = useRecentSessions();
 
   const getFirstName = () => {
-    // First check profile name from database
-    if (profile?.name) {
+    // First check profile name from database - but skip if it's an email
+    if (profile?.name && !profile.name.includes('@')) {
       return profile.name.split(' ')[0];
     }
+    
+    // Check raw user metadata from profile (auth.users data)
+    // Cast to any since raw_user_meta_data comes from database view but not in interface
+    const rawMetadata = (profile as Record<string, any>)?.raw_user_meta_data;
+    if (rawMetadata?.full_name) {
+      return rawMetadata.full_name.split(' ')[0];
+    }
+    
     // Then check Google OAuth metadata for full name
     if (user?.user_metadata?.full_name) {
       return user.user_metadata.full_name.split(' ')[0];
     }
+    
     // Finally fall back to email parsing
     if (user?.email) {
-      return user.email.split('@')[0];
+      const emailName = user.email.split('@')[0];
+      // Capitalize first letter
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1).toLowerCase();
     }
     return '';
   };
@@ -98,11 +109,11 @@ export default function DashboardPage(): React.JSX.Element {
       {/* Strategic Overview - Portfolio Stats */}
       <RelationshipPortfolioStats />
 
-      {/* Intelligence Insights */}
-      <IntelligenceInsights />
-
-      {/* Momentum & Celebration Section */}
+      {/* Momentum & Celebration Section - Recent Wins */}
       <MomentumCelebration />
+
+      {/* Intelligence Insights - AI Powered Future State */}
+      <IntelligenceInsights />
     </Box>
   );
 } 

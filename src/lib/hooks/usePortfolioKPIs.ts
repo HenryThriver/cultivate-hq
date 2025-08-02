@@ -86,7 +86,7 @@ export function usePortfolioKPIs() {
         };
       }
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 300000, // Refresh every 5 minutes (reduced from 1 minute)
   });
 }
 
@@ -197,33 +197,68 @@ async function calculateRelationshipDepth(userId: string) {
     .or(`email.is.null,email.neq.${userEmail}`); // Include NULL emails but exclude self-contacts
 
   if (error) throw error;
+  if (!contacts || contacts.length === 0) {
+    return {
+      qualityIndex: 0,
+      strategicContacts: 0,
+      weeklyTrend: generateGrowthTrend(0, 12, 0.05),
+    };
+  }
 
-  // Calculate average quality index across all contacts
+  const contactIds = contacts.map(c => c.id);
+  const ninetyDaysAgo = subDays(new Date(), 90).toISOString();
+
+  // Batch query 1: Get all interaction counts for all contacts at once
+  const { data: interactions } = await supabase
+    .from('artifacts')
+    .select('contact_id, created_at')
+    .in('contact_id', contactIds)
+    .gte('created_at', ninetyDaysAgo);
+
+  // Count interactions per contact
+  const interactionCounts = new Map<string, number>();
+  interactions?.forEach(interaction => {
+    const count = interactionCounts.get(interaction.contact_id) || 0;
+    interactionCounts.set(interaction.contact_id, count + 1);
+  });
+
+  // Batch query 2: Get all loop analytics for all contacts at once
+  const { data: allLoopData } = await supabase
+    .from('loop_analytics')
+    .select('contact_id, reciprocity_impact, created_at')
+    .in('contact_id', contactIds)
+    .order('created_at', { ascending: false });
+
+  // Group loop data by contact and calculate averages
+  const reciprocityByContact = new Map<string, number>();
+  const loopDataByContact = new Map<string, any[]>();
+  
+  allLoopData?.forEach(loop => {
+    const contactLoops = loopDataByContact.get(loop.contact_id) || [];
+    if (contactLoops.length < 5) { // Only keep latest 5
+      contactLoops.push(loop);
+      loopDataByContact.set(loop.contact_id, contactLoops);
+    }
+  });
+
+  // Calculate average reciprocity for each contact
+  loopDataByContact.forEach((loops, contactId) => {
+    const avgReciprocity = loops.length > 0
+      ? loops.reduce((sum, l) => sum + (l.reciprocity_impact || 0), 0) / loops.length
+      : 5;
+    reciprocityByContact.set(contactId, avgReciprocity);
+  });
+
+  // Calculate composite scores for all contacts
   let totalScore = 0;
   let count = 0;
 
-  for (const contact of contacts || []) {
-    // Get interaction frequency (last 90 days)
-    const { count: interactionCount } = await supabase
-      .from('artifacts')
-      .select('*', { count: 'exact', head: true })
-      .eq('contact_id', contact.id)
-      .gte('created_at', subDays(new Date(), 90).toISOString());
-
-    // Get reciprocity score from loop analytics
-    const { data: loopData } = await supabase
-      .from('loop_analytics')
-      .select('reciprocity_impact')
-      .eq('contact_id', contact.id)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    const avgReciprocity = loopData?.length
-      ? loopData.reduce((sum, l) => sum + (l.reciprocity_impact || 0), 0) / loopData.length
-      : 5;
+  for (const contact of contacts) {
+    const interactionCount = interactionCounts.get(contact.id) || 0;
+    const avgReciprocity = reciprocityByContact.get(contact.id) || 5;
 
     // Calculate composite score
-    const frequencyScore = Math.min((interactionCount || 0) * 2, 10);
+    const frequencyScore = Math.min(interactionCount * 2, 10);
     const reciprocityScore = avgReciprocity;
     const manualScore = contact.relationship_score || 5;
 

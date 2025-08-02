@@ -366,8 +366,7 @@ export const useOnboardingState = () => {
           professional_context: null,
           personal_context: null,
         })
-        .eq('user_id', user.id)
-        .eq('is_self_contact', true);
+        .eq('user_id', user.id); // Self-contact is identified by matching user_id
 
       // Invalidate all related caches
       queryClient.invalidateQueries({ queryKey: ['onboardingState', user.id] });

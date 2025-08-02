@@ -39,7 +39,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       .from('contacts')
       .select('*')
       .eq('user_id', user.id)
-      .eq('is_self_contact', true)
+      .limit(1)
       .single();
     
     selfContact = data;
@@ -61,7 +61,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           name: user.user_metadata?.full_name || user.email || 'My Profile',
           email: user.email,
           linkedin_url: linkedin_url, // Set the LinkedIn URL
-          is_self_contact: true,
           relationship_score: 6,
           profile_completion_score: 0,
           ways_to_help_others: [],

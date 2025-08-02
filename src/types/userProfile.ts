@@ -2,8 +2,8 @@ import type { Contact } from './contact';
 import type { VoiceMemoArtifact } from './artifact';
 
 // User Profile - extends Contact for the self-contact approach
+// Self-contact is identified by matching user_id (no longer uses is_self_contact flag)
 export interface UserProfile extends Contact {
-  is_self_contact: true;
   
   // Goal Information
   primary_goal?: string | null;

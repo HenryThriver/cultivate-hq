@@ -9,7 +9,7 @@ interface VoiceMemo {
   transcription_status: string;
   ai_parsing_status: string;
   contact_info: {
-    is_self_contact: boolean;
+    user_id: string;
     name: string;
   } | null;
   is_onboarding: boolean;
@@ -143,7 +143,7 @@ export default function VoiceMemoTestPage() {
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                       {memo.is_onboarding && <Chip size="small" label="Onboarding" color="primary" />}
-                      {memo.contact_info?.is_self_contact && <Chip size="small" label="Self-Contact" color="secondary" />}
+                      {memo.contact_info?.user_id && <Chip size="small" label="Self-Contact" color="secondary" />}
                       <Chip size="small" label={memo.memo_type} />
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>

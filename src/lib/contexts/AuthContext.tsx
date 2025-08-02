@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  signInWithPassword?: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
 }
 
@@ -92,6 +93,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const signInWithPassword = async (email: string, password: string): Promise<{ error: AuthError | null }> => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
+    }
+  };
+
   const signOut = async (): Promise<{ error: AuthError | null }> => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -106,6 +119,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     loading,
     signInWithGoogle,
+    signInWithPassword: process.env.NODE_ENV === 'development' ? signInWithPassword : undefined,
     signOut,
   };
 

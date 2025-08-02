@@ -226,12 +226,12 @@ export class GoogleCalendarService {
     events: GoogleCalendarEvent[], 
     userId: string
   ): Promise<Map<string, ContactEmailMatch[]>> {
-    // Get all user's contacts with their primary emails and email_addresses array, EXCLUDING self-contacts
+    // Get all user's contacts with their primary emails and email_addresses array
+    // Note: All contacts belong to this user (user_id = userId), self-contact identification no longer uses is_self_contact
     const { data: contacts, error } = await this.supabase
       .from('contacts')
       .select('id, name, email, email_addresses')
-      .eq('user_id', userId)
-      .eq('is_self_contact', false); // Only include external contacts
+      .eq('user_id', userId);
 
     if (error || !contacts) {
       throw new Error(`Failed to fetch contacts: ${error?.message}`);
@@ -470,30 +470,35 @@ export class GoogleCalendarService {
         return;
       }
 
-      // Create a session action for adding meeting notes
+      // Create an action for adding meeting notes
       // This will be picked up by future relationship building sessions
-      const { error: sessionActionError } = await this.supabase
-        .from('session_actions')
+      const { error: actionError } = await this.supabase
+        .from('actions')
         .insert({
           user_id: userId,
           session_id: null, // Orphaned action - will be assigned to a session later
           action_type: 'add_meeting_notes',
+          title: `Add Notes from ${meetingTitle || 'Meeting'}`,
+          description: `Capture insights and strategic value from meeting with contact`,
+          priority: 'medium',
+          status: 'pending',
           contact_id: contactId,
           goal_id: goalContact.goal_id,
-          meeting_artifact_id: artifact.id,
+          artifact_id: artifact.id,
+          estimated_duration_minutes: 20,
           action_data: {
             meeting_title: meetingTitle || 'Meeting',
             google_calendar_id: googleCalendarId,
             created_from: 'calendar_sync',
             auto_created: true
           },
-          status: 'pending'
+          created_source: 'calendar_sync'
         });
 
-      if (sessionActionError) {
-        console.error(`Error creating session action for meeting ${googleCalendarId}:`, sessionActionError);
+      if (actionError) {
+        console.error(`Error creating action for meeting ${googleCalendarId}:`, actionError);
       } else {
-        console.log(`Created session action for meeting notes: ${meetingTitle || 'Meeting'} with contact ${contactId}`);
+        console.log(`Created action for meeting notes: ${meetingTitle || 'Meeting'} with contact ${contactId}`);
       }
     } catch (error) {
       console.error(`Error in createMeetingNotesSessionAction:`, error);

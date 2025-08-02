@@ -16,16 +16,25 @@ import {
   Toolbar,
   alpha,
   Link as MuiLink,
+  TextField,
+  Divider,
+  Collapse,
 } from '@mui/material';
-import { Google as GoogleIcon, ArrowBack } from '@mui/icons-material';
+import { Google as GoogleIcon, ArrowBack, DeveloperMode } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 
 export default function LoginPage(): React.JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, signInWithGoogle } = useAuth();
+  const [showDevLogin, setShowDevLogin] = useState(false);
+  const [email, setEmail] = useState('henry@cultivatehq.com');
+  const [password, setPassword] = useState('password123');
+  const { user, signInWithGoogle, signInWithPassword } = useAuth();
   const router = useRouter();
+  
+  // Only show dev login in development
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     if (user) {
@@ -58,6 +67,30 @@ export default function LoginPage(): React.JSX.Element {
       }
       // Note: If successful, the OAuth flow will redirect to Google
       // and then back to our callback URL
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailPasswordSignIn = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!signInWithPassword) {
+        setError('Email/password login not available');
+        return;
+      }
+      
+      const { error } = await signInWithPassword(email, password);
+      
+      if (error) {
+        setError(error.message);
+      }
+      // If successful, the useEffect will handle redirect
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Login error:', err);
@@ -231,6 +264,85 @@ export default function LoginPage(): React.JSX.Element {
                   >
                     {loading ? 'Signing in...' : 'Continue with Google'}
                   </Button>
+
+                  {/* Development Login */}
+                  {isDevelopment && (
+                    <>
+                      <Divider sx={{ my: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Development Only
+                        </Typography>
+                      </Divider>
+                      
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        startIcon={<DeveloperMode />}
+                        onClick={() => setShowDevLogin(!showDevLogin)}
+                        sx={{
+                          py: 1.5,
+                          textTransform: 'none',
+                          fontWeight: 500,
+                          borderColor: 'warning.main',
+                          color: 'warning.main',
+                          '&:hover': {
+                            borderColor: 'warning.dark',
+                            backgroundColor: alpha('#ed6c02', 0.04),
+                          }
+                        }}
+                      >
+                        {showDevLogin ? 'Hide' : 'Show'} Dev Login
+                      </Button>
+
+                      <Collapse in={showDevLogin}>
+                        <Stack spacing={2} sx={{ mt: 2 }}>
+                          <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            size="medium"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                              }
+                            }}
+                          />
+                          <TextField
+                            fullWidth
+                            label="Password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            size="medium"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                              }
+                            }}
+                          />
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            color="warning"
+                            onClick={handleEmailPasswordSignIn}
+                            disabled={loading || !email || !password}
+                            sx={{
+                              py: 1.5,
+                              textTransform: 'none',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {loading ? 'Signing in...' : 'Dev Sign In'}
+                          </Button>
+                          <Typography variant="caption" color="warning.main" sx={{ textAlign: 'center' }}>
+                            ⚠️ Development mode only - disabled in production
+                          </Typography>
+                        </Stack>
+                      </Collapse>
+                    </>
+                  )}
 
                   {/* New User Link */}
                   <Box sx={{ textAlign: 'center' }}>

@@ -18,12 +18,30 @@ declare module '@mui/material/styles' {
     sage: Palette['primary'];
     plum: Palette['primary'];
     amber: Palette['primary'];
+    // Artifact-specific colors (distinct from personality colors)
+    artifacts: {
+      pog: Palette['primary'];
+      ask: Palette['primary'];
+      loop: Palette['primary'];
+      meeting: Palette['primary'];
+      communication: Palette['primary'];
+      insight: Palette['primary'];
+    };
   }
   
   interface PaletteOptions {
     sage?: PaletteOptions['primary'];
     plum?: PaletteOptions['primary'];
     amber?: PaletteOptions['primary'];
+    // Artifact-specific colors (distinct from personality colors)
+    artifacts?: {
+      pog?: PaletteOptions['primary'];
+      ask?: PaletteOptions['primary'];
+      loop?: PaletteOptions['primary'];
+      meeting?: PaletteOptions['primary'];
+      communication?: PaletteOptions['primary'];
+      insight?: PaletteOptions['primary'];
+    };
   }
   
   interface TypographyVariants {
@@ -72,6 +90,45 @@ const theme = createTheme({
       main: '#F59E0B',
       dark: '#D97706',
       contrastText: '#fff',
+    },
+    // Artifact-specific color palette (distinct from personality colors)
+    artifacts: {
+      pog: {
+        light: '#D1FAE5',
+        main: '#10B981', // Emerald - distinct from sage, clearly "giving"
+        dark: '#059669',
+        contrastText: '#fff',
+      },
+      ask: {
+        light: '#FED7AA',
+        main: '#F97316', // Coral - distinct from amber, clearly "requesting"
+        dark: '#EA580C',
+        contrastText: '#fff',
+      },
+      loop: {
+        light: '#E0E7FF',
+        main: '#6366F1', // Indigo - for active exchanges
+        dark: '#4F46E5',
+        contrastText: '#fff',
+      },
+      meeting: {
+        light: '#E0F2FE',
+        main: '#0EA5E9', // Sky Blue - for live interactions
+        dark: '#0284C7',
+        contrastText: '#fff',
+      },
+      communication: {
+        light: '#F1F5F9',
+        main: '#64748B', // Slate - for emails, messages
+        dark: '#475569',
+        contrastText: '#fff',
+      },
+      insight: {
+        light: '#FDF4FF',
+        main: '#A855F7', // Purple - for AI insights and intelligence
+        dark: '#9333EA',
+        contrastText: '#fff',
+      },
     },
     grey: {
       50: '#FAFAFA',
@@ -213,10 +270,10 @@ const theme = createTheme({
         root: {
           borderRadius: 12,
           border: '1px solid #E0E0E0',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+          boxShadow: 'var(--shadow-card)',
           transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            boxShadow: 'var(--shadow-card-hover)',
             transform: 'translateY(-2px)',
           },
         },
@@ -284,6 +341,31 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
           --ease-entrance: cubic-bezier(0.0, 0, 0.2, 1);
           --ease-exit: cubic-bezier(0.4, 0, 0.6, 1);
           --ease-bounce: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          
+          /* Artifact color system */
+          --color-pog-light: #D1FAE5;
+          --color-pog-main: #10B981;
+          --color-pog-dark: #059669;
+          --color-ask-light: #FED7AA;
+          --color-ask-main: #F97316;
+          --color-ask-dark: #EA580C;
+          --color-loop-light: #E0E7FF;
+          --color-loop-main: #6366F1;
+          --color-loop-dark: #4F46E5;
+          --color-meeting-light: #E0F2FE;
+          --color-meeting-main: #0EA5E9;
+          --color-meeting-dark: #0284C7;
+          --color-communication-light: #F1F5F9;
+          --color-communication-main: #64748B;
+          --color-communication-dark: #475569;
+          --color-insight-light: #FDF4FF;
+          --color-insight-main: #A855F7;
+          --color-insight-dark: #9333EA;
+          
+          /* Modern card shadows */
+          --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.07);
+          --shadow-card-hover: 0 8px 25px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+          --shadow-card-focus: 0 10px 40px -10px rgba(0,0,0,0.15), 0 4px 8px -4px rgba(0,0,0,0.1);
           
           /* Z-index scale */
           --z-dropdown: 1000;

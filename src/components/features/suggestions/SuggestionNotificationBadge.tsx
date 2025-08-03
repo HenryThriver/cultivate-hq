@@ -36,9 +36,9 @@ const SuggestionNotificationBadgeComponent: React.FC<SuggestionNotificationBadge
   const badgeColor = useMemo(() => {
     switch (priority) {
       case 'high':
-        return 'error';
+        return 'primary'; // Blue instead of red - suggestions are helpful!
       case 'medium':
-        return 'warning';
+        return 'primary'; // Blue instead of warning orange
       case 'low':
         return 'default';
       default:
@@ -52,7 +52,7 @@ const SuggestionNotificationBadgeComponent: React.FC<SuggestionNotificationBadge
   }, [count, priority]);
 
   const iconColor = useMemo(() => {
-    return priority === 'high' ? 'error' : 'action';
+    return priority === 'high' ? 'primary' : 'action';
   }, [priority]);
 
   const animationStyle = useMemo(() => {

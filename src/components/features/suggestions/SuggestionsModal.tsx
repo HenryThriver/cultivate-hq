@@ -57,8 +57,9 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
     const newSelections = new Map<string, Set<string>>();
     suggestions.forEach(record => {
       // Auto-select high confidence suggestions (>= 80%)
+      const recordSuggestions = record.suggested_updates?.suggestions || [];
       const autoSelected = new Set(
-        record.suggested_updates.suggestions
+        recordSuggestions
           .filter(s => s.confidence >= 0.8)
           .map(s => s.field_path)
       );
@@ -97,7 +98,8 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
   const handleSelectAll = () => {
     const newSelections = new Map<string, Set<string>>();
     suggestions.forEach(record => {
-      const allPaths = new Set(record.suggested_updates.suggestions.map(s => s.field_path));
+      const recordSuggestions = record.suggested_updates?.suggestions || [];
+      const allPaths = new Set(recordSuggestions.map(s => s.field_path));
       newSelections.set(record.id, allPaths);
     });
     setSelectedSuggestions(newSelections);
@@ -157,17 +159,19 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
   };
 
   // Calculate totals
-  const totalSuggestions = suggestions.reduce((sum, record) => 
-    sum + record.suggested_updates.suggestions.length, 0
-  );
+  const totalSuggestions = suggestions.reduce((sum, record) => {
+    const recordSuggestions = record.suggested_updates?.suggestions || [];
+    return sum + recordSuggestions.length;
+  }, 0);
   
   const totalSelected = Array.from(selectedSuggestions.values()).reduce((sum, paths) => 
     sum + paths.size, 0
   );
 
-  const highConfidenceSuggestions = suggestions.reduce((sum, record) => 
-    sum + record.suggested_updates.suggestions.filter(s => s.confidence >= 0.8).length, 0
-  );
+  const highConfidenceSuggestions = suggestions.reduce((sum, record) => {
+    const recordSuggestions = record.suggested_updates?.suggestions || [];
+    return sum + recordSuggestions.filter(s => s.confidence >= 0.8).length;
+  }, 0);
 
   if (!open) return null;
 
@@ -263,7 +267,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
                       From AI Analysis - {new Date(suggestionRecord.created_at).toLocaleDateString()}
                     </Typography>
                     <Box display="flex" flexDirection="column" gap={1}>
-                      {suggestionRecord.suggested_updates.suggestions.map((suggestion) => (
+                      {(suggestionRecord.suggested_updates?.suggestions || []).map((suggestion) => (
                         <SuggestionCard
                           key={`${suggestionRecord.id}-${suggestion.field_path}`}
                           suggestion={suggestion}

@@ -129,12 +129,51 @@ Info:
 * Main: \#2196F3  
 * Dark: \#1976D2
 
+### **Artifact Color Palette (Content Categorization)**
+
+**POG (Giving/Generosity):**
+
+* Light: \#D1FAE5  
+* Main: \#10B981 (Emerald - distinct from sage, clearly "giving")  
+* Dark: \#059669
+
+**Ask (Requesting/Receiving):**
+
+* Light: \#FED7AA  
+* Main: \#F97316 (Coral - distinct from amber, clearly "requesting")  
+* Dark: \#EA580C
+
+**Loop (Active Exchanges):**
+
+* Light: \#E0E7FF  
+* Main: \#6366F1 (Indigo - for ongoing relationship exchanges)  
+* Dark: \#4F46E5
+
+**Meeting (Live Interactions):**
+
+* Light: \#E0F2FE  
+* Main: \#0EA5E9 (Sky Blue - for real-time connections)  
+* Dark: \#0284C7
+
+**Communication (Messages/Content):**
+
+* Light: \#F1F5F9  
+* Main: \#64748B (Slate - for emails, messages, posts)  
+* Dark: \#475569
+
+**Insight (AI Intelligence):**
+
+* Light: \#FDF4FF  
+* Main: \#A855F7 (Purple - for AI-generated insights)  
+* Dark: \#9333EA
+
 ### **Contextual Color Psychology**
 
 * **Onboarding**: Slightly warmer blue tints to build anticipation  
 * **Success states**: Conditional \- understated recognition vs. playful celebration  
 * **Insights/Intelligence**: Sage green to signal "unexpected perspective"  
-* **Premium features**: Deep plum for exclusive content
+* **Premium features**: Deep plum for exclusive content  
+* **Artifact categorization**: Use artifact colors for content types, personality colors for experiences
 
 ## **Sophisticated Spacing System (Golden Ratio \+ 8px Grid)**
 

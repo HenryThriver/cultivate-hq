@@ -40,15 +40,28 @@ export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) =
       // Even with generated types, explicit casting might be needed if the select string complexity
       // outpaces the type inference for `data`.
       // Also, ensure nested JSON fields are correctly typed.
-      return data ? data.map((s: Record<string, unknown>) => ({
-        ...s,
-        suggested_updates: s.suggested_updates as unknown as { suggestions: ContactUpdateSuggestion[] },
-        // Ensure artifacts is handled, it can be null from the query
-        artifacts: s.artifacts ? { 
-            transcription: (s.artifacts as Record<string, unknown>).transcription, 
-            created_at: (s.artifacts as Record<string, unknown>).created_at 
-        } : undefined 
-      })) as UpdateSuggestionRecord[] : []; 
+      return data ? data.map((s: Record<string, unknown>) => {
+        // Safely parse suggested_updates from JSON
+        const suggestedUpdates = s.suggested_updates ? 
+          (typeof s.suggested_updates === 'string' 
+            ? JSON.parse(s.suggested_updates) 
+            : s.suggested_updates) 
+          : { suggestions: [] };
+        
+        return {
+          ...s,
+          suggested_updates: {
+            suggestions: Array.isArray(suggestedUpdates.suggestions) 
+              ? suggestedUpdates.suggestions 
+              : []
+          },
+          // Ensure artifacts is handled, it can be null from the query
+          artifacts: s.artifacts ? { 
+              transcription: (s.artifacts as Record<string, unknown>).transcription, 
+              created_at: (s.artifacts as Record<string, unknown>).created_at 
+          } : undefined 
+        };
+      }) as UpdateSuggestionRecord[] : []; 
     },
     enabled: !!contactId, // Only run query if contactId is not null/undefined
   });
@@ -184,10 +197,18 @@ export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) =
   });
 
   // Calculate derived values
-  const pendingCount = suggestions.filter((s: UpdateSuggestionRecord) => s.status === 'pending').length;
-  const highConfidenceCount = suggestions.reduce((count, record) => 
-    count + record.suggested_updates.suggestions.filter(s => s.confidence >= 0.9).length, 0
-  );
+  const pendingCount = suggestions.reduce((count, record) => {
+    if (record.status !== 'pending') return count;
+    // Count individual suggestions within each pending record
+    const recordSuggestions = record.suggested_updates?.suggestions || [];
+    return count + recordSuggestions.length;
+  }, 0);
+  
+  const highConfidenceCount = suggestions.reduce((count, record) => {
+    // Safely access suggestions array with fallback
+    const recordSuggestions = record.suggested_updates?.suggestions || [];
+    return count + recordSuggestions.filter(s => s.confidence >= 0.9).length;
+  }, 0);
 
   return {
     suggestions,

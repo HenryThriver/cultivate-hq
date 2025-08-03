@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'; // Ensures the page is always dynamically rendered
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Container, Box, Typography, CircularProgress, Alert, Button, Card, Stack } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Alert, Button, Card, Stack, Modal } from '@mui/material';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Dashboard } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
@@ -16,7 +16,6 @@ import { NextConnection } from '@/components/features/contacts/NextConnection';
 import { ActionQueues, ActionItemStatus as ActionQueuesActionItemStatus } from '@/components/features/contacts/ActionQueues';
 import { ReciprocityDashboard } from '@/components/features/contacts/ReciprocityDashboard';
 import { ContextSections } from '@/components/features/contacts/ContextSections';
-import { QuickAdd } from '@/components/features/contacts/QuickAdd';
 import { ArtifactModal } from '@/components/features/timeline/ArtifactModal';
 
 // Import LoopDashboard
@@ -27,7 +26,7 @@ import { LoopSuggestions } from '@/components/features/loops/LoopSuggestions';
 // Import EnhancedLoopModal NEW
 import { EnhancedLoopModal } from '@/components/features/loops/EnhancedLoopModal';
 
-// Dynamically import VoiceRecorder
+// Dynamically import VoiceRecorder for modal
 const VoiceRecorder = nextDynamic(() => 
   import('@/components/features/voice-memos/VoiceRecorder').then(mod => mod.VoiceRecorder),
   { 
@@ -36,8 +35,7 @@ const VoiceRecorder = nextDynamic(() =>
   }
 );
 
-// Import new suggestion components
-import { FullSuggestionManager } from '@/components/features/suggestions/UnifiedSuggestionManager';
+// Suggestion components are now integrated into ContactHeader
 // Placeholder for the new VoiceMemoDetailModal
 import { VoiceMemoDetailModal } from '@/components/features/voice/VoiceMemoDetailModal'; // Uncommented
 
@@ -56,10 +54,13 @@ import { OnboardingTour } from '@/components/features/onboarding/OnboardingTour'
 // Import new redesigned components
 import { RelationshipPulseDashboard } from '@/components/features/contacts/profile/RelationshipPulseDashboard';
 import { ActionIntelligenceCenter } from '@/components/features/contacts/profile/ActionIntelligenceCenter';
+import { POGDetailModal } from '@/components/features/contacts/profile/POGDetailModal';
+import { AskDetailModal } from '@/components/features/contacts/profile/AskDetailModal';
 
 // Import hooks and types
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
 import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos';
+import { useActionsByArtifact, useCreateAction } from '@/lib/hooks/useActions';
 // Import useUpdateSuggestions hook for priority calculation only
 import { useUpdateSuggestions } from '@/lib/hooks/useUpdateSuggestions';
 import { useArtifacts } from '@/lib/hooks/useArtifacts';
@@ -79,6 +80,7 @@ import type {
 } from '@/types';
 import { useToast } from '@/lib/contexts/ToastContext';
 import { ProcessingStatusBar } from '@/components/features/voice/ProcessingStatusBar'; // Revert to alias import
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface ContactProfilePageProps {
   // Props interface for Next.js 14 App Router
@@ -116,6 +118,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const { showToast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
   const [audioPlaybackError, setAudioPlaybackError] = useState<string | null>(null);
@@ -135,6 +138,33 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // NEW state for EnhancedLoopModal
   const [selectedLoopForEnhancedModal, setSelectedLoopForEnhancedModal] = useState<LoopArtifact | null>(null);
   const [isEnhancedLoopModalOpen, setIsEnhancedLoopModalOpen] = useState(false);
+
+  // NEW state for POGDetailModal
+  const [selectedPOGForDetailModal, setSelectedPOGForDetailModal] = useState<POGArtifact | null>(null);
+  const [isPOGDetailModalOpen, setIsPOGDetailModalOpen] = useState(false);
+
+  // NEW state for AskDetailModal
+  const [selectedAskForDetailModal, setSelectedAskForDetailModal] = useState<AskArtifact | null>(null);
+  const [isAskDetailModalOpen, setIsAskDetailModalOpen] = useState(false);
+
+  // Action creation hook
+  const createActionMutation = useCreateAction();
+
+  // Get actions for selected POG and Ask
+  const { data: pogActions = [] } = useActionsByArtifact(selectedPOGForDetailModal?.id);
+  const { data: askActions = [] } = useActionsByArtifact(selectedAskForDetailModal?.id);
+
+  // Transform database actions to modal format
+  const transformDbActionToModalAction = useCallback((dbAction: any) => ({
+    id: dbAction.id,
+    title: dbAction.title,
+    description: dbAction.description,
+    status: dbAction.status === 'cancelled' || dbAction.status === 'skipped' ? 'completed' : dbAction.status,
+    priority: dbAction.priority === 'urgent' ? 'high' : dbAction.priority,
+    dueDate: dbAction.due_date ? new Date(dbAction.due_date) : undefined,
+    createdAt: new Date(dbAction.created_at),
+  }), []);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -245,15 +275,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     console.log('Brainstorm POGs clicked');
   }, []);
 
-  const handleQuickAdd = useCallback((type: string) => {
-    console.log(`Quick Add ${type} clicked`);
-  }, []);
-
-  const handleQuickAddNote = useCallback(() => handleQuickAdd('note'), [handleQuickAdd]);
-  const handleQuickAddMeeting = useCallback(() => handleQuickAdd('meeting'), [handleQuickAdd]);
-  const handleQuickAddPOG = useCallback(() => handleQuickAdd('POG'), [handleQuickAdd]);
-  const handleQuickAddAsk = useCallback(() => handleQuickAdd('Ask'), [handleQuickAdd]);
-  const handleQuickAddMilestone = useCallback(() => handleQuickAdd('milestone'), [handleQuickAdd]);
 
 
 
@@ -291,6 +312,125 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           type: 'ask' as const,
         };
       });
+  }, [contact?.artifacts]);
+
+  // Calculate reciprocity data based on artifact directionality
+  const reciprocityData = useMemo(() => {
+    if (!contact?.artifacts || !user) return { balance: 0, given: 0, received: 0 };
+    
+    let given = 0;
+    let received = 0;
+    
+    contact.artifacts.forEach((artifact: any) => {
+      // Check for POGs and Asks with proper directionality fields
+      if (artifact.type === 'pog' || artifact.type === 'ask') {
+        // Determine if the exchange is in an active/completed state
+        let isActive = false;
+        
+        if (artifact.type === 'pog' && artifact.metadata?.status) {
+          isActive = ['offered', 'in_progress', 'delivered', 'closed'].includes(artifact.metadata.status);
+        } else if (artifact.type === 'ask' && artifact.metadata?.status) {
+          isActive = ['requested', 'in_progress', 'received', 'closed'].includes(artifact.metadata.status);
+        }
+        
+        if (isActive) {
+          // Use database directionality fields instead of metadata
+          // If current user is the initiator, they "gave" something
+          if (artifact.initiator_user_id === user.id) {
+            given++;
+          }
+          // If current user is the recipient, they "received" something
+          else if (artifact.recipient_user_id === user.id) {
+            received++;
+          }
+          // Alternative: check contact-based directionality
+          // If contact is the initiator, user "received" from them
+          else if (artifact.initiator_contact_id === contactId) {
+            received++;
+          }
+          // If contact is the recipient, user "gave" to them
+          else if (artifact.recipient_contact_id === contactId) {
+            given++;
+          }
+        }
+      }
+    });
+    
+    // Calculate balance: -1 (all received) to 1 (all given)
+    const total = given + received;
+    const balance = total > 0 ? (given - received) / total : 0;
+    
+    return { balance, given, received };
+  }, [contact?.artifacts, user, contactId]);
+
+  // Calculate active exchanges
+  const activeExchanges = useMemo(() => {
+    if (!contact?.artifacts) return { pogs: { active: 0, total: 0 }, asks: { active: 0, total: 0 } };
+    
+    let pogsActive = 0;
+    let pogsTotal = 0;
+    let asksActive = 0;
+    let asksTotal = 0;
+    
+    contact.artifacts.forEach((artifact: any) => {
+      if (artifact.type === 'pog') {
+        pogsTotal++;
+        if (artifact.metadata?.active_exchange || 
+            ['offered', 'in_progress'].includes(artifact.metadata?.status)) {
+          pogsActive++;
+        }
+      } else if (artifact.type === 'ask') {
+        asksTotal++;
+        if (artifact.metadata?.active_exchange || 
+            ['requested', 'in_progress'].includes(artifact.metadata?.status)) {
+          asksActive++;
+        }
+      }
+    });
+    
+    return {
+      pogs: { active: pogsActive, total: pogsTotal },
+      asks: { active: asksActive, total: asksTotal }
+    };
+  }, [contact?.artifacts]);
+
+  // Calculate real last contact date from all artifacts
+  const lastContactDate = useMemo(() => {
+    if (!contact?.artifacts) return undefined;
+    
+    const now = new Date();
+    const allArtifacts = contact.artifacts
+      .filter((art: any) => new Date(art.timestamp) < now)
+      .map((art: any) => new Date(art.timestamp))
+      .sort((a, b) => b.getTime() - a.getTime()); // Sort descending (most recent first)
+    
+    return allArtifacts.length > 0 ? allArtifacts[0] : undefined;
+  }, [contact?.artifacts]);
+
+  // Find last and next live connections (meetings/calls)
+  const liveConnections = useMemo(() => {
+    if (!contact?.artifacts) return { last: undefined, next: undefined };
+    
+    const now = new Date();
+    const liveArtifacts = contact.artifacts
+      .filter((art: any) => art.type === 'meeting' || art.type === 'call')
+      .map((art: any) => ({
+        type: art.type as 'meeting' | 'call',
+        date: new Date(art.timestamp),
+        title: (art.metadata?.title || art.content || '') as string
+      }));
+    
+    // Sort by date
+    liveArtifacts.sort((a, b) => a.date.getTime() - b.date.getTime());
+    
+    // Find last (most recent past) and next (soonest future)
+    const past = liveArtifacts.filter(a => a.date < now);
+    const future = liveArtifacts.filter(a => a.date >= now);
+    
+    return {
+      last: past.length > 0 ? past[past.length - 1] : undefined,
+      next: future.length > 0 ? future[0] : undefined
+    };
   }, [contact?.artifacts]);
 
 
@@ -363,15 +503,33 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       setSelectedLoopForEnhancedModal(artifact as unknown as LoopArtifact);
       setIsEnhancedLoopModalOpen(true);
       setIsArtifactModalOpen(false);
+      setIsPOGDetailModalOpen(false);
+      setIsAskDetailModalOpen(false);
     } else if (artifact.type === 'voice_memo') {
         setSelectedVoiceMemoForDetail(artifact as VoiceMemoArtifact);
         setIsVoiceMemoDetailModalOpen(true);
         setIsArtifactModalOpen(false);
+        setIsPOGDetailModalOpen(false);
+        setIsAskDetailModalOpen(false);
+    } else if (artifact.type === 'pog') {
+        setSelectedPOGForDetailModal(artifact as POGArtifact);
+        setIsPOGDetailModalOpen(true);
+        setIsArtifactModalOpen(false);
+        setIsEnhancedLoopModalOpen(false);
+        setIsAskDetailModalOpen(false);
+    } else if (artifact.type === 'ask') {
+        setSelectedAskForDetailModal(artifact as AskArtifact);
+        setIsAskDetailModalOpen(true);
+        setIsArtifactModalOpen(false);
+        setIsEnhancedLoopModalOpen(false);
+        setIsPOGDetailModalOpen(false);
     } else {
       fetchArtifactData(artifact.id, contactId);
       setIsArtifactModalOpen(true);
       setSelectedLoopForEnhancedModal(null);
       setIsEnhancedLoopModalOpen(false);
+      setIsPOGDetailModalOpen(false);
+      setIsAskDetailModalOpen(false);
     }
   }, [fetchArtifactData, contactId]);
 
@@ -433,6 +591,176 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     // Example: completeLoop({loopId, ...outcome })
     // queryClient.invalidateQueries(['loops', contactId]);
   }, []);
+
+  // POG modal handlers
+  const handleDeletePOG = useCallback(async (pogId: string) => {
+    try {
+      await deleteArtifact({ id: pogId, contactId: contactId }); 
+      showToast('POG deleted successfully', 'success');
+      setIsPOGDetailModalOpen(false);
+      setSelectedPOGForDetailModal(null);
+      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+      queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+    } catch (error: unknown) {
+      if (error instanceof Error && (error as Error & { code?: string }).code === 'ARTIFACT_IS_SOURCE') {
+        showToast('Cannot delete: This POG is referenced by other data.', 'error');
+      } else if (error instanceof Error) {
+        showToast(`Error deleting: ${error.message}`, 'error');
+      } else {
+        showToast('An unknown error occurred during deletion.', 'error');
+      }
+    }
+  }, [deleteArtifact, contactId, showToast, queryClient]);
+
+  const handleReprocessPOG = useCallback(async (pogId: string) => {
+    try {
+      await reprocessVoiceMemo(pogId); // Note: reprocessVoiceMemo works for all artifacts
+      showToast('POG reprocessing started', 'success');
+      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+      queryClient.invalidateQueries({ queryKey: ['artifactDetail', pogId] });
+      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+      if (selectedPOGForDetailModal?.id === pogId) {
+        const { data: updatedPOG } = await supabase.from('artifacts').select('*').eq('id', pogId).single();
+        if (updatedPOG) setSelectedPOGForDetailModal(updatedPOG as POGArtifact);
+      }
+    } catch (error: unknown) { 
+      if (error instanceof Error) {
+        showToast(`Error reprocessing: ${error.message}`, 'error');
+      } else {
+        showToast('An unknown error occurred during reprocessing.', 'error');
+      }
+    }
+  }, [reprocessVoiceMemo, showToast, queryClient, contactId, selectedPOGForDetailModal?.id]);
+
+  // Ask modal handlers
+  const handleDeleteAsk = useCallback(async (askId: string) => {
+    try {
+      await deleteArtifact({ id: askId, contactId: contactId }); 
+      showToast('Ask deleted successfully', 'success');
+      setIsAskDetailModalOpen(false);
+      setSelectedAskForDetailModal(null);
+      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+      queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+    } catch (error: unknown) {
+      if (error instanceof Error && (error as Error & { code?: string }).code === 'ARTIFACT_IS_SOURCE') {
+        showToast('Cannot delete: This Ask is referenced by other data.', 'error');
+      } else if (error instanceof Error) {
+        showToast(`Error deleting: ${error.message}`, 'error');
+      } else {
+        showToast('An unknown error occurred during deletion.', 'error');
+      }
+    }
+  }, [deleteArtifact, contactId, showToast, queryClient]);
+
+  const handleReprocessAsk = useCallback(async (askId: string) => {
+    try {
+      await reprocessVoiceMemo(askId); // Note: reprocessVoiceMemo works for all artifacts
+      showToast('Ask reprocessing started', 'success');
+      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+      queryClient.invalidateQueries({ queryKey: ['artifactDetail', askId] });
+      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+      if (selectedAskForDetailModal?.id === askId) {
+        const { data: updatedAsk } = await supabase.from('artifacts').select('*').eq('id', askId).single();
+        if (updatedAsk) setSelectedAskForDetailModal(updatedAsk as AskArtifact);
+      }
+    } catch (error: unknown) { 
+      if (error instanceof Error) {
+        showToast(`Error reprocessing: ${error.message}`, 'error');
+      } else {
+        showToast('An unknown error occurred during reprocessing.', 'error');
+      }
+    }
+  }, [reprocessVoiceMemo, showToast, queryClient, contactId, selectedAskForDetailModal?.id]);
+
+  // Action creation handlers
+  const handleCreateActionForPOG = useCallback(async (pogId: string) => {
+    const pog = contact?.artifacts?.find(art => art.id === pogId);
+    if (!pog) return;
+
+    // Create contextual action based on POG status
+    let actionType = 'other';
+    let title = '';
+    let description = '';
+
+    switch (pog.metadata?.status) {
+      case 'offered':
+        actionType = 'deliver_pog';
+        title = 'Deliver POG';
+        description = `Follow up on delivery of: ${pog.metadata?.description || pog.content}`;
+        break;
+      case 'delivered':
+        actionType = 'follow_up_ask';
+        title = 'Follow up on delivered POG';
+        description = `Check in on the POG that was delivered: ${pog.metadata?.description || pog.content}`;
+        break;
+      default:
+        actionType = 'other';
+        title = 'Take action on POG';
+        description = `Next step for: ${pog.metadata?.description || pog.content}`;
+    }
+
+    try {
+      await createActionMutation.mutateAsync({
+        title,
+        description,
+        action_type: actionType,
+        priority: 'medium',
+        contact_id: contactId,
+        artifact_id: pogId,
+      });
+    } catch (error) {
+      console.error('Failed to create POG action:', error);
+    }
+  }, [contact?.artifacts, contactId, createActionMutation]);
+
+  const handleCreateActionForAsk = useCallback(async (askId: string) => {
+    const ask = contact?.artifacts?.find(art => art.id === askId);
+    if (!ask) return;
+
+    // Create contextual action based on Ask status
+    let actionType = 'other';
+    let title = '';
+    let description = '';
+
+    const isUserAsking = ask.initiator_user_id === user?.id || ask.recipient_contact_id === contactId;
+
+    switch (ask.metadata?.status) {
+      case 'requested':
+        actionType = 'follow_up_ask';
+        title = isUserAsking ? 'Follow up on Ask' : 'Respond to Ask';
+        description = `${isUserAsking ? 'Check status of' : 'Provide response to'}: ${ask.metadata?.request_description || ask.content}`;
+        break;
+      case 'in_progress':
+        actionType = 'follow_up_ask';
+        title = 'Track Ask progress';
+        description = `Monitor progress on: ${ask.metadata?.request_description || ask.content}`;
+        break;
+      case 'received':
+        actionType = 'send_follow_up';
+        title = 'Send thank you';
+        description = `Thank contact for fulfilling Ask: ${ask.metadata?.request_description || ask.content}`;
+        break;
+      default:
+        actionType = 'other';
+        title = 'Take action on Ask';
+        description = `Next step for: ${ask.metadata?.request_description || ask.content}`;
+    }
+
+    try {
+      await createActionMutation.mutateAsync({
+        title,
+        description,
+        action_type: actionType,
+        priority: 'medium',
+        contact_id: contactId,
+        artifact_id: askId,
+      });
+    } catch (error) {
+      console.error('Failed to create Ask action:', error);
+    }
+  }, [contact?.artifacts, contactId, user?.id, createActionMutation]);
 
   // Real-time completion/failure notifications
   useEffect(() => {
@@ -544,6 +872,14 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               relationshipScore={demoContact.relationship_score}
               contactId={demoContact.id}
               suggestionPriority="high"
+              onUpdateRelationshipScore={async (newScore) => {
+                console.log('Demo: Update relationship score:', newScore);
+                // For demo, just log - no actual save needed
+              }}
+              onUpdateCadence={async (newCadence) => {
+                console.log('Demo: Update cadence:', newCadence);
+                // For demo, just log - no actual save needed
+              }}
             />
 
             {/* Demo content for walkthrough */}
@@ -665,7 +1001,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           company={contact.company}
           email={contact.email}
           connectCadence={connectCadenceText}
-          connectDate={contact.last_interaction_date ? new Date(contact.last_interaction_date) : undefined}
+          connectDate={lastContactDate}
           personalContext={personalContextForHeader}
           profilePhotoUrl={(contact.linkedin_data as unknown as LinkedInArtifactContent)?.profilePicture || undefined}
           location={contact.location}
@@ -676,20 +1012,70 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           goals={[]} // TODO: Fetch from goals hook
           onGoalClick={(goalId) => console.log('Navigate to goal:', goalId)}
           onRecordVoiceMemo={() => {
-            // This will trigger the voice recorder component
-            const voiceRecorderElement = document.querySelector('[data-voice-recorder]');
-            if (voiceRecorderElement) {
-              (voiceRecorderElement as HTMLElement).click();
-            }
+            // This will be handled by the embedded recorder
+            console.log('Voice memo recording - handled by embedded component');
           }}
-          onScheduleConnect={() => console.log('Schedule connection')}
           onUpdateRelationshipScore={async (newScore) => {
             console.log('Update relationship score:', newScore);
-            // TODO: Implement update API call
+            
+            // Optimistic update - immediately update the UI
+            queryClient.setQueryData(['contact-profile', contactId], (oldData: Contact | null) => {
+              if (!oldData) return oldData;
+              return { ...oldData, relationship_score: newScore };
+            });
+            
+            try {
+              // Update the database
+              const { error } = await supabase
+                .from('contacts')
+                .update({ relationship_score: newScore })
+                .eq('id', contactId);
+
+              if (error) {
+                console.error('Failed to update relationship score:', error);
+                // Revert optimistic update on error
+                queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+                throw error;
+              }
+
+              console.log('Relationship score updated successfully');
+            } catch (error) {
+              console.error('Error updating relationship score:', error);
+              throw error; // Re-throw so the component can handle the error
+            }
           }}
           onUpdateCadence={async (newCadence) => {
             console.log('Update cadence:', newCadence);
-            // TODO: Implement update API call
+            
+            // Extract number of days from cadence text (e.g., "Connect every 42 days" -> 42)
+            const daysMatch = newCadence.match(/(\d+)/);
+            const days = daysMatch ? parseInt(daysMatch[1]) : null;
+            
+            // Optimistic update
+            queryClient.setQueryData(['contact-profile', contactId], (oldData: Contact | null) => {
+              if (!oldData) return oldData;
+              return { ...oldData, connection_cadence_days: days };
+            });
+            
+            try {
+              // Update the database
+              const { error } = await supabase
+                .from('contacts')
+                .update({ connection_cadence_days: days })
+                .eq('id', contactId);
+
+              if (error) {
+                console.error('Failed to update cadence:', error);
+                // Revert optimistic update on error
+                queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+                throw error;
+              }
+
+              console.log('Cadence updated successfully');
+            } catch (error) {
+              console.error('Error updating cadence:', error);
+              throw error;
+            }
           }}
         />
 
@@ -778,37 +1164,66 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           contactName={contact.name || undefined} 
         />
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
             
             {/* New Relationship Pulse Dashboard */}
             <RelationshipPulseDashboard
-              contactId={contactId}
+              reciprocityBalance={reciprocityData.balance}
+              reciprocityItems={{ given: reciprocityData.given, received: reciprocityData.received }}
+              activeExchanges={activeExchanges}
+              lastLiveConnection={liveConnections.last}
+              nextLiveConnection={liveConnections.next}
               contactName={contact.name || 'Contact'}
-              reciprocityBalance={0} // TODO: Calculate from data
-              reciprocityItems={{ given: 3, received: 2 }} // TODO: Get from data
-              cadenceDays={contact.connection_cadence_days || 42}
-              daysSinceLastInteraction={
-                contact.last_interaction_date 
-                  ? Math.floor((new Date().getTime() - new Date(contact.last_interaction_date).getTime()) / (1000 * 60 * 60 * 24))
-                  : 0
-              }
-              cadenceHealth={(() => {
-                if (!contact.last_interaction_date || !contact.connection_cadence_days) return 'on-track';
-                const daysSince = Math.floor((new Date().getTime() - new Date(contact.last_interaction_date).getTime()) / (1000 * 60 * 60 * 24));
-                const cadence = contact.connection_cadence_days;
-                if (daysSince > cadence) return 'overdue';
-                if (daysSince > cadence * 0.8) return 'due-soon';
-                return 'on-track';
-              })()}
-              openActionsCount={pogs.length + asks.length}
-              highPriorityActionsCount={0} // TODO: Calculate high priority
-              networkConnectionsCount={0} // TODO: Get from network data
-              recentIntroductions={0} // TODO: Get from network data
-              nextInteraction={{
-                type: 'suggested',
-                description: 'Follow up on last conversation'
+              contactId={contactId}
+              onExchangeClick={(exchangeId) => {
+                // Find the artifact and open its modal
+                const artifact = contact.artifacts?.find((art: any) => art.id === exchangeId);
+                if (artifact) {
+                  handleOpenArtifactModal(artifact);
+                }
               }}
+              mockExchanges={[
+                // Create POG exchanges based on the same logic as activeExchanges calculation
+                ...contact.artifacts
+                  ?.filter((artifact: any) => artifact.type === 'pog')
+                  ?.filter((artifact: any) => 
+                    artifact.metadata?.active_exchange || 
+                    ['offered', 'in_progress'].includes(artifact.metadata?.status)
+                  )
+                  ?.map((artifact: any) => ({
+                    id: artifact.id,
+                    title: artifact.metadata?.description || artifact.content || 'No description',
+                    type: 'pog' as const,
+                    status: 'active' as const,
+                    createdAt: new Date(artifact.timestamp || Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+                    contactName: contact.name || 'Contact',
+                    sourceArtifact: {
+                      type: 'voice_memo',
+                      title: 'Recent conversation',
+                      date: new Date(artifact.timestamp || Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000)
+                    }
+                  })) || [],
+                // Create Ask exchanges based on the same logic as activeExchanges calculation
+                ...contact.artifacts
+                  ?.filter((artifact: any) => artifact.type === 'ask')
+                  ?.filter((artifact: any) => 
+                    artifact.metadata?.active_exchange || 
+                    ['requested', 'in_progress'].includes(artifact.metadata?.status)
+                  )
+                  ?.map((artifact: any) => ({
+                    id: artifact.id,
+                    title: artifact.metadata?.request_description || artifact.content || 'No description',
+                    type: 'ask' as const,
+                    status: 'active' as const,
+                    createdAt: new Date(artifact.timestamp || Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+                    contactName: contact.name || 'Contact',
+                    sourceArtifact: {
+                      type: 'meeting',
+                      title: 'Follow-up discussion',
+                      date: new Date(artifact.timestamp || Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000)
+                    }
+                  })) || []
+              ]}
             />
 
             {/* New Action Intelligence Center */}
@@ -912,28 +1327,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               contactData={contact}
               contactId={contactId}
             />
-          </Box>
-          
-          <Box sx={{ width: '300px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2, position: 'sticky', top: '70px' }}>
-            {isClient && (
-              <Box data-voice-recorder>
-                <VoiceRecorder 
-                  contactId={contactId} 
-                />
-              </Box>
-            )}
-            <QuickAdd 
-              onAddNote={handleQuickAddNote}
-              onAddMeeting={handleQuickAddMeeting}
-              onAddPOG={handleQuickAddPOG}
-              onAddAsk={handleQuickAddAsk}
-              onAddMilestone={handleQuickAddMilestone} 
-            />
-            <FullSuggestionManager
-              contactId={contactId}
-              priority={suggestionPriority}
-            />
-          </Box>
         </Box>
       </Box>
 
@@ -1006,6 +1399,84 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           onDelete={handleDeleteLoop}
           onShare={handleShareLoopWithContact}
           onComplete={handleCompleteLoop}
+        />
+      )}
+
+      {/* POG Detail Modal */}
+      {selectedPOGForDetailModal && user && (
+        <POGDetailModal
+          open={isPOGDetailModalOpen}
+          onClose={() => {
+            setIsPOGDetailModalOpen(false);
+            setSelectedPOGForDetailModal(null);
+          }}
+          pog={selectedPOGForDetailModal}
+          contactName={contact?.name || 'Contact'}
+          contactId={contactId}
+          currentUserId={user.id}
+          sourceArtifact={
+            // Find the source artifact if available
+            selectedPOGForDetailModal.metadata?.source_artifact_id 
+              ? contact?.artifacts?.find((art: any) => art.id === selectedPOGForDetailModal.metadata?.source_artifact_id)
+              : undefined
+          }
+          relatedActions={pogActions.map(transformDbActionToModalAction)}
+          onDelete={handleDeletePOG}
+          onReprocess={handleReprocessPOG}
+          onAddAction={handleCreateActionForPOG}
+          onViewAction={(actionId) => {
+            console.log('View action:', actionId);
+            // TODO: Open action detail modal
+            showToast('Action details coming soon!', 'info');
+          }}
+          onViewSource={(artifactId) => {
+            // Find and open the source artifact
+            const sourceArtifact = contact?.artifacts?.find((art: any) => art.id === artifactId);
+            if (sourceArtifact) {
+              handleOpenArtifactModal(sourceArtifact);
+            }
+          }}
+          isDeleting={isDeleting}
+          isReprocessing={isReprocessingArtifactModal}
+        />
+      )}
+
+      {/* Ask Detail Modal */}
+      {selectedAskForDetailModal && user && (
+        <AskDetailModal
+          open={isAskDetailModalOpen}
+          onClose={() => {
+            setIsAskDetailModalOpen(false);
+            setSelectedAskForDetailModal(null);
+          }}
+          ask={selectedAskForDetailModal}
+          contactName={contact?.name || 'Contact'}
+          contactId={contactId}
+          currentUserId={user.id}
+          sourceArtifact={
+            // Find the source artifact if available
+            selectedAskForDetailModal.metadata?.source_artifact_id 
+              ? contact?.artifacts?.find((art: any) => art.id === selectedAskForDetailModal.metadata?.source_artifact_id)
+              : undefined
+          }
+          relatedActions={askActions.map(transformDbActionToModalAction)}
+          onDelete={handleDeleteAsk}
+          onReprocess={handleReprocessAsk}
+          onAddAction={handleCreateActionForAsk}
+          onViewAction={(actionId) => {
+            console.log('View action:', actionId);
+            // TODO: Open action detail modal
+            showToast('Action details coming soon!', 'info');
+          }}
+          onViewSource={(artifactId) => {
+            // Find and open the source artifact
+            const sourceArtifact = contact?.artifacts?.find((art: any) => art.id === artifactId);
+            if (sourceArtifact) {
+              handleOpenArtifactModal(sourceArtifact);
+            }
+          }}
+          isDeleting={isDeleting}
+          isReprocessing={isReprocessingArtifactModal}
         />
       )}
 

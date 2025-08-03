@@ -1,28 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase/client';
-
-interface ContactRelationship {
-  id: string;
-  contact_a_id: string;
-  contact_b_id: string;
-  relationship_type: 'introduced_by_me' | 'known_connection' | 'target_connection';
-  strength: 'weak' | 'medium' | 'strong';
-  context?: string;
-  introduction_date?: string;
-  introduction_successful?: boolean;
-}
-
-interface GoalContactTarget {
-  id: string;
-  goal_id: string;
-  contact_id: string;
-  target_description: string;
-  target_type: 'introduction' | 'information' | 'opportunity' | 'exploration';
-  priority: 'high' | 'medium' | 'low';
-  status: 'active' | 'achieved' | 'archived';
-  achieved_at?: string;
-  notes?: string;
-}
+import { useState, useEffect } from 'react';
+import { ContactRelationship, GoalContactTarget } from '@/types/networkTypes';
 
 interface ContactNetworkIntelligence {
   relationships: ContactRelationship[];
@@ -32,89 +9,101 @@ interface ContactNetworkIntelligence {
   introductionSuccessRate: number;
 }
 
-export const useContactNetworkIntelligence = (contactId: string) => {
-  const {
-    data: networkIntelligence,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['contactNetworkIntelligence', contactId],
-    queryFn: async (): Promise<ContactNetworkIntelligence> => {
-      // Fetch contact relationships
-      const { data: relationships, error: relationshipsError } = await supabase
-        .from('contact_relationships')
-        .select('*')
-        .or(`contact_a_id.eq.${contactId},contact_b_id.eq.${contactId}`);
-
-      if (relationshipsError) {
-        throw new Error(`Failed to fetch relationships: ${relationshipsError.message}`);
-      }
-
-      // Fetch goal targets for this contact
-      const { data: goalTargets, error: goalTargetsError } = await supabase
-        .from('goal_contact_targets')
-        .select('*')
-        .eq('contact_id', contactId)
-        .eq('status', 'active');
-
-      if (goalTargetsError) {
-        throw new Error(`Failed to fetch goal targets: ${goalTargetsError.message}`);
-      }
-
-      // Calculate metrics
-      const networkConnectionsCount = relationships?.length || 0;
-      
-      // Count recent introductions (last 90 days)
-      const threeMonthsAgo = new Date();
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      
-      const recentIntroductions = relationships?.filter(rel => 
-        rel.relationship_type === 'introduced_by_me' &&
-        rel.introduction_date &&
-        new Date(rel.introduction_date) > threeMonthsAgo
-      ).length || 0;
-
-      // Calculate introduction success rate
-      const introductions = relationships?.filter(rel => 
-        rel.relationship_type === 'introduced_by_me' &&
-        rel.introduction_successful !== null
-      ) || [];
-      
-      const successfulIntroductions = introductions.filter(rel => 
-        rel.introduction_successful === true
-      ).length;
-      
-      const introductionSuccessRate = introductions.length > 0 
-        ? (successfulIntroductions / introductions.length) * 100 
-        : 0;
-
-      return {
-        relationships: relationships || [],
-        goalTargets: goalTargets || [],
-        networkConnectionsCount,
-        recentIntroductions,
-        introductionSuccessRate,
-      };
+// Mock data for development/testing
+const generateMockData = (contactId: string): ContactNetworkIntelligence => {
+  const mockRelationships: ContactRelationship[] = [
+    {
+      id: 'rel-1',
+      contact_a_id: contactId,
+      contact_b_id: 'contact-2',
+      relationship_type: 'known_connection',
+      strength: 'strong',
+      context: 'Former colleagues at Tech Corp',
+      created_at: new Date().toISOString(),
     },
-    enabled: !!contactId,
-  });
+    {
+      id: 'rel-2',
+      contact_a_id: contactId,
+      contact_b_id: 'contact-3',
+      relationship_type: 'introduced_by_me',
+      strength: 'medium',
+      context: 'Introduced at networking event',
+      introduction_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      introduction_successful: true,
+      created_at: new Date().toISOString(),
+    },
+  ];
 
-  // Mutations for managing relationships and targets
+  const mockGoalTargets: GoalContactTarget[] = [
+    {
+      id: 'target-1',
+      goal_id: 'goal-1',
+      contact_id: contactId,
+      target_description: 'Get introduction to their CTO',
+      target_type: 'introduction',
+      priority: 'high',
+      status: 'active',
+      notes: 'They mentioned knowing the CTO well',
+      created_at: new Date().toISOString(),
+    },
+  ];
+
+  return {
+    relationships: mockRelationships,
+    goalTargets: mockGoalTargets,
+    networkConnectionsCount: mockRelationships.length,
+    recentIntroductions: 1,
+    introductionSuccessRate: 100,
+  };
+};
+
+export const useContactNetworkIntelligence = (contactId: string) => {
+  const [networkIntelligence, setNetworkIntelligence] = useState<ContactNetworkIntelligence | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    // Simulate loading
+    const timer = setTimeout(() => {
+      try {
+        setNetworkIntelligence(generateMockData(contactId));
+        setIsLoading(false);
+      } catch (err) {
+        setError(err as Error);
+        setIsLoading(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [contactId]);
+
+  const refetch = () => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setNetworkIntelligence(generateMockData(contactId));
+      setIsLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  };
+
+  // Mock mutations
   const createRelationship = async (relationship: Omit<ContactRelationship, 'id'>) => {
-    const { data, error } = await supabase
-      .from('contact_relationships')
-      .insert([relationship])
-      .select()
-      .single();
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const newRelationship: ContactRelationship = {
+      ...relationship,
+      id: `rel-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
 
-    if (error) {
-      throw new Error(`Failed to create relationship: ${error.message}`);
-    }
+    setNetworkIntelligence(prev => prev ? {
+      ...prev,
+      relationships: [...prev.relationships, newRelationship],
+      networkConnectionsCount: prev.networkConnectionsCount + 1,
+    } : null);
 
-    // Invalidate cache
-    refetch();
-    return data;
+    return newRelationship;
   };
 
   const updateRelationshipSuccess = async (
@@ -122,34 +111,35 @@ export const useContactNetworkIntelligence = (contactId: string) => {
     successful: boolean, 
     context?: string
   ) => {
-    const { error } = await supabase
-      .from('contact_relationships')
-      .update({ 
-        introduction_successful: successful,
-        context: context || undefined,
-      })
-      .eq('id', relationshipId);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    if (error) {
-      throw new Error(`Failed to update relationship: ${error.message}`);
-    }
-
-    refetch();
+    setNetworkIntelligence(prev => prev ? {
+      ...prev,
+      relationships: prev.relationships.map(rel => 
+        rel.id === relationshipId 
+          ? { ...rel, introduction_successful: successful, context: context || rel.context }
+          : rel
+      ),
+    } : null);
   };
 
-  const createGoalTarget = async (target: Omit<GoalContactTarget, 'id' | 'contact_id'>) => {
-    const { data, error } = await supabase
-      .from('goal_contact_targets')
-      .insert([{ ...target, contact_id: contactId }])
-      .select()
-      .single();
+  const createGoalTarget = async (target: Omit<GoalContactTarget, 'id'>) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const newTarget: GoalContactTarget = {
+      ...target,
+      id: `target-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
 
-    if (error) {
-      throw new Error(`Failed to create goal target: ${error.message}`);
-    }
+    setNetworkIntelligence(prev => prev ? {
+      ...prev,
+      goalTargets: [...prev.goalTargets, newTarget],
+    } : null);
 
-    refetch();
-    return data;
+    return newTarget;
   };
 
   const updateGoalTargetStatus = async (
@@ -157,24 +147,24 @@ export const useContactNetworkIntelligence = (contactId: string) => {
     status: GoalContactTarget['status'],
     achievementNotes?: string
   ) => {
-    const updateData: Partial<GoalContactTarget> = { 
-      status,
-      ...(status === 'achieved' ? { 
-        achieved_at: new Date().toISOString(),
-        achievement_notes: achievementNotes 
-      } : {})
-    };
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    const { error } = await supabase
-      .from('goal_contact_targets')
-      .update(updateData)
-      .eq('id', targetId);
-
-    if (error) {
-      throw new Error(`Failed to update goal target: ${error.message}`);
-    }
-
-    refetch();
+    setNetworkIntelligence(prev => prev ? {
+      ...prev,
+      goalTargets: prev.goalTargets.map(target => 
+        target.id === targetId 
+          ? { 
+              ...target, 
+              status,
+              ...(status === 'achieved' ? { 
+                achieved_at: new Date().toISOString(),
+                achievement_notes: achievementNotes 
+              } : {})
+            }
+          : target
+      ),
+    } : null);
   };
 
   return {

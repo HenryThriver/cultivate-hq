@@ -1,9 +1,12 @@
-import React from 'react';
-import { Box, Typography, Paper, Avatar, Button, Stack, Chip, Tooltip } from '@mui/material';
-import { Email, Mic, Edit } from '@mui/icons-material';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Box, Typography, Paper, Avatar, Chip, Slider, ClickAwayListener, TextField, IconButton, CircularProgress, Alert, LinearProgress, Button } from '@mui/material';
+import { Mic, Stop, CheckCircle } from '@mui/icons-material';
 import { SuggestionBellBadge } from '../suggestions/UnifiedSuggestionManager';
-import { InlineEditableField } from './profile/InlineEditableField';
+import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import type { PersonalContext as PersonalContextType } from '@/types';
+import type { Json } from '@/lib/supabase/database.types';
 
 // RQ Bubble Colors (from your HTML example)
 const rqBubbleColors: { [key: number]: { backgroundColor: string; color: string; } } = {
@@ -14,6 +17,685 @@ const rqBubbleColors: { [key: number]: { backgroundColor: string; color: string;
   4: { backgroundColor: '#fb923c', color: 'white' },      // orange-400
   5: { backgroundColor: '#f59e0b', color: 'white' },      // amber-500
   6: { backgroundColor: '#d97706', color: 'white' },      // amber-600
+};
+
+interface RelationshipScorePillProps {
+  score: number;
+  isEditable: boolean;
+  onUpdate?: (newScore: number) => void;
+  rqStyle: { backgroundColor: string; color: string };
+}
+
+const RelationshipScorePill: React.FC<RelationshipScorePillProps> = ({
+  score,
+  isEditable,
+  onUpdate,
+  rqStyle,
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempScore, setTempScore] = useState(score);
+
+  // Sync tempScore with score prop when it changes
+  useEffect(() => {
+    setTempScore(score);
+  }, [score]);
+
+  const handleClick = () => {
+    if (isEditable) {
+      setIsEditing(true);
+      setTempScore(score);
+    }
+  };
+
+  const handleSave = async () => {
+    if (onUpdate && tempScore !== score) {
+      try {
+        await onUpdate(tempScore);
+      } catch (error) {
+        console.error('Failed to update score:', error);
+        // Reset to original value on error
+        setTempScore(score);
+      }
+    }
+    setIsEditing(false);
+  };
+
+  const handleClickAway = () => {
+    if (isEditing) {
+      handleSave();
+    }
+  };
+
+  const handleSliderChange = (_: Event, newValue: number | number[]) => {
+    const newScore = Array.isArray(newValue) ? newValue[0] : newValue;
+    setTempScore(newScore);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSave();
+    } else if (event.key === 'Escape') {
+      setTempScore(score);
+      setIsEditing(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <Box
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          sx={{
+            backgroundColor: 'white',
+            border: '2px solid #3b82f6',
+            borderRadius: '9999px',
+            padding: '0.75rem 1rem',
+            minWidth: '120px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+            outline: 'none',
+          }}
+        >
+          <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', minWidth: '20px' }}>
+            {tempScore}
+          </Typography>
+          <Slider
+            value={tempScore}
+            onChange={handleSliderChange}
+            min={0}
+            max={6}
+            step={1}
+            size="small"
+            sx={{
+              flexGrow: 1,
+              '& .MuiSlider-thumb': {
+                width: 16,
+                height: 16,
+              },
+              '& .MuiSlider-track': {
+                backgroundColor: rqStyle.backgroundColor,
+              },
+              '& .MuiSlider-rail': {
+                backgroundColor: '#e5e7eb',
+              },
+            }}
+          />
+          <Typography variant="body2" sx={{ fontSize: '0.7rem', color: '#9ca3af', minWidth: '10px' }}>
+            6
+          </Typography>
+        </Box>
+      </ClickAwayListener>
+    );
+  }
+
+  return (
+    <Chip
+      label={score}
+      onClick={handleClick}
+      sx={{
+        backgroundColor: rqStyle.backgroundColor,
+        color: rqStyle.color,
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        minWidth: '32px',
+        borderRadius: '9999px',
+        height: 'auto',
+        padding: '0.3rem 0.6rem',
+        cursor: isEditable ? 'pointer' : 'default',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': isEditable ? {
+          transform: 'scale(1.05)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        } : {},
+        '&:active': isEditable ? {
+          transform: 'scale(0.98)',
+        } : {},
+      }}
+    />
+  );
+};
+
+interface ConnectionCadenceEditorProps {
+  cadenceText: string;
+  lastContactDate?: Date;
+  onUpdate: (newCadence: string) => Promise<void>;
+}
+
+interface EmbeddedVoiceRecorderProps {
+  contactId: string;
+  contactName?: string;
+  onRecordingComplete?: () => void;
+  onError?: (error: string) => void;
+}
+
+const EmbeddedVoiceRecorder: React.FC<EmbeddedVoiceRecorderProps> = ({
+  contactId,
+  contactName,
+  onRecordingComplete,
+  onError
+}) => {
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [isActive, setIsActive] = useState(false); // Whether recorder is active/expanded
+  const [duration, setDuration] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState(false);
+  
+  // Refs for MediaRecorder
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    if (!user) {
+      const errorMessage = 'User not authenticated. Please log in to record.';
+      setError(errorMessage);
+      onError?.(errorMessage);
+      return;
+    }
+    
+    try {
+      setError('');
+      setSuccess(false);
+      
+      // Request microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000
+        }
+      });
+
+      streamRef.current = stream;
+      chunksRef.current = [];
+
+      // Create MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      // Handle data chunks
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      // Handle recording completion
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        chunksRef.current = [];
+        streamRef.current?.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        await handleRecordingComplete(blob);
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setDuration(0);
+
+      // Start duration timer
+      timerRef.current = setInterval(() => {
+        setDuration(prev => prev + 1);
+      }, 1000);
+
+    } catch (err) {
+      console.error('Error starting recording:', err);
+      const errorMessage = 'Failed to start recording. Please check microphone permissions.';
+      setError(errorMessage);
+      onError?.(errorMessage);
+    }
+  }, [onError, user, contactId]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+  }, [isRecording]);
+
+  const handleRecordingComplete = async (blob: Blob) => {
+    setIsUploading(true);
+    setUploadStatus('Uploading voice memo...');
+    
+    if (!user) {
+      const errMessage = 'User not authenticated';
+      setError(errMessage);
+      onError?.(errMessage);
+      setIsUploading(false);
+      setUploadStatus('');
+      return;
+    }
+    
+    try {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const filename = `${user.id}/${contactId}-${timestamp}.webm`; 
+      
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('voice-memos')
+        .upload(filename, blob, {
+          contentType: 'audio/webm',
+          cacheControl: '3600'
+        });
+      
+      if (uploadError) throw uploadError;
+      if (!uploadData) throw new Error('Upload failed, no data returned.');
+      
+      setUploadStatus('Creating voice memo record...');
+      
+      // Create artifact record
+      const { data: artifact, error: insertError } = await supabase
+        .from('artifacts')
+        .insert({
+          contact_id: contactId,
+          user_id: user.id,
+          type: 'voice_memo',
+          content: `Voice memo recorded (${formatDuration(duration)})`,
+          audio_file_path: uploadData.path,
+          duration_seconds: duration,
+          transcription_status: 'pending',
+          metadata: { 
+            file_size: blob.size,
+            mime_type: blob.type,
+            recorded_at: new Date().toISOString()
+          } as unknown as Json
+        })
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+      if (!artifact) throw new Error('Failed to create artifact record.');
+      
+      setUploadStatus('');
+      setIsUploading(false);
+      setSuccess(true);
+      setDuration(0);
+      
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ['voiceMemos', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['artifacts', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contacts', contactId] });
+      
+      onRecordingComplete?.();
+      
+      // Auto close after success
+      setTimeout(() => {
+        setSuccess(false);
+        setIsActive(false);
+      }, 3000);
+      
+    } catch (err) { 
+      console.error('Error uploading voice memo:', err);
+      const errorMessage = err instanceof Error && err.message ? err.message : 'Upload failed. Please try again.';
+      setError(errorMessage);
+      onError?.(errorMessage);
+      setIsUploading(false); 
+      setUploadStatus('');
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleActivate = () => {
+    if (!isActive) {
+      setIsActive(true);
+      // Auto-start recording when activated
+      setTimeout(() => startRecording(), 100);
+    }
+  };
+
+  const handleClose = () => {
+    if (isRecording) {
+      stopRecording();
+    }
+    setIsActive(false);
+    setError('');
+    setSuccess(false);
+    setUploadStatus('');
+  };
+
+  // If not active, show the simple button
+  if (!isActive) {
+    return (
+      <Box 
+        sx={{
+          width: '300px',
+          height: 'auto',
+          borderRadius: '12px',
+          border: '2px dashed',
+          borderColor: '#e5e7eb',
+          backgroundColor: '#f9fafb',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#f3f4f6',
+            borderColor: '#3b82f6',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 8px 25px rgba(59, 130, 246, 0.15)',
+          },
+          '&:active': {
+            transform: 'translateY(0px)',
+          },
+        }} 
+        onClick={handleActivate}
+        aria-label="Record Voice Memo"
+      >
+        <IconButton 
+          sx={{
+            width: 64,
+            height: 64,
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: '3px solid #3b82f6',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              backgroundColor: '#2563eb',
+              borderColor: '#2563eb',
+              transform: 'scale(1.05)',
+            },
+          }}
+          disableRipple
+        >
+          <Mic sx={{ fontSize: 28 }} />
+        </IconButton>
+        
+        <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', textAlign: 'center' }}>
+          Record Voice Memo
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Active recording interface
+  return (
+    <Box sx={{
+      width: '300px',
+      borderRadius: '12px',
+      border: '2px solid #3b82f6',
+      backgroundColor: 'white',
+      padding: '24px 16px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 2,
+      boxShadow: '0 8px 25px rgba(59, 130, 246, 0.15)',
+    }}>
+      
+      {/* Header with close button */}
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151' }}>
+          Voice Memo
+        </Typography>
+        <Button 
+          size="small" 
+          onClick={handleClose}
+          sx={{ minWidth: 'auto', padding: '4px 8px', fontSize: '0.75rem' }}
+        >
+          Cancel
+        </Button>
+      </Box>
+
+      {/* Recording interface */}
+      <Box sx={{ textAlign: 'center', width: '100%' }}>
+        <IconButton
+          onClick={isRecording ? stopRecording : startRecording}
+          color={isRecording ? "error" : "primary"}
+          size="large"
+          disabled={isUploading || !user}
+          sx={{
+            width: 80,
+            height: 80,
+            border: 2,
+            borderColor: isRecording ? 'error.main' : 'primary.main',
+            backgroundColor: isRecording ? 'error.light' : 'primary.light',
+            color: isRecording ? 'error.contrastText' : 'primary.contrastText',
+            animation: isRecording ? 'pulse 1.5s infinite' : 'none',
+            transition: 'transform 0.2s, background-color 0.2s',
+            '&:hover': {
+              transform: 'scale(1.05)',
+              backgroundColor: isRecording ? 'error.dark' : 'primary.dark',
+            },
+            '@keyframes pulse': {
+              '0%': { boxShadow: '0 0 0 0 rgba(0,0,0, 0.2)' },
+              '70%': { boxShadow: '0 0 0 10px rgba(0,0,0, 0)' },
+              '100%': { boxShadow: '0 0 0 0 rgba(0,0,0, 0)' },
+            }
+          }}
+        >
+          {isRecording ? <Stop sx={{ fontSize: 40 }} /> : <Mic sx={{ fontSize: 40 }} />}
+        </IconButton>
+        
+        <Typography variant="h6" sx={{ mt: 2, fontWeight: 500 }}>
+          {isRecording ? formatDuration(duration) : (user ? 'Tap to Record' : 'Login to Record')}
+        </Typography>
+        
+        <Typography variant="body2" color="text.secondary" sx={{ minHeight: '1.5em' }}>
+          {isRecording 
+            ? 'Recording in progress...' 
+            : (isUploading && uploadStatus) ? uploadStatus 
+            : !user ? 'You must be logged in to record voice memos.'
+            : 'Max 2 minutes. Click the icon to start.'
+          }
+        </Typography>
+
+        {isRecording && (
+          <Box sx={{ mt: 2, width: '80%', maxWidth: 150, mx: 'auto' }}>
+            <LinearProgress 
+              variant="indeterminate" 
+              color={isRecording ? "error" : "primary"}
+              sx={{ height: 5, borderRadius: '2.5px' }}
+            />
+          </Box>
+        )}
+
+        {isUploading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2 }}>
+            <CircularProgress size={20} sx={{ mr: 1 }} />
+            <Typography variant="body2">Processing...</Typography>
+          </Box>
+        )}
+      </Box>
+      
+      {error && !isUploading && (
+        <Alert severity="error" sx={{ width: '100%', fontSize: '0.875rem' }}>
+          {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ width: '100%', fontSize: '0.875rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <CheckCircle sx={{ fontSize: 20, mr: 1 }} />
+            Recording saved successfully!
+          </Box>
+        </Alert>
+      )}
+    </Box>
+  );
+};
+
+
+const ConnectionCadenceEditor: React.FC<ConnectionCadenceEditorProps> = ({
+  cadenceText,
+  lastContactDate,
+  onUpdate,
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempDays, setTempDays] = useState<number>(0);
+
+  // Extract days from cadence text
+  const extractDays = (text: string): number => {
+    const match = text.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Set initial days when component mounts or cadenceText changes
+  useEffect(() => {
+    setTempDays(extractDays(cadenceText));
+  }, [cadenceText]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setTempDays(extractDays(cadenceText));
+  };
+
+  const handleSave = async () => {
+    if (tempDays > 0) {
+      try {
+        const newCadenceText = `Connect every ${tempDays} days`;
+        await onUpdate(newCadenceText);
+      } catch (error) {
+        console.error('Failed to update cadence:', error);
+        setTempDays(extractDays(cadenceText)); // Revert on error
+      }
+    }
+    setIsEditing(false);
+  };
+
+  const handleClickAway = () => {
+    if (isEditing) {
+      handleSave();
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSave();
+    } else if (event.key === 'Escape') {
+      setTempDays(extractDays(cadenceText));
+      setIsEditing(false);
+    }
+  };
+
+  const currentDays = extractDays(cadenceText);
+
+  if (isEditing) {
+    return (
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+          <Box component="span" className="emoji" sx={{ mr: 0.75 }}>🟢</Box>
+          <Typography sx={{ color: '#059669', fontSize: '0.75rem', fontWeight: 'medium' }}>
+            Connect every{' '}
+          </Typography>
+          <Box
+            sx={{
+              mx: 0.5,
+              minWidth: '40px',
+              display: 'inline-block',
+            }}
+          >
+            <TextField
+              value={tempDays}
+              onChange={(e) => setTempDays(parseInt(e.target.value) || 0)}
+              onKeyDown={handleKeyDown}
+              type="number"
+              size="small"
+              autoFocus
+              sx={{
+                '& .MuiInputBase-root': {
+                  fontSize: '0.75rem',
+                  fontWeight: 'medium',
+                  color: '#059669',
+                  backgroundColor: 'white',
+                  border: '1px solid #059669',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  width: '50px',
+                },
+                '& .MuiInputBase-input': {
+                  padding: '2px 0',
+                  textAlign: 'center',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  border: 'none',
+                },
+              }}
+            />
+          </Box>
+          <Typography sx={{ color: '#059669', fontSize: '0.75rem', fontWeight: 'medium' }}>
+            {' '}days
+          </Typography>
+        </Box>
+      </ClickAwayListener>
+    );
+  }
+
+  // Calculate days since last contact
+  const daysSinceLastContact = lastContactDate 
+    ? Math.floor((new Date().getTime() - lastContactDate.getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, mt: 0.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box component="span" className="emoji" sx={{ mr: 0.75 }}>🟢</Box>
+        <Typography sx={{ color: '#059669', fontSize: '0.75rem', fontWeight: 'medium' }}>
+          Connect every{' '}
+          <Box
+            component="span"
+            onClick={handleEdit}
+            sx={{
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              textDecorationStyle: 'dotted',
+              '&:hover': {
+                backgroundColor: '#f0fdf4',
+                padding: '1px 3px',
+                borderRadius: '3px',
+              },
+            }}
+          >
+            {currentDays}
+          </Box>
+          {' '}days
+        </Typography>
+      </Box>
+      {daysSinceLastContact !== null && (
+        <Typography sx={{ color: '#6b7280', fontSize: '0.7rem', ml: 3.5 }}>
+          Last contact: {daysSinceLastContact === 0 ? 'today' : `${daysSinceLastContact} days ago`}
+        </Typography>
+      )}
+    </Box>
+  );
 };
 
 interface Goal {
@@ -45,7 +727,6 @@ interface ContactHeaderProps {
   
   // Enhanced action handlers
   onRecordVoiceMemo?: () => void; // Primary CTA
-  onScheduleConnect?: () => void; // Context-based secondary
   
   // Inline editing
   onUpdateRelationshipScore?: (newScore: number) => Promise<void>;
@@ -61,13 +742,13 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
   profilePhotoUrl,
   relationshipScore,
   personalContext,
+  connectDate,
   connectCadence,
   goals = [],
   onGoalClick,
   contactId,
   suggestionPriority = 'medium',
   onRecordVoiceMemo,
-  onScheduleConnect,
   onUpdateRelationshipScore,
   onUpdateCadence,
 }) => {
@@ -76,43 +757,6 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
 
   const userGoal = personalContext?.relationship_goal;
 
-  // Primary voice memo button styling
-  const primaryButtonSx = {
-    backgroundColor: '#3b82f6', // blue-500
-    color: 'white',
-    borderRadius: '0.5rem',
-    padding: '0.75rem 1.5rem', // Larger for prominence
-    fontSize: '0.875rem',
-    fontWeight: 600, // Bolder
-    textTransform: 'none',
-    minWidth: '140px',
-    '&:hover': {
-      backgroundColor: '#2563eb', // blue-600
-    },
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 1,
-    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)',
-  };
-
-  // Secondary action button styling
-  const secondaryButtonSx = {
-    backgroundColor: '#f3f4f6', // gray-100
-    color: '#374151', // gray-700
-    borderRadius: '0.5rem',
-    padding: '0.5rem 1rem',
-    fontSize: '0.8rem',
-    fontWeight: 500,
-    textTransform: 'none',
-    '&:hover': {
-      backgroundColor: '#e5e7eb', // gray-200
-    },
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 0.5,
-  };
 
   return (
     <Paper 
@@ -151,33 +795,12 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 {name || 'Unnamed Contact'}
               </Typography>
               
-              {relationshipScore !== undefined && onUpdateRelationshipScore && (
-                <InlineEditableField
-                  value={relationshipScore}
-                  fieldType="slider"
-                  fieldKey="relationship_score"
-                  min={0}
-                  max={6}
-                  step={1}
-                  onSave={async (newValue) => await onUpdateRelationshipScore(newValue)}
-                  displayVariant="body2"
-                />
-              )}
-              
-              {relationshipScore !== undefined && !onUpdateRelationshipScore && (
-                <Chip 
-                    label={`RQ${relationshipScore}`}
-                    size="small"
-                    sx={{
-                        backgroundColor: rqStyle.backgroundColor,
-                        color: rqStyle.color,
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        minWidth: '50px',
-                        borderRadius: '9999px',
-                        height: 'auto',
-                        padding: '0.3rem 0.75rem',
-                    }}
+              {relationshipScore !== undefined && (
+                <RelationshipScorePill
+                  score={relationshipScore}
+                  isEditable={!!onUpdateRelationshipScore}
+                  onUpdate={onUpdateRelationshipScore}
+                  rqStyle={rqStyle}
                 />
               )}
               
@@ -212,20 +835,16 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 ))}
               </Box>
             )}
-            <Typography sx={{ color: '#4b5563' /* gray-600 */, fontSize: {xs: '0.875rem', md: '1rem'}, display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box component="span" className="emoji" sx={{ mr: 0.75, color: 'text.secondary'}}>💼</Box> 
-              {title || 'No Title'} {company ? `at ${company}` : ''}
-            </Typography>
+            {(title || company) && (
+              <Typography sx={{ color: '#4b5563' /* gray-600 */, fontSize: {xs: '0.875rem', md: '1rem'}, display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <Box component="span" className="emoji" sx={{ mr: 0.75, color: 'text.secondary'}}>💼</Box> 
+                {title}{company ? ` at ${company}` : ''}
+              </Typography>
+            )}
             {location && (
               <Typography sx={{ color: '#6b7280' /* gray-500 */, fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
                 <Box component="span" className="emoji" sx={{ mr: 0.75, color: 'text.secondary'}}>📍</Box>
                 {location}
-              </Typography>
-            )}
-            {email && (
-              <Typography sx={{ color: '#6b7280' /* gray-500 */, fontSize: '0.75rem', display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                <Email fontSize="small" sx={{ mr: 0.75, color: 'text.secondary'}} />
-                {email}
               </Typography>
             )}
             {userGoal && (
@@ -234,15 +853,10 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 </Typography>
             )}
             {connectCadence && onUpdateCadence && (
-              <InlineEditableField
-                value={connectCadence}
-                fieldType="text"
-                fieldKey="connection_cadence"
-                label="Connection Cadence"
-                placeholder="e.g., Every 6 weeks"
-                onSave={async (newValue) => await onUpdateCadence(newValue)}
-                displayVariant="caption"
-                displayColor="#059669"
+              <ConnectionCadenceEditor
+                cadenceText={connectCadence}
+                lastContactDate={connectDate}
+                onUpdate={onUpdateCadence}
               />
             )}
             
@@ -251,31 +865,22 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 <Box component="span" className="emoji" sx={{ mr: 0.75 }}>🟢</Box> {connectCadence}
               </Typography>
             )}
+
           </Box>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'column' }} spacing={1.5} sx={{ minWidth: {sm: '160px'}, width: {xs: '100%', sm: 'auto'} }}>
-          {/* Primary CTA - Voice Memo */}
-          <Button 
-            sx={primaryButtonSx} 
-            onClick={onRecordVoiceMemo} 
-            aria-label="Record Voice Memo"
-            startIcon={<Mic />}
-          >
-            Voice Memo
-          </Button>
-          
-          {/* Secondary CTA - Context-based */}
-          {onScheduleConnect && (
-            <Button 
-              sx={secondaryButtonSx} 
-              onClick={onScheduleConnect} 
-              aria-label="Schedule Connection"
-            >
-              📆 Schedule Connect
-            </Button>
-          )}
-        </Stack>
+        {/* Embedded Voice Recorder */}
+        <EmbeddedVoiceRecorder 
+          contactId={contactId || ''}
+          contactName={name || undefined}
+          onRecordingComplete={() => {
+            console.log('Voice memo recording completed');
+            // The component handles its own success state and auto-closes
+          }}
+          onError={(error) => {
+            console.error('Voice memo recording error:', error);
+          }}
+        />
       </Box>
     </Paper>
   );

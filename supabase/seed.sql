@@ -1324,7 +1324,7 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================================
 
 -- Add POG and Ask artifacts for Sarah Chen
-INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata)
+INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata, initiator_user_id, recipient_user_id, initiator_contact_id, recipient_contact_id)
 VALUES
   -- POG: Connected her with market research network (in progress)
   (
@@ -1343,7 +1343,11 @@ VALUES
       "active_exchange": true,
       "initiator": "user",
       "value_delivered": "Market research connections"
-    }'::jsonb
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen)
   ),
   -- POG: Shared PM course early access (delivered)
   (
@@ -1362,7 +1366,11 @@ VALUES
       "active_exchange": false,
       "initiator": "user",
       "value_delivered": "Educational content"
-    }'::jsonb
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen)
   ),
   -- POG: TechCorp partnership introduction (delivered)
   (
@@ -1381,7 +1389,11 @@ VALUES
       "active_exchange": false,
       "initiator": "user",
       "value_delivered": "Strategic business connection"
-    }'::jsonb
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen)
   ),
   -- POG: AI strategy framework (offered)
   (
@@ -1400,7 +1412,11 @@ VALUES
       "active_exchange": true,
       "initiator": "user",
       "value_delivered": "Strategic planning resources"
-    }'::jsonb
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Marcus Rodriguez)
   ),
 
   -- ASK: Investor introductions (in progress)
@@ -1420,7 +1436,11 @@ VALUES
       "active_exchange": true,
       "initiator": "contact",
       "request_details": "Fintech investor connections for AI startup"
-    }'::jsonb
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (actually, contact initiated but user tracks)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving ask)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen asking)
+    NULL   -- recipient_contact_id (user has no contact record)
   ),
   -- ASK: Pitch deck feedback (requested)
   (
@@ -1439,7 +1459,11 @@ VALUES
       "active_exchange": true,
       "initiator": "user",
       "request_details": "Pitch deck review and feedback"
-    }'::jsonb
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user asking)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen being asked)
   ),
   -- ASK: User research help (received)
   (
@@ -1458,6 +1482,124 @@ VALUES
       "active_exchange": false,
       "initiator": "contact",
       "request_details": "User research methodology guidance"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (actually, contact initiated but user tracks)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving ask)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen asking)
+    NULL   -- recipient_contact_id (user has no contact record)
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- LIVE CONNECTIONS: MEETING ARTIFACTS WITH RECENT PAST AND FUTURE DATES
+-- These create the live connections for the relationship pulse dashboard
+-- ============================================================================
+
+INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata)
+VALUES
+  -- Recent past meetings (within last 2 weeks)
+  (
+    'a0000101-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Coffee chat about AI product strategy and market validation approaches',
+    NOW() - INTERVAL '3 days',
+    'completed',
+    NOW() - INTERVAL '3 days',
+    '{
+      "meeting_type": "coffee_chat",
+      "duration_minutes": 45,
+      "location": "Blue Bottle Coffee, Hayes Valley",
+      "topics": ["AI product strategy", "market validation", "user research"],
+      "outcome": "Shared insights on MVP development approach"
+    }'::jsonb
+  ),
+  (
+    'a0000102-89ab-cdef-0123-456789abcdef'::uuid,
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid,  -- Marcus Rodriguez
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Technical deep-dive session on AI infrastructure scaling and ML ops best practices',
+    NOW() - INTERVAL '1 week',
+    'completed',
+    NOW() - INTERVAL '1 week',
+    '{
+      "meeting_type": "technical_session",
+      "duration_minutes": 90,
+      "location": "Virtual (Zoom)",
+      "topics": ["MLOps", "infrastructure scaling", "deployment strategies"],
+      "outcome": "Discussed potential collaboration on infrastructure project"
+    }'::jsonb
+  ),
+  (
+    'a0000103-89ab-cdef-0123-456789abcdef'::uuid,
+    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,  -- Jennifer Walsh
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Strategic networking dinner to discuss board opportunities and industry trends',
+    NOW() - INTERVAL '5 days',
+    'completed',
+    NOW() - INTERVAL '5 days',
+    '{
+      "meeting_type": "dinner_meeting",
+      "duration_minutes": 120,
+      "location": "The French Laundry, Yountville",
+      "topics": ["board opportunities", "industry trends", "executive networking"],
+      "outcome": "Identified three potential board matches for consideration"
+    }'::jsonb
+  ),
+
+  -- Future meetings (within next 2 weeks)
+  (
+    'a0000104-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Follow-up session to review progress on investor introductions and discuss pitch refinements',
+    NOW() + INTERVAL '2 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "follow_up",
+      "duration_minutes": 60,
+      "location": "Virtual (Google Meet)",
+      "topics": ["investor introductions", "pitch deck refinement", "funding strategy"],
+      "preparation_notes": "Review intro responses, prepare pitch feedback summary"
+    }'::jsonb
+  ),
+  (
+    'a0000105-89ab-cdef-0123-456789abcdef'::uuid,
+    'a4444444-89ab-cdef-0123-456789abcdef'::uuid,  -- Dr. Amit Patel
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Quarterly AI ethics framework review and collaboration planning session',
+    NOW() + INTERVAL '1 week',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "quarterly_review",
+      "duration_minutes": 75,
+      "location": "Stanford AI Institute",
+      "topics": ["AI ethics framework", "research collaboration", "publication planning"],
+      "preparation_notes": "Prepare framework updates, review latest research papers"
+    }'::jsonb
+  ),
+  (
+    'a0000106-89ab-cdef-0123-456789abcdef'::uuid,
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid,  -- Marcus Rodriguez
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Strategic partnership exploration meeting to discuss potential AI infrastructure collaboration',
+    NOW() + INTERVAL '10 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "partnership_exploration",
+      "duration_minutes": 90,
+      "location": "InnovateAI Offices, SOMA",
+      "topics": ["partnership opportunities", "technical architecture", "go-to-market strategy"],
+      "preparation_notes": "Prepare partnership proposal, review technical requirements"
     }'::jsonb
   )
 ON CONFLICT (id) DO NOTHING;

@@ -26,6 +26,7 @@ declare module '@mui/material/styles' {
       meeting: Palette['primary'];
       communication: Palette['primary'];
       insight: Palette['primary'];
+      action: Palette['primary'];
     };
   }
   
@@ -41,6 +42,7 @@ declare module '@mui/material/styles' {
       meeting?: PaletteOptions['primary'];
       communication?: PaletteOptions['primary'];
       insight?: PaletteOptions['primary'];
+      action?: PaletteOptions['primary'];
     };
   }
   
@@ -127,6 +129,12 @@ const theme = createTheme({
         light: '#FDF4FF',
         main: '#A855F7', // Purple - for AI insights and intelligence
         dark: '#9333EA',
+        contrastText: '#fff',
+      },
+      action: {
+        light: '#EDE9FE',
+        main: '#8B5CF6', // Violet - for actionable items
+        dark: '#7C3AED',
         contrastText: '#fff',
       },
     },

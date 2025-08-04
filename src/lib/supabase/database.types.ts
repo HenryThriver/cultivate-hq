@@ -1,6 +1,8 @@
 // Temporary database types file
 // This will be replaced with generated types from Supabase
 
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
 export interface Database {
   public: {
     Tables: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -25,13 +25,16 @@ import {
   Source as SourceIcon,
   Schedule as ScheduleIcon,
   TrendingUp as TrendingUpIcon,
-  CheckCircle as CheckIcon
+  CheckCircle as CheckIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
+import { CreateActionModal } from './CreateActionModal';
+import { useUpdateAction } from '@/lib/hooks/useActions';
+import type { ActionItem as ActionItemType } from '@/lib/hooks/useActions';
 
-interface ActionItem {
-  id: string;
-  title: string;
-  description?: string;
+// Use ActionItem type from ActionDetailModal props
+interface ActionItem extends Omit<ActionItemType, 'action_type' | 'status' | 'priority'> {
   type: 'pog' | 'ask' | 'general' | 'follow_up';
   status: 'queued' | 'active' | 'pending' | 'completed';
   priority: 'high' | 'medium' | 'low';
@@ -76,6 +79,8 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
   onViewArtifact,
 }) => {
   const theme = useTheme();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const updateActionMutation = useUpdateAction();
 
   if (!action) return null;
 
@@ -84,7 +89,7 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
       case 'pog': return theme.palette.artifacts.pog;
       case 'ask': return theme.palette.artifacts.ask;
       case 'follow_up': return theme.palette.artifacts.communication;
-      default: return theme.palette.grey;
+      default: return theme.palette.primary;
     }
   };
 
@@ -114,8 +119,31 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
     }).format(date);
   };
 
-  const handleStatusChange = (newStatus: ActionItem['status']) => {
-    onUpdateStatus(action.id, newStatus);
+  const handleStatusChange = async (newStatus: ActionItem['status']) => {
+    // Map the status to the database format
+    const dbStatus = newStatus === 'active' ? 'in_progress' : 
+                     newStatus === 'queued' ? 'pending' : 
+                     newStatus as any;
+    
+    try {
+      await updateActionMutation.mutateAsync({
+        id: action.id,
+        updates: { status: dbStatus },
+      });
+      onUpdateStatus(action.id, newStatus);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleActionUpdated = (updatedAction: ActionItemType) => {
+    // Close the edit modal and refresh the parent
+    setIsEditModalOpen(false);
+    onClose();
   };
 
   const typeColors = getActionTypeColor(action.type);
@@ -435,6 +463,8 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
         </Button>
         <Button 
           variant="contained" 
+          startIcon={<EditIcon />}
+          onClick={handleEdit}
           sx={{ 
             textTransform: 'none',
             backgroundColor: typeColors.main,
@@ -444,6 +474,28 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
           Edit Action
         </Button>
       </DialogActions>
+
+      {/* Edit Action Modal */}
+      {isEditModalOpen && (
+        <CreateActionModal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          existingAction={{
+            ...action,
+            action_type: action.type === 'follow_up' ? 'send_follow_up' : 
+                        action.type === 'pog' ? 'deliver_pog' : 
+                        action.type === 'ask' ? 'follow_up_ask' : 'other',
+            status: action.status === 'active' ? 'in_progress' : 
+                   action.status === 'queued' ? 'pending' : 
+                   action.status as any,
+            priority: action.priority as any,
+            due_date: action.dueDate?.toISOString(),
+          } as ActionItemType}
+          mode="edit"
+          contactName={contactName}
+          onActionUpdated={handleActionUpdated}
+        />
+      )}
     </Dialog>
   );
 };

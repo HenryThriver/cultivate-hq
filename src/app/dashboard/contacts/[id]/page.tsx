@@ -13,8 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 // Import actual components
 import { ContactHeader } from '@/components/features/contacts/ContactHeader';
 import { NextConnection } from '@/components/features/contacts/NextConnection';
-import { ActionQueues, ActionItemStatus as ActionQueuesActionItemStatus } from '@/components/features/contacts/ActionQueues';
-import { ReciprocityDashboard } from '@/components/features/contacts/ReciprocityDashboard';
+import { ActionItemStatus as ActionQueuesActionItemStatus } from '@/components/features/contacts/ActionQueues';
 import { ContextSections } from '@/components/features/contacts/ContextSections';
 import { ArtifactModal } from '@/components/features/timeline/ArtifactModal';
 
@@ -54,8 +53,7 @@ import { OnboardingTour } from '@/components/features/onboarding/OnboardingTour'
 // Import new redesigned components
 import { RelationshipPulseDashboard } from '@/components/features/contacts/profile/RelationshipPulseDashboard';
 import { ActionIntelligenceCenter } from '@/components/features/contacts/profile/ActionIntelligenceCenter';
-import { POGDetailModal } from '@/components/features/contacts/profile/POGDetailModal';
-import { AskDetailModal } from '@/components/features/contacts/profile/AskDetailModal';
+import { ArtifactDetailModal } from '@/components/features/contacts/profile/ArtifactDetailModal';
 
 // Import hooks and types
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
@@ -76,7 +74,8 @@ import type {
     LinkedInArtifactContent,
     LoopArtifact,
     LoopStatus,
-    LoopArtifactContent
+    LoopArtifactContent,
+    Contact
 } from '@/types';
 import { useToast } from '@/lib/contexts/ToastContext';
 import { ProcessingStatusBar } from '@/components/features/voice/ProcessingStatusBar'; // Revert to alias import
@@ -139,20 +138,15 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const [selectedLoopForEnhancedModal, setSelectedLoopForEnhancedModal] = useState<LoopArtifact | null>(null);
   const [isEnhancedLoopModalOpen, setIsEnhancedLoopModalOpen] = useState(false);
 
-  // NEW state for POGDetailModal
-  const [selectedPOGForDetailModal, setSelectedPOGForDetailModal] = useState<POGArtifact | null>(null);
-  const [isPOGDetailModalOpen, setIsPOGDetailModalOpen] = useState(false);
-
-  // NEW state for AskDetailModal
-  const [selectedAskForDetailModal, setSelectedAskForDetailModal] = useState<AskArtifact | null>(null);
-  const [isAskDetailModalOpen, setIsAskDetailModalOpen] = useState(false);
+  // NEW state for unified ArtifactDetailModal
+  const [selectedArtifactForDetailModal, setSelectedArtifactForDetailModal] = useState<POGArtifact | AskArtifact | null>(null);
+  const [isArtifactDetailModalOpen, setIsArtifactDetailModalOpen] = useState(false);
 
   // Action creation hook
   const createActionMutation = useCreateAction();
 
-  // Get actions for selected POG and Ask
-  const { data: pogActions = [] } = useActionsByArtifact(selectedPOGForDetailModal?.id);
-  const { data: askActions = [] } = useActionsByArtifact(selectedAskForDetailModal?.id);
+  // Get actions for selected artifact
+  const { data: artifactActions = [] } = useActionsByArtifact(selectedArtifactForDetailModal?.id);
 
   // Transform database actions to modal format
   const transformDbActionToModalAction = useCallback((dbAction: any) => ({
@@ -503,33 +497,24 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       setSelectedLoopForEnhancedModal(artifact as unknown as LoopArtifact);
       setIsEnhancedLoopModalOpen(true);
       setIsArtifactModalOpen(false);
-      setIsPOGDetailModalOpen(false);
-      setIsAskDetailModalOpen(false);
+      setIsArtifactDetailModalOpen(false);
     } else if (artifact.type === 'voice_memo') {
         setSelectedVoiceMemoForDetail(artifact as VoiceMemoArtifact);
         setIsVoiceMemoDetailModalOpen(true);
         setIsArtifactModalOpen(false);
-        setIsPOGDetailModalOpen(false);
-        setIsAskDetailModalOpen(false);
-    } else if (artifact.type === 'pog') {
-        setSelectedPOGForDetailModal(artifact as POGArtifact);
-        setIsPOGDetailModalOpen(true);
+        setIsArtifactDetailModalOpen(false);
+    } else if (artifact.type === 'pog' || artifact.type === 'ask') {
+        setSelectedArtifactForDetailModal(artifact as POGArtifact | AskArtifact);
+        setIsArtifactDetailModalOpen(true);
         setIsArtifactModalOpen(false);
         setIsEnhancedLoopModalOpen(false);
-        setIsAskDetailModalOpen(false);
-    } else if (artifact.type === 'ask') {
-        setSelectedAskForDetailModal(artifact as AskArtifact);
-        setIsAskDetailModalOpen(true);
-        setIsArtifactModalOpen(false);
-        setIsEnhancedLoopModalOpen(false);
-        setIsPOGDetailModalOpen(false);
+        setIsVoiceMemoDetailModalOpen(false);
     } else {
       fetchArtifactData(artifact.id, contactId);
       setIsArtifactModalOpen(true);
       setSelectedLoopForEnhancedModal(null);
       setIsEnhancedLoopModalOpen(false);
-      setIsPOGDetailModalOpen(false);
-      setIsAskDetailModalOpen(false);
+      setIsArtifactDetailModalOpen(false);
     }
   }, [fetchArtifactData, contactId]);
 
@@ -592,37 +577,43 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     // queryClient.invalidateQueries(['loops', contactId]);
   }, []);
 
-  // POG modal handlers
-  const handleDeletePOG = useCallback(async (pogId: string) => {
+  // Unified artifact modal handlers
+  const handleDeleteArtifact = useCallback(async (artifactId: string) => {
+    const artifactType = selectedArtifactForDetailModal?.type;
+    const artifactName = artifactType === 'pog' ? 'POG' : artifactType === 'ask' ? 'Ask' : 'Artifact';
+    
     try {
-      await deleteArtifact({ id: pogId, contactId: contactId }); 
-      showToast('POG deleted successfully', 'success');
-      setIsPOGDetailModalOpen(false);
-      setSelectedPOGForDetailModal(null);
+      await deleteArtifact({ id: artifactId, contactId: contactId }); 
+      showToast(`${artifactName} deleted successfully`, 'success');
+      setIsArtifactDetailModalOpen(false);
+      setSelectedArtifactForDetailModal(null);
       queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
       queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
       queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
     } catch (error: unknown) {
       if (error instanceof Error && (error as Error & { code?: string }).code === 'ARTIFACT_IS_SOURCE') {
-        showToast('Cannot delete: This POG is referenced by other data.', 'error');
+        showToast(`Cannot delete: This ${artifactName} is referenced by other data.`, 'error');
       } else if (error instanceof Error) {
         showToast(`Error deleting: ${error.message}`, 'error');
       } else {
         showToast('An unknown error occurred during deletion.', 'error');
       }
     }
-  }, [deleteArtifact, contactId, showToast, queryClient]);
+  }, [deleteArtifact, contactId, showToast, queryClient, selectedArtifactForDetailModal?.type]);
 
-  const handleReprocessPOG = useCallback(async (pogId: string) => {
+  const handleReprocessArtifact = useCallback(async (artifactId: string) => {
+    const artifactType = selectedArtifactForDetailModal?.type;
+    const artifactName = artifactType === 'pog' ? 'POG' : artifactType === 'ask' ? 'Ask' : 'Artifact';
+    
     try {
-      await reprocessVoiceMemo(pogId); // Note: reprocessVoiceMemo works for all artifacts
-      showToast('POG reprocessing started', 'success');
+      await reprocessVoiceMemo(artifactId); // Note: reprocessVoiceMemo works for all artifacts
+      showToast(`${artifactName} reprocessing started`, 'success');
       queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
-      queryClient.invalidateQueries({ queryKey: ['artifactDetail', pogId] });
+      queryClient.invalidateQueries({ queryKey: ['artifactDetail', artifactId] });
       queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
-      if (selectedPOGForDetailModal?.id === pogId) {
-        const { data: updatedPOG } = await supabase.from('artifacts').select('*').eq('id', pogId).single();
-        if (updatedPOG) setSelectedPOGForDetailModal(updatedPOG as POGArtifact);
+      if (selectedArtifactForDetailModal?.id === artifactId) {
+        const { data: updatedArtifact } = await supabase.from('artifacts').select('*').eq('id', artifactId).single();
+        if (updatedArtifact) setSelectedArtifactForDetailModal(updatedArtifact as POGArtifact | AskArtifact);
       }
     } catch (error: unknown) { 
       if (error instanceof Error) {
@@ -631,136 +622,14 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         showToast('An unknown error occurred during reprocessing.', 'error');
       }
     }
-  }, [reprocessVoiceMemo, showToast, queryClient, contactId, selectedPOGForDetailModal?.id]);
-
-  // Ask modal handlers
-  const handleDeleteAsk = useCallback(async (askId: string) => {
-    try {
-      await deleteArtifact({ id: askId, contactId: contactId }); 
-      showToast('Ask deleted successfully', 'success');
-      setIsAskDetailModalOpen(false);
-      setSelectedAskForDetailModal(null);
-      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
-      queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
-      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
-    } catch (error: unknown) {
-      if (error instanceof Error && (error as Error & { code?: string }).code === 'ARTIFACT_IS_SOURCE') {
-        showToast('Cannot delete: This Ask is referenced by other data.', 'error');
-      } else if (error instanceof Error) {
-        showToast(`Error deleting: ${error.message}`, 'error');
-      } else {
-        showToast('An unknown error occurred during deletion.', 'error');
-      }
-    }
-  }, [deleteArtifact, contactId, showToast, queryClient]);
-
-  const handleReprocessAsk = useCallback(async (askId: string) => {
-    try {
-      await reprocessVoiceMemo(askId); // Note: reprocessVoiceMemo works for all artifacts
-      showToast('Ask reprocessing started', 'success');
-      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
-      queryClient.invalidateQueries({ queryKey: ['artifactDetail', askId] });
-      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
-      if (selectedAskForDetailModal?.id === askId) {
-        const { data: updatedAsk } = await supabase.from('artifacts').select('*').eq('id', askId).single();
-        if (updatedAsk) setSelectedAskForDetailModal(updatedAsk as AskArtifact);
-      }
-    } catch (error: unknown) { 
-      if (error instanceof Error) {
-        showToast(`Error reprocessing: ${error.message}`, 'error');
-      } else {
-        showToast('An unknown error occurred during reprocessing.', 'error');
-      }
-    }
-  }, [reprocessVoiceMemo, showToast, queryClient, contactId, selectedAskForDetailModal?.id]);
+  }, [reprocessVoiceMemo, showToast, queryClient, contactId, selectedArtifactForDetailModal]);
 
   // Action creation handlers
-  const handleCreateActionForPOG = useCallback(async (pogId: string) => {
-    const pog = contact?.artifacts?.find(art => art.id === pogId);
-    if (!pog) return;
-
-    // Create contextual action based on POG status
-    let actionType = 'other';
-    let title = '';
-    let description = '';
-
-    switch (pog.metadata?.status) {
-      case 'offered':
-        actionType = 'deliver_pog';
-        title = 'Deliver POG';
-        description = `Follow up on delivery of: ${pog.metadata?.description || pog.content}`;
-        break;
-      case 'delivered':
-        actionType = 'follow_up_ask';
-        title = 'Follow up on delivered POG';
-        description = `Check in on the POG that was delivered: ${pog.metadata?.description || pog.content}`;
-        break;
-      default:
-        actionType = 'other';
-        title = 'Take action on POG';
-        description = `Next step for: ${pog.metadata?.description || pog.content}`;
-    }
-
-    try {
-      await createActionMutation.mutateAsync({
-        title,
-        description,
-        action_type: actionType,
-        priority: 'medium',
-        contact_id: contactId,
-        artifact_id: pogId,
-      });
-    } catch (error) {
-      console.error('Failed to create POG action:', error);
-    }
-  }, [contact?.artifacts, contactId, createActionMutation]);
-
-  const handleCreateActionForAsk = useCallback(async (askId: string) => {
-    const ask = contact?.artifacts?.find(art => art.id === askId);
-    if (!ask) return;
-
-    // Create contextual action based on Ask status
-    let actionType = 'other';
-    let title = '';
-    let description = '';
-
-    const isUserAsking = ask.initiator_user_id === user?.id || ask.recipient_contact_id === contactId;
-
-    switch (ask.metadata?.status) {
-      case 'requested':
-        actionType = 'follow_up_ask';
-        title = isUserAsking ? 'Follow up on Ask' : 'Respond to Ask';
-        description = `${isUserAsking ? 'Check status of' : 'Provide response to'}: ${ask.metadata?.request_description || ask.content}`;
-        break;
-      case 'in_progress':
-        actionType = 'follow_up_ask';
-        title = 'Track Ask progress';
-        description = `Monitor progress on: ${ask.metadata?.request_description || ask.content}`;
-        break;
-      case 'received':
-        actionType = 'send_follow_up';
-        title = 'Send thank you';
-        description = `Thank contact for fulfilling Ask: ${ask.metadata?.request_description || ask.content}`;
-        break;
-      default:
-        actionType = 'other';
-        title = 'Take action on Ask';
-        description = `Next step for: ${ask.metadata?.request_description || ask.content}`;
-    }
-
-    try {
-      await createActionMutation.mutateAsync({
-        title,
-        description,
-        action_type: actionType,
-        priority: 'medium',
-        contact_id: contactId,
-        artifact_id: askId,
-      });
-    } catch (error) {
-      console.error('Failed to create Ask action:', error);
-    }
-  }, [contact?.artifacts, contactId, user?.id, createActionMutation]);
+  // This will be handled by the CreateActionModal in ArtifactDetailModal
+  const handleCreateActionForArtifact = useCallback(() => {
+    // This function is now a placeholder as action creation is handled in the modal
+    console.log('Action creation is handled by CreateActionModal in ArtifactDetailModal');
+  }, []);
 
   // Real-time completion/failure notifications
   useEffect(() => {
@@ -1402,67 +1271,33 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         />
       )}
 
-      {/* POG Detail Modal */}
-      {selectedPOGForDetailModal && user && (
-        <POGDetailModal
-          open={isPOGDetailModalOpen}
+      {/* Unified Artifact Detail Modal */}
+      {selectedArtifactForDetailModal && user && (
+        <ArtifactDetailModal
+          open={isArtifactDetailModalOpen}
           onClose={() => {
-            setIsPOGDetailModalOpen(false);
-            setSelectedPOGForDetailModal(null);
+            setIsArtifactDetailModalOpen(false);
+            setSelectedArtifactForDetailModal(null);
           }}
-          pog={selectedPOGForDetailModal}
+          artifact={selectedArtifactForDetailModal}
           contactName={contact?.name || 'Contact'}
           contactId={contactId}
           currentUserId={user.id}
           sourceArtifact={
             // Find the source artifact if available
-            selectedPOGForDetailModal.metadata?.source_artifact_id 
-              ? contact?.artifacts?.find((art: any) => art.id === selectedPOGForDetailModal.metadata?.source_artifact_id)
+            selectedArtifactForDetailModal.metadata?.source_artifact_id 
+              ? contact?.artifacts?.find((art: any) => art.id === selectedArtifactForDetailModal.metadata?.source_artifact_id)
               : undefined
           }
-          relatedActions={pogActions.map(transformDbActionToModalAction)}
-          onDelete={handleDeletePOG}
-          onReprocess={handleReprocessPOG}
-          onAddAction={handleCreateActionForPOG}
-          onViewAction={(actionId) => {
-            console.log('View action:', actionId);
-            // TODO: Open action detail modal
-            showToast('Action details coming soon!', 'info');
+          relatedActions={artifactActions.map(transformDbActionToModalAction)}
+          onDelete={handleDeleteArtifact}
+          onReprocess={handleReprocessArtifact}
+          onAddAction={handleCreateActionForArtifact}
+          onActionRefresh={() => {
+            // Invalidate and refetch actions
+            queryClient.invalidateQueries({ queryKey: ['actions', 'by-artifact', selectedArtifactForDetailModal?.id] });
+            queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
           }}
-          onViewSource={(artifactId) => {
-            // Find and open the source artifact
-            const sourceArtifact = contact?.artifacts?.find((art: any) => art.id === artifactId);
-            if (sourceArtifact) {
-              handleOpenArtifactModal(sourceArtifact);
-            }
-          }}
-          isDeleting={isDeleting}
-          isReprocessing={isReprocessingArtifactModal}
-        />
-      )}
-
-      {/* Ask Detail Modal */}
-      {selectedAskForDetailModal && user && (
-        <AskDetailModal
-          open={isAskDetailModalOpen}
-          onClose={() => {
-            setIsAskDetailModalOpen(false);
-            setSelectedAskForDetailModal(null);
-          }}
-          ask={selectedAskForDetailModal}
-          contactName={contact?.name || 'Contact'}
-          contactId={contactId}
-          currentUserId={user.id}
-          sourceArtifact={
-            // Find the source artifact if available
-            selectedAskForDetailModal.metadata?.source_artifact_id 
-              ? contact?.artifacts?.find((art: any) => art.id === selectedAskForDetailModal.metadata?.source_artifact_id)
-              : undefined
-          }
-          relatedActions={askActions.map(transformDbActionToModalAction)}
-          onDelete={handleDeleteAsk}
-          onReprocess={handleReprocessAsk}
-          onAddAction={handleCreateActionForAsk}
           onViewAction={(actionId) => {
             console.log('View action:', actionId);
             // TODO: Open action detail modal

@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'; // Ensures the page is always dynamically rendered
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Container, Box, Typography, CircularProgress, Alert, Button, Card, Stack, Modal } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Alert, Button, Card, Stack } from '@mui/material';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Dashboard } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
@@ -61,7 +61,7 @@ import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos';
 import { useActionsByArtifact, useCreateAction } from '@/lib/hooks/useActions';
 // Import useUpdateSuggestions hook for priority calculation only
 import { useUpdateSuggestions } from '@/lib/hooks/useUpdateSuggestions';
-import { useArtifacts } from '@/lib/hooks/useArtifacts';
+import { useArtifacts, type NewArtifact } from '@/lib/hooks/useArtifacts';
 import { useArtifactModalData } from '@/lib/hooks/useArtifactModalData';
 import type { 
     BaseArtifact,
@@ -239,6 +239,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const { highConfidenceCount } = useUpdateSuggestions({ contactId });
 
   const {
+    createArtifact,
     deleteArtifact,
   } = useArtifacts();
 
@@ -1044,6 +1045,42 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               nextLiveConnection={liveConnections.next}
               contactName={contact.name || 'Contact'}
               contactId={contactId}
+              onArtifactCreated={(data) => {
+                console.log('Artifact created:', data);
+                // Refresh relevant queries
+                queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+                queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+              }}
+              onArtifactCreating={async (data) => {
+                console.log('Creating artifact:', data);
+                
+                if (!user) {
+                  throw new Error('User not authenticated');
+                }
+                
+                // Convert CreateArtifactModal data to database format
+                const newArtifact: NewArtifact = {
+                  type: data.type,
+                  content: data.content,
+                  contact_id: data.contactId,
+                  user_id: user.id,
+                  metadata: data.metadata,
+                  timestamp: new Date().toISOString(),
+                  ai_parsing_status: 'pending' as const,
+                  // Set directionality fields for POGs and Asks
+                  ...(data.type === 'pog' && {
+                    initiator_user_id: user.id,
+                    recipient_contact_id: data.contactId,
+                  }),
+                  ...(data.type === 'ask' && {
+                    initiator_user_id: user.id,
+                    recipient_contact_id: data.contactId,
+                  }),
+                };
+                
+                // Create the artifact in the database
+                await createArtifact(newArtifact);
+              }}
               onExchangeClick={(exchangeId) => {
                 // Find the artifact and open its modal
                 const artifact = contact.artifacts?.find((art: any) => art.id === exchangeId);

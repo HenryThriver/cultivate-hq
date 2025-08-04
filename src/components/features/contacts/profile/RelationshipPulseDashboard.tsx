@@ -3,6 +3,13 @@ import { Box, Typography, Paper, Chip, LinearProgress, Stack, useTheme } from '@
 import { TrendingUp, TrendingDown, Schedule, VideocamOutlined, Loop, CheckCircle, CalendarTodayOutlined } from '@mui/icons-material';
 import { ActiveExchangesModal } from './ActiveExchangesModal';
 
+interface Contact {
+  id: string;
+  name: string;
+  email?: string;
+  company?: string;
+}
+
 interface RelationshipPulseDashboardProps {
   // Reciprocity data
   reciprocityBalance: number; // -1 to 1 (negative = more received, positive = more given)
@@ -38,6 +45,11 @@ interface RelationshipPulseDashboardProps {
   // Contact info for modals
   contactName: string;
   contactId: string;
+  contacts?: Contact[];
+  
+  // Artifact creation handlers
+  onArtifactCreated?: (artifactData: any) => void;
+  onArtifactCreating?: (artifactData: any) => Promise<void>;
   
   // Mock data for exchanges - in real app this would come from props
   mockExchanges?: Array<{
@@ -85,6 +97,9 @@ export const RelationshipPulseDashboard: React.FC<RelationshipPulseDashboardProp
   nextLiveConnection,
   contactName,
   contactId,
+  contacts = [],
+  onArtifactCreated,
+  onArtifactCreating,
   mockExchanges = [],
   onExchangeClick,
 }) => {
@@ -282,7 +297,11 @@ export const RelationshipPulseDashboard: React.FC<RelationshipPulseDashboardProp
         exchanges={mockExchanges}
         type={exchangesModalType}
         contactName={contactName}
+        contactId={contactId}
+        contacts={contacts}
         onExchangeClick={onExchangeClick}
+        onArtifactCreated={onArtifactCreated}
+        onArtifactCreating={onArtifactCreating}
       />
     </Paper>
   );

@@ -167,6 +167,12 @@ Info:
 * Main: \#A855F7 (Purple - for AI-generated insights)  
 * Dark: \#9333EA
 
+**Action (Actionable Items):**
+
+* Light: \#EDE9FE  
+* Main: \#8B5CF6 (Violet - for actionable items and tasks)  
+* Dark: \#7C3AED
+
 ### **Contextual Color Psychology**
 
 * **Onboarding**: Slightly warmer blue tints to build anticipation  

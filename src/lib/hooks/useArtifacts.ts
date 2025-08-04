@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types_db';
-import { error as logError } from '@/lib/utils/logger';
+import { logger } from '@/lib/utils/logger';
 
 // Define the type for a new artifact based on your DB schema
 // This should align with Tables<"artifacts">["Insert"] from types_db.ts
@@ -52,7 +52,7 @@ export const useArtifacts = () => {
       .single();
 
     if (error) {
-      logError('Supabase error creating artifact', error);
+      logger.error('Supabase error creating artifact', new Error(error.message));
       throw new Error(error.message);
     }
     if (!data) {
@@ -68,13 +68,15 @@ export const useArtifacts = () => {
       // Invalidate queries related to artifacts for a contact
       if (newArtifactData.contact_id) {
         queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE, { contact_id: newArtifactData.contact_id }] });
+        // Also invalidate contact-profile query since it includes artifacts data
+        queryClient.invalidateQueries({ queryKey: ['contact-profile', newArtifactData.contact_id] });
       }
       // Invalidate general artifact lists if you have them
       queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE, 'list'] }); // Example general list key
       queryClient.invalidateQueries({ queryKey: [ARTIFACTS_TABLE]}); // Broader invalidation
     },
     onError: (error) => {
-      logError('Mutation error creating artifact', error);
+      logger.error('Mutation error creating artifact', error);
     }
   });
 

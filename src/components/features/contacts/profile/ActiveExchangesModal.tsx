@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,6 +15,7 @@ import {
   useTheme
 } from '@mui/material';
 import { Close as CloseIcon, Loop as LoopIcon } from '@mui/icons-material';
+import { CreateArtifactModal } from '../../artifacts/CreateArtifactModal';
 
 interface ActiveExchange {
   id: string;
@@ -31,13 +32,24 @@ interface ActiveExchange {
   };
 }
 
+interface Contact {
+  id: string;
+  name: string;
+  email?: string;
+  company?: string;
+}
+
 interface ActiveExchangesModalProps {
   open: boolean;
   onClose: () => void;
   exchanges: ActiveExchange[];
   type: 'pog' | 'ask' | 'all';
   contactName: string;
+  contactId: string;
+  contacts?: Contact[];
   onExchangeClick?: (exchangeId: string) => void;
+  onArtifactCreated?: (artifactData: any) => void;
+  onArtifactCreating?: (artifactData: any) => Promise<void>;
 }
 
 export const ActiveExchangesModal: React.FC<ActiveExchangesModalProps> = ({
@@ -46,9 +58,14 @@ export const ActiveExchangesModal: React.FC<ActiveExchangesModalProps> = ({
   exchanges,
   type,
   contactName,
+  contactId,
+  contacts = [],
   onExchangeClick,
+  onArtifactCreated,
+  onArtifactCreating,
 }) => {
   const theme = useTheme();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const filteredExchanges = type === 'all' 
     ? exchanges 
@@ -86,6 +103,7 @@ export const ActiveExchangesModal: React.FC<ActiveExchangesModalProps> = ({
   };
 
   return (
+    <>
     <Dialog 
       open={open} 
       onClose={onClose} 
@@ -227,23 +245,53 @@ export const ActiveExchangesModal: React.FC<ActiveExchangesModalProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button 
-          variant="contained" 
-          sx={{ 
-            textTransform: 'none',
-            backgroundColor: type === 'pog' 
-              ? theme.palette.artifacts.pog.main 
-              : theme.palette.artifacts.ask.main,
-            '&:hover': {
+        {(type === 'pog' || type === 'ask') && (
+          <Button 
+            variant="contained" 
+            onClick={() => {
+              setIsCreateModalOpen(true);
+              // Temporarily hide parent modal to avoid focus conflicts
+              onClose();
+            }}
+            sx={{ 
+              textTransform: 'none',
               backgroundColor: type === 'pog' 
-                ? theme.palette.artifacts.pog.dark 
-                : theme.palette.artifacts.ask.dark,
-            }
-          }}
-        >
-          + Add New {type === 'pog' ? 'POG' : 'Ask'}
-        </Button>
+                ? theme.palette.artifacts.pog.main 
+                : theme.palette.artifacts.ask.main,
+              '&:hover': {
+                backgroundColor: type === 'pog' 
+                  ? theme.palette.artifacts.pog.dark 
+                  : theme.palette.artifacts.ask.dark,
+              }
+            }}
+          >
+            + Add New {type === 'pog' ? 'POG' : 'Ask'}
+          </Button>
+        )}
       </DialogActions>
+
     </Dialog>
+    
+    {/* Create Artifact Modal - Rendered outside the Dialog to avoid nesting */}
+    {(type === 'pog' || type === 'ask') && (
+      <CreateArtifactModal
+        open={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          // Don't reopen parent modal on cancel to avoid confusion
+        }}
+        artifactType={type}
+        preSelectedContactId={contactId}
+        preSelectedContactName={contactName}
+        contacts={contacts}
+        onArtifactCreated={(data) => {
+          onArtifactCreated?.(data);
+          setIsCreateModalOpen(false);
+          // Don't reopen parent modal after creation - user likely wants to continue elsewhere
+        }}
+        onArtifactCreating={onArtifactCreating}
+      />
+    )}
+    </>
   );
 };

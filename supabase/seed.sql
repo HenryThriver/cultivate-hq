@@ -1773,3 +1773,8 @@ INSERT INTO public.actions (
   '{"ask_type": "pitch_deck_feedback", "meeting_type": "practice_session"}'
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- Feature flags for development/testing
+INSERT INTO public.feature_flags (name, description, enabled_globally) VALUES 
+('banner', 'Test banner for development/testing environments', false)
+ON CONFLICT (name) DO NOTHING;

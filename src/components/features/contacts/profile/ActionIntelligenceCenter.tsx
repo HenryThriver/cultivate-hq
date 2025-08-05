@@ -17,8 +17,7 @@ import {
   CheckCircle,
   RadioButtonUnchecked
 } from '@mui/icons-material';
-import { ActionDetailModal } from './ActionDetailModal';
-import { NextBestActionModal } from './NextBestActionModal';
+// import { NextBestActionModal } from './NextBestActionModal'; // TODO: Re-enable when integrated with suggestions architecture
 
 interface ActionItem {
   id: string;
@@ -48,6 +47,7 @@ interface ActionIntelligenceCenterProps {
   actions: ActionItem[];
   onUpdateActionStatus: (actionId: string, newStatus: ActionItem['status']) => void;
   onCreateAction: (type: ActionItem['type']) => void;
+  onEditAction?: (actionId: string) => void;
   
   // Timing opportunities
   timingOpportunities: TimingOpportunity[];
@@ -87,21 +87,21 @@ const getPriorityColor = (priority: ActionItem['priority']) => {
   }
 };
 
+
 export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> = ({
   contactId,
   contactName,
   actions,
   onUpdateActionStatus,
   onCreateAction,
+  onEditAction,
   timingOpportunities,
   onActOnOpportunity,
   nextBestAction,
   isLoading = false,
 }) => {
   const theme = useTheme();
-  const [actionModalOpen, setActionModalOpen] = useState(false);
-  const [selectedAction, setSelectedAction] = useState<ActionItem | null>(null);
-  const [nextBestActionModalOpen, setNextBestActionModalOpen] = useState(false);
+  // const [nextBestActionModalOpen, setNextBestActionModalOpen] = useState(false); // TODO: Re-enable when integrated with suggestions architecture
 
   // Filter active actions (not completed)
   const activeActions = actions.filter(action => action.status !== 'completed');
@@ -139,30 +139,48 @@ export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> =
     );
   };
 
-  const ActionListItem: React.FC<{ action: ActionItem; theme: any; ActionChip: React.FC<{ action: ActionItem }> }> = ({ action, theme, ActionChip }) => (
-    <ListItem 
-      disableGutters
-      sx={{ 
-        py: 0.5,
-        px: 1,
-        mb: 1,
-        borderRadius: 1,
-        border: '1px solid',
-        borderColor: 'rgba(0,0,0,0.05)',
-        cursor: 'pointer',
-        transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': { 
-          backgroundColor: 'rgba(0,0,0,0.02)',
-          borderColor: 'rgba(0,0,0,0.1)',
-          transform: 'translateY(-1px)',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-        }
-      }}
-      onClick={() => {
-        setSelectedAction(action);
-        setActionModalOpen(true);
-      }}
-    >
+  const ActionListItem: React.FC<{ action: ActionItem; theme: any; ActionChip: React.FC<{ action: ActionItem }> }> = ({ action, theme, ActionChip }) => {
+    const isUrgent = action.priority === 'high';
+    
+    return (
+      <ListItem 
+        disableGutters
+        sx={{ 
+          py: 0.5,
+          px: 1,
+          mb: 1,
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: isUrgent ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0,0,0,0.05)',
+          background: isUrgent 
+            ? 'linear-gradient(135deg, #fffbfb 0%, #ffffff 100%)' 
+            : 'transparent',
+          cursor: 'pointer',
+          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          position: 'relative',
+          '&:hover': { 
+            backgroundColor: isUrgent ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0,0,0,0.02)',
+            borderColor: isUrgent ? 'rgba(239, 68, 68, 0.3)' : 'rgba(0,0,0,0.1)',
+            transform: 'translateY(-1px)',
+            boxShadow: isUrgent 
+              ? '0 2px 4px rgba(239, 68, 68, 0.08)' 
+              : '0 2px 4px rgba(0,0,0,0.05)'
+          },
+          '&::before': isUrgent ? {
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            backgroundColor: 'rgba(239, 68, 68, .8)',
+            borderRadius: '2px 0 0 2px'
+          } : {}
+        }}
+        onClick={() => {
+          onEditAction?.(action.id);
+        }}
+      >
       <Box sx={{ 
         display: 'flex', 
         alignItems: 'flex-start', 
@@ -183,7 +201,8 @@ export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> =
         <ActionChip action={action} />
       </Box>
     </ListItem>
-  );
+    );
+  };
 
   return (
     <Paper 
@@ -216,7 +235,8 @@ export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> =
         Open Actions ({activeActions.length})
       </Typography>
 
-      {/* Next Best Action Highlight */}
+      {/* Next Best Action Highlight - TODO: Implement with real data from suggestions architecture */}
+      {/* Commented out until we have proper DB integration for next best actions
       {nextBestAction && (
         <Alert 
           severity="info" 
@@ -255,6 +275,7 @@ export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> =
           </Typography>
         </Alert>
       )}
+      */}
 
       {/* Actions Section */}
       <Box sx={{ mb: 3 }}>
@@ -423,20 +444,9 @@ export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> =
         )}
       </Box>
 
-      {/* Action Detail Modal */}
-      <ActionDetailModal
-        open={actionModalOpen}
-        onClose={() => setActionModalOpen(false)}
-        action={selectedAction}
-        contactName={contactName}
-        onUpdateStatus={onUpdateActionStatus}
-        onViewArtifact={(artifactId) => {
-          // TODO: Implement artifact viewing
-          console.log('View artifact:', artifactId);
-        }}
-      />
 
-      {/* Next Best Action Modal */}
+      {/* Next Best Action Modal - TODO: Re-enable when integrated with suggestions architecture */}
+      {/* Commented out until we have proper DB integration for next best actions
       {nextBestAction && (
         <NextBestActionModal
           open={nextBestActionModalOpen}
@@ -512,6 +522,7 @@ export const ActionIntelligenceCenter: React.FC<ActionIntelligenceCenterProps> =
           }}
         />
       )}
+      */}
     </Paper>
   );
 };

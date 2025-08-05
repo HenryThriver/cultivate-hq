@@ -18,12 +18,12 @@ import { ContextSections } from '@/components/features/contacts/ContextSections'
 import { ArtifactModal } from '@/components/features/timeline/ArtifactModal';
 
 // Import LoopDashboard
-import { LoopDashboard } from '@/components/features/loops/LoopDashboard';
+// import { LoopDashboard } from '@/components/features/loops/LoopDashboard'; // Deprecated - functionality moved to artifacts and actions
 // Import LoopSuggestions
-import { LoopSuggestions } from '@/components/features/loops/LoopSuggestions';
+// import { LoopSuggestions } from '@/components/features/loops/LoopSuggestions'; // Deprecated - functionality moved to artifacts and actions
 
 // Import EnhancedLoopModal NEW
-import { EnhancedLoopModal } from '@/components/features/loops/EnhancedLoopModal';
+// import { EnhancedLoopModal } from '@/components/features/loops/EnhancedLoopModal'; // Deprecated - functionality moved to artifacts and actions
 
 // Dynamically import VoiceRecorder for modal
 const VoiceRecorder = nextDynamic(() => 
@@ -54,11 +54,13 @@ import { OnboardingTour } from '@/components/features/onboarding/OnboardingTour'
 import { RelationshipPulseDashboard } from '@/components/features/contacts/profile/RelationshipPulseDashboard';
 import { ActionIntelligenceCenter } from '@/components/features/contacts/profile/ActionIntelligenceCenter';
 import { ArtifactDetailModal } from '@/components/features/contacts/profile/ArtifactDetailModal';
+import { CreateArtifactModal } from '@/components/features/artifacts/CreateArtifactModal';
+import { CreateActionModal } from '@/components/features/contacts/profile/CreateActionModal';
 
 // Import hooks and types
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
 import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos';
-import { useActionsByArtifact, useCreateAction } from '@/lib/hooks/useActions';
+import { useActionsByArtifact, useActionsByContact, useCreateAction, useUpdateAction, type ActionItem } from '@/lib/hooks/useActions';
 // Import useUpdateSuggestions hook for priority calculation only
 import { useUpdateSuggestions } from '@/lib/hooks/useUpdateSuggestions';
 import { useArtifacts, type NewArtifact } from '@/lib/hooks/useArtifacts';
@@ -72,9 +74,9 @@ import type {
     POGArtifact,
     AskArtifact,
     LinkedInArtifactContent,
-    LoopArtifact,
-    LoopStatus,
-    LoopArtifactContent,
+    // LoopArtifact, // Removed - loops deprecated
+    // LoopStatus, // Removed - loops deprecated
+    // LoopArtifactContent, // Removed - loops deprecated
     Contact
 } from '@/types';
 import { useToast } from '@/lib/contexts/ToastContext';
@@ -134,16 +136,50 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // Add loading states for modal actions
   const [isReprocessingMemo, setIsReprocessingMemo] = useState(false);
 
-  // NEW state for EnhancedLoopModal
-  const [selectedLoopForEnhancedModal, setSelectedLoopForEnhancedModal] = useState<LoopArtifact | null>(null);
-  const [isEnhancedLoopModalOpen, setIsEnhancedLoopModalOpen] = useState(false);
+  // EnhancedLoopModal state removed - loops deprecated
 
   // NEW state for unified ArtifactDetailModal
   const [selectedArtifactForDetailModal, setSelectedArtifactForDetailModal] = useState<POGArtifact | AskArtifact | null>(null);
   const [isArtifactDetailModalOpen, setIsArtifactDetailModalOpen] = useState(false);
 
-  // Action creation hook
+  // Action creation modals for ActionIntelligenceCenter
+  const [isCreateArtifactModalOpen, setIsCreateArtifactModalOpen] = useState(false);
+  const [createArtifactType, setCreateArtifactType] = useState<'pog' | 'ask'>('pog');
+  const [isCreateActionModalOpen, setIsCreateActionModalOpen] = useState(false);
+  const [selectedActionForEdit, setSelectedActionForEdit] = useState<ActionItem | null>(null);
+
+  // Action hooks
   const createActionMutation = useCreateAction();
+  const updateActionMutation = useUpdateAction();
+  const { data: contactActions = [] } = useActionsByContact(contactId);
+
+  // Action type mapping functions
+  const mapActionTypeToDisplay = (actionType: string): 'pog' | 'ask' | 'general' | 'follow_up' => {
+    if (actionType === 'deliver_pog') return 'pog';
+    if (actionType === 'follow_up_ask') return 'ask';
+    if (actionType === 'send_follow_up' || actionType === 'follow_up') return 'follow_up';
+    return 'general';
+  };
+
+  const mapActionStatusToDisplay = (status: string): 'queued' | 'active' | 'pending' | 'completed' => {
+    if (status === 'in_progress') return 'active';
+    if (status === 'pending') return 'pending';
+    if (status === 'completed') return 'completed';
+    return 'queued';
+  };
+
+  const mapActionPriorityToDisplay = (priority: string): 'high' | 'medium' | 'low' => {
+    if (priority === 'urgent' || priority === 'high') return 'high';
+    if (priority === 'low') return 'low';
+    return 'medium';
+  };
+
+  const mapDisplayStatusToDatabase = (status: 'queued' | 'active' | 'pending' | 'completed'): 'pending' | 'in_progress' | 'completed' | 'skipped' | 'cancelled' => {
+    if (status === 'active') return 'in_progress';
+    if (status === 'pending') return 'pending';
+    if (status === 'completed') return 'completed';
+    return 'pending';
+  };
 
   // Get actions for selected artifact
   const { data: artifactActions = [] } = useActionsByArtifact(selectedArtifactForDetailModal?.id);
@@ -248,6 +284,37 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     return highConfidenceCount > 0 ? 'high' : 'medium';
   }, [highConfidenceCount]);
 
+  // Show toast notifications for new high confidence suggestions
+  useEffect(() => {
+    if (highConfidenceCount > 0 && contact?.name) {
+      const toastKey = `suggestions-${contactId}-${highConfidenceCount}`;
+      const hasShownToast = sessionStorage.getItem(toastKey);
+      
+      if (!hasShownToast) {
+        showToast(
+          `✨ ${highConfidenceCount} high-confidence suggestion${highConfidenceCount > 1 ? 's' : ''} available for ${contact.name}!`,
+          'info',
+          { 
+            icon: "💡", 
+            duration: 8000,
+            action: {
+              label: 'View',
+              onClick: () => {
+                // Scroll to ContactHeader where suggestions are displayed
+                const headerElement = document.querySelector('[data-testid="contact-header"]');
+                if (headerElement) {
+                  headerElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }
+            }
+          }
+        );
+        // Mark this toast as shown for this session
+        sessionStorage.setItem(toastKey, 'true');
+      }
+    }
+  }, [highConfidenceCount, contact?.name, contactId, showToast]);
+
   const personalContextForHeader = useMemo(() => {
     return contact?.personal_context 
       ? contact.personal_context as PersonalContextType 
@@ -263,11 +330,9 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // Use useCallback for event handlers to prevent re-renders
 
   const handleUpdateStatus = useCallback((itemId: string, newStatus: ActionQueuesActionItemStatus, type: 'pog' | 'ask') => {
-    console.log(`Update ${type} item ${itemId} to ${newStatus}`);
   }, []);
 
   const handleBrainstormPogs = useCallback(() => {
-    console.log('Brainstorm POGs clicked');
   }, []);
 
 
@@ -495,10 +560,9 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
 
   const handleOpenArtifactModal = useCallback((artifact: BaseArtifact) => {
     if (artifact.type === 'loop') {
-      setSelectedLoopForEnhancedModal(artifact as unknown as LoopArtifact);
-      setIsEnhancedLoopModalOpen(true);
-      setIsArtifactModalOpen(false);
-      setIsArtifactDetailModalOpen(false);
+      // Loops deprecated - show info message
+      showToast('Loop functionality has been moved to POGs and Asks', 'info');
+      return;
     } else if (artifact.type === 'voice_memo') {
         setSelectedVoiceMemoForDetail(artifact as VoiceMemoArtifact);
         setIsVoiceMemoDetailModalOpen(true);
@@ -508,13 +572,10 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         setSelectedArtifactForDetailModal(artifact as POGArtifact | AskArtifact);
         setIsArtifactDetailModalOpen(true);
         setIsArtifactModalOpen(false);
-        setIsEnhancedLoopModalOpen(false);
         setIsVoiceMemoDetailModalOpen(false);
     } else {
       fetchArtifactData(artifact.id, contactId);
       setIsArtifactModalOpen(true);
-      setSelectedLoopForEnhancedModal(null);
-      setIsEnhancedLoopModalOpen(false);
       setIsArtifactDetailModalOpen(false);
     }
   }, [fetchArtifactData, contactId]);
@@ -525,7 +586,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     const artifactTypeFromQuery = searchParams.get('artifactType') as BaseArtifact['type'] | null;
 
     if (artifactIdFromQuery && artifactTypeFromQuery && contactId) {
-      console.log(`Attempting to open artifact from URL: ID=${artifactIdFromQuery}, Type=${artifactTypeFromQuery}`);
       const placeholderArtifact: BaseArtifact = {
           id: artifactIdFromQuery,
           type: artifactTypeFromQuery,
@@ -546,37 +606,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     }
   }, [searchParams, contactId, handleOpenArtifactModal, router]);
 
-  // Placeholder handlers for EnhancedLoopModal props
-  // These would ideally interact with a useLoops hook instance available in this scope
-  // or be passed down from a higher-level state management for loops.
-  const handleLoopStatusUpdate = useCallback((loopId: string, newStatus: LoopStatus) => {
-    console.log(`ContactProfilePage: Update status for loop ${loopId} to ${newStatus}`);
-    // Example: get loops hook and call updateLoopStatus({loopId, newStatus})
-    // queryClient.invalidateQueries(['loops', contactId]); // Example invalidation
-  }, []);
-
-  const handleEditLoopDetails = useCallback((loopId: string, updates: Partial<LoopArtifactContent>) => {
-    console.log(`ContactProfilePage: Edit details for loop ${loopId}`, updates);
-    // Open an edit modal or form - perhaps reuse EnhancedCreateLoopModal with initialData
-  }, []);
-
-  const handleDeleteLoop = useCallback((loopId: string) => {
-    console.log(`ContactProfilePage: Delete loop ${loopId}`);
-    // Example: deleteLoop({loopId})
-    // queryClient.invalidateQueries(['loops', contactId]);
-    setIsEnhancedLoopModalOpen(false); // Close modal after delete
-  }, []);
-
-  const handleShareLoopWithContact = useCallback((loopId: string) => {
-    console.log(`ContactProfilePage: Share loop ${loopId} with contact`);
-    // Implement sharing logic
-  }, []);
-
-  const handleCompleteLoop = useCallback((loopId: string, outcome: Partial<Pick<LoopArtifactContent, 'outcome' | 'satisfaction_score' | 'lessons_learned'>>) => {
-    console.log(`ContactProfilePage: Complete loop ${loopId} with outcome`, outcome);
-    // Example: completeLoop({loopId, ...outcome })
-    // queryClient.invalidateQueries(['loops', contactId]);
-  }, []);
+  // Loop handlers removed - functionality deprecated
 
   // Unified artifact modal handlers
   const handleDeleteArtifact = useCallback(async (artifactId: string) => {
@@ -629,7 +659,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // This will be handled by the CreateActionModal in ArtifactDetailModal
   const handleCreateActionForArtifact = useCallback(() => {
     // This function is now a placeholder as action creation is handled in the modal
-    console.log('Action creation is handled by CreateActionModal in ArtifactDetailModal');
   }, []);
 
   // Real-time completion/failure notifications
@@ -676,7 +705,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       )
       .subscribe((status: string, err: unknown) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`Subscribed to artifact updates for contact: ${contactId}`);
         }
         if (err) {
           console.error(`Error subscribing to artifact updates for ${contactId}:`, err);
@@ -743,11 +771,9 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               contactId={demoContact.id}
               suggestionPriority="high"
               onUpdateRelationshipScore={async (newScore) => {
-                console.log('Demo: Update relationship score:', newScore);
                 // For demo, just log - no actual save needed
               }}
               onUpdateCadence={async (newCadence) => {
-                console.log('Demo: Update cadence:', newCadence);
                 // For demo, just log - no actual save needed
               }}
             />
@@ -880,13 +906,11 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           suggestionPriority={suggestionPriority}
           // New enhanced props
           goals={[]} // TODO: Fetch from goals hook
-          onGoalClick={(goalId) => console.log('Navigate to goal:', goalId)}
+          onGoalClick={(goalId) => {}}
           onRecordVoiceMemo={() => {
             // This will be handled by the embedded recorder
-            console.log('Voice memo recording - handled by embedded component');
           }}
           onUpdateRelationshipScore={async (newScore) => {
-            console.log('Update relationship score:', newScore);
             
             // Optimistic update - immediately update the UI
             queryClient.setQueryData(['contact-profile', contactId], (oldData: Contact | null) => {
@@ -908,14 +932,12 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
                 throw error;
               }
 
-              console.log('Relationship score updated successfully');
             } catch (error) {
               console.error('Error updating relationship score:', error);
               throw error; // Re-throw so the component can handle the error
             }
           }}
           onUpdateCadence={async (newCadence) => {
-            console.log('Update cadence:', newCadence);
             
             // Extract number of days from cadence text (e.g., "Connect every 42 days" -> 42)
             const daysMatch = newCadence.match(/(\d+)/);
@@ -941,7 +963,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
                 throw error;
               }
 
-              console.log('Cadence updated successfully');
             } catch (error) {
               console.error('Error updating cadence:', error);
               throw error;
@@ -1046,13 +1067,11 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               contactName={contact.name || 'Contact'}
               contactId={contactId}
               onArtifactCreated={(data) => {
-                console.log('Artifact created:', data);
                 // Refresh relevant queries
                 queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
                 queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
               }}
               onArtifactCreating={async (data) => {
-                console.log('Creating artifact:', data);
                 
                 if (!user) {
                   throw new Error('User not authenticated');
@@ -1136,35 +1155,73 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
             <ActionIntelligenceCenter
               contactId={contactId}
               contactName={contact.name || 'Contact'}
-              actions={[
-                // Convert POGs to actions
-                ...pogs.map(pog => ({
-                  id: pog.id,
-                  title: pog.content,
-                  type: 'pog' as const,
-                  status: pog.status,
-                  priority: 'medium' as const,
-                })),
-                // Convert Asks to actions
-                ...asks.map(ask => ({
-                  id: ask.id,
-                  title: ask.content,
-                  type: 'ask' as const,
-                  status: ask.status,
-                  priority: 'medium' as const,
-                }))
-              ]}
-              onUpdateActionStatus={(actionId, newStatus) => {
-                console.log('Update action status:', actionId, newStatus);
-                // TODO: Implement status update
+              actions={contactActions.map(action => {
+                // Find the linked artifact if it exists
+                const linkedArtifact = action.artifact_id 
+                  ? contact?.artifacts?.find((art: any) => art.id === action.artifact_id)
+                  : null;
+                
+                // Determine type based on linked artifact, not database action_type
+                const getActionTypeFromArtifact = (): 'pog' | 'ask' | 'general' | 'follow_up' => {
+                  if (linkedArtifact) {
+                    if (linkedArtifact.type === 'pog') return 'pog';
+                    if (linkedArtifact.type === 'ask') return 'ask';
+                  }
+                  // Fall back to original mapping for unlinked actions
+                  return mapActionTypeToDisplay(action.action_type);
+                };
+                
+                return {
+                  id: action.id,
+                  title: action.title,
+                  description: action.description,
+                  type: getActionTypeFromArtifact(),
+                  status: mapActionStatusToDisplay(action.status),
+                  priority: mapActionPriorityToDisplay(action.priority),
+                  dueDate: action.due_date ? new Date(action.due_date) : undefined,
+                  source: action.artifact_id ? 'Related to artifact' : undefined,
+                  sourceArtifact: linkedArtifact ? {
+                    id: linkedArtifact.id,
+                    type: linkedArtifact.type,
+                    title: linkedArtifact.content || linkedArtifact.metadata?.title || linkedArtifact.metadata?.description || 'No description',
+                    date: new Date(linkedArtifact.timestamp || linkedArtifact.created_at),
+                    excerpt: linkedArtifact.metadata?.excerpt || (typeof linkedArtifact.content === 'string' ? linkedArtifact.content.substring(0, 100) : String(linkedArtifact.content || '').substring(0, 100))
+                  } : undefined,
+                };
+              })}
+              onUpdateActionStatus={async (actionId, newStatus) => {
+                try {
+                  await updateActionMutation.mutateAsync({
+                    id: actionId,
+                    updates: {
+                      status: mapDisplayStatusToDatabase(newStatus),
+                      ...(newStatus === 'completed' && { completed_at: new Date().toISOString() }),
+                    },
+                  });
+                } catch (error) {
+                  console.error('Failed to update action status:', error);
+                }
+              }}
+              onEditAction={(actionId) => {
+                // Find the original database action instead of transforming
+                const actionToEdit = contactActions.find(action => action.id === actionId);
+                if (actionToEdit) {
+                  setSelectedActionForEdit(actionToEdit);
+                  setIsCreateActionModalOpen(true);
+                }
               }}
               onCreateAction={(type) => {
-                console.log('Create action:', type);
-                // TODO: Implement action creation
+                if (type === 'pog' || type === 'ask') {
+                  // Open CreateArtifactModal for POGs and Asks
+                  setCreateArtifactType(type);
+                  setIsCreateArtifactModalOpen(true);
+                } else {
+                  // Open CreateActionModal for general actions
+                  setIsCreateActionModalOpen(true);
+                }
               }}
               timingOpportunities={[]} // TODO: Generate from contact data
               onActOnOpportunity={(opportunityId) => {
-                console.log('Act on opportunity:', opportunityId);
               }}
               nextBestAction={
                 pogs.length > 0 || asks.length > 0 
@@ -1179,30 +1236,44 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               }
             />
 
-            {/* Keep the existing NextConnection component for now */}
-            <NextConnection 
-              contactId={contactId} 
-            />
-
-            {/* Loop System Integration Point */}
+            {/* Meeting Intelligence - Unified Section */}
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
-                Loop Management
-              </Typography>
-              {/* AI Loop Suggestions */}
-              <LoopSuggestions contactId={contactId} />
-              {/* Existing Loop Dashboard */}
-              <LoopDashboard contactId={contactId} contactName={contact.name || 'Contact'} />
-            </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  Meeting Intelligence
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    // Navigate to timeline filtered by meetings
+                    router.push(`/dashboard/timeline?contact=${contactId}&type=meeting`);
+                  }}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Show All Meetings
+                </Button>
+              </Box>
+              
+              {/* Upcoming Meeting */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 1.5, fontSize: '1.1rem' }}>
+                  Upcoming Connection
+                </Typography>
+                <NextConnection 
+                  contactId={contactId} 
+                />
+              </Box>
 
-            {/* Meeting Intelligence Integration Point */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
-                Meeting Intelligence
-              </Typography>
-                              <MeetingManager 
+              {/* Past Meetings Needing Processing */}
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 1.5, fontSize: '1.1rem' }}>
+                  Recent Meetings
+                </Typography>
+                <MeetingManager 
                   contactId={contactId}
                 />
+              </Box>
             </Box>
 
             {/* Email Management Integration Point */}
@@ -1216,7 +1287,8 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               />
             </Box>
 
-            {/* LinkedIn Posts Integration Point */}
+            {/* LinkedIn Posts Integration Point - Removed from contact profile, will be moved elsewhere */}
+            {/* 
             {contact.linkedin_url && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
@@ -1228,6 +1300,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
                 />
               </Box>
             )}
+            */}
 
             <ContextSections 
               contactData={contact}
@@ -1294,19 +1367,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         />
       )}
 
-      {isClient && (
-        <EnhancedLoopModal
-          open={isEnhancedLoopModalOpen}
-          onClose={() => setIsEnhancedLoopModalOpen(false)}
-          artifact={selectedLoopForEnhancedModal}
-          contactName={contact?.name || 'Contact'}
-          onStatusUpdate={handleLoopStatusUpdate}
-          onEdit={handleEditLoopDetails}
-          onDelete={handleDeleteLoop}
-          onShare={handleShareLoopWithContact}
-          onComplete={handleCompleteLoop}
-        />
-      )}
+      {/* EnhancedLoopModal removed - loops deprecated */}
 
       {/* Unified Artifact Detail Modal */}
       {selectedArtifactForDetailModal && user && (
@@ -1336,7 +1397,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
             queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
           }}
           onViewAction={(actionId) => {
-            console.log('View action:', actionId);
             // TODO: Open action detail modal
             showToast('Action details coming soon!', 'info');
           }}
@@ -1351,6 +1411,77 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           isReprocessing={isReprocessingArtifactModal}
         />
       )}
+
+      {/* CreateArtifactModal for POGs and Asks */}
+      <CreateArtifactModal
+        open={isCreateArtifactModalOpen}
+        onClose={() => setIsCreateArtifactModalOpen(false)}
+        artifactType={createArtifactType}
+        preSelectedContactId={contactId}
+        preSelectedContactName={contact?.name}
+        contacts={[]} // TODO: Add contacts list if needed
+        onArtifactCreated={(data) => {
+          // Refresh relevant queries
+          queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+          queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+          setIsCreateArtifactModalOpen(false);
+        }}
+        onArtifactCreating={async (data) => {
+          
+          if (!user) {
+            throw new Error('User not authenticated');
+          }
+          
+          // Convert CreateArtifactModal data to database format  
+          const newArtifact: NewArtifact = {
+            type: data.type === 'task' ? 'other' : data.type, // Map 'task' to 'other' for database
+            content: data.content,
+            contact_id: data.contactId || contactId, // Ensure contact_id is always set
+            user_id: user.id,
+            metadata: data.metadata,
+            timestamp: new Date().toISOString(),
+            ai_parsing_status: 'pending' as const,
+            // Set directionality fields for POGs and Asks
+            ...(data.type === 'pog' && {
+              initiator_user_id: user.id,
+              recipient_contact_id: data.contactId,
+            }),
+            ...(data.type === 'ask' && {
+              initiator_user_id: user.id,
+              recipient_contact_id: data.contactId,
+            }),
+          };
+          
+          // Create the artifact in the database
+          await createArtifact(newArtifact);
+        }}
+      />
+
+      {/* CreateActionModal for general actions */}
+      <CreateActionModal
+        open={isCreateActionModalOpen}
+        onClose={() => {
+          setIsCreateActionModalOpen(false);
+          setSelectedActionForEdit(null);
+        }}
+        contactId={contactId}
+        contactName={contact?.name}
+        existingAction={selectedActionForEdit}
+        mode={selectedActionForEdit ? 'edit' : 'create'}
+        artifacts={contact?.artifacts || []}
+        onActionCreated={(action) => {
+          // Refresh actions queries
+          queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
+          setIsCreateActionModalOpen(false);
+          setSelectedActionForEdit(null);
+        }}
+        onActionUpdated={(action) => {
+          // Refresh actions queries
+          queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
+          setIsCreateActionModalOpen(false);
+          setSelectedActionForEdit(null);
+        }}
+      />
 
       {/* Onboarding Tour */}
       <OnboardingTour 

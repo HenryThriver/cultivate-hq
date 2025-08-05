@@ -13,6 +13,11 @@ export interface UseUpdateSuggestionsProps {
 // Explicitly define the table name as a literal type
 const CONTACT_UPDATE_SUGGESTIONS_TABLE = 'contact_update_suggestions' as const;
 
+// Helper function to get nested values from objects using dot notation
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((current, key) => current?.[key], obj);
+};
+
 export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) => {
   // const supabase = useSupabaseClient(); // Replaced
   const queryClient = useQueryClient();
@@ -41,19 +46,33 @@ export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) =
       // outpaces the type inference for `data`.
       // Also, ensure nested JSON fields are correctly typed.
       return data ? data.map((s: Record<string, unknown>) => {
-        // Safely parse suggested_updates from JSON
+        // Parse suggested_updates from JSON
         const suggestedUpdates = s.suggested_updates ? 
           (typeof s.suggested_updates === 'string' 
             ? JSON.parse(s.suggested_updates) 
             : s.suggested_updates) 
-          : { suggestions: [] };
+          : {};
+        
+        // Parse confidence_scores from JSON  
+        const confidenceScores = s.confidence_scores ? 
+          (typeof s.confidence_scores === 'string' 
+            ? JSON.parse(s.confidence_scores) 
+            : s.confidence_scores) 
+          : {};
+        
+        // Convert the flat structure to suggestions array with confidence scores
+        const suggestions = Object.keys(confidenceScores).map(fieldPath => ({
+          field_path: fieldPath,
+          confidence: confidenceScores[fieldPath] || 0,
+          suggested_value: getNestedValue(suggestedUpdates, fieldPath),
+          action: 'update' as const, // Infer action type - most suggestions are updates
+          reasoning: `AI-generated suggestion based on recent interactions with confidence ${Math.round((confidenceScores[fieldPath] || 0) * 100)}%`,
+        }));
         
         return {
           ...s,
           suggested_updates: {
-            suggestions: Array.isArray(suggestedUpdates.suggestions) 
-              ? suggestedUpdates.suggestions 
-              : []
+            suggestions: suggestions
           },
           // Ensure artifacts is handled, it can be null from the query
           artifacts: s.artifacts ? { 

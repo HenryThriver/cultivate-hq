@@ -17,6 +17,7 @@ import {
   useTheme,
   FormHelperText,
   Stack,
+  Autocomplete,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -25,12 +26,14 @@ import {
   Flag as PriorityIcon,
   Notes as NotesIcon,
   Timer as TimerIcon,
+  Link as LinkIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useCreateAction, useUpdateAction } from '@/lib/hooks/useActions';
 import type { ActionItem } from '@/lib/hooks/useActions';
+import type { Artifact } from '@/types/artifact';
 
 interface CreateActionModalProps {
   open: boolean;
@@ -48,6 +51,7 @@ interface CreateActionModalProps {
   mode?: 'create' | 'edit';
   onActionCreated?: (action: ActionItem) => void;
   onActionUpdated?: (action: ActionItem) => void;
+  artifacts?: Artifact[]; // Add artifacts prop to avoid useArtifacts hook dependency
 }
 
 const actionTypes = [
@@ -59,6 +63,7 @@ const actionTypes = [
   { value: 'make_introduction', label: 'Make Introduction' },
   { value: 'share_content', label: 'Share Content' },
   { value: 'reconnect_with_contact', label: 'Reconnect' },
+  { value: 'review_goal', label: 'Review Goal' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -89,10 +94,16 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
   mode = 'create',
   onActionCreated,
   onActionUpdated,
+  artifacts = [],
 }) => {
   const theme = useTheme();
   const createActionMutation = useCreateAction();
   const updateActionMutation = useUpdateAction();
+  
+  // Use passed artifacts instead of hook (which doesn't have query functionality)
+  const pogAndAskArtifacts = artifacts.filter(
+    (artifact: any) => artifact.type === 'pog' || artifact.type === 'ask'
+  );
 
   // Form state
   const [title, setTitle] = useState('');
@@ -103,18 +114,42 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [estimatedDuration, setEstimatedDuration] = useState<number>(5);
   const [notes, setNotes] = useState('');
+  const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(null);
+
+  // Helper function to validate action type against available options
+  const getValidActionType = (actionType: string): string => {
+    const validTypes = actionTypes.map(t => t.value);
+    return validTypes.includes(actionType) ? actionType : 'other';
+  };
+
+  // Helper function to validate priority against available options
+  const getValidPriority = (priority: string): 'urgent' | 'high' | 'medium' | 'low' => {
+    const validPriorities = priorityOptions.map(p => p.value) as ('urgent' | 'high' | 'medium' | 'low')[];
+    return validPriorities.includes(priority as any) ? priority as any : 'medium';
+  };
+
+  // Helper function to validate status against available options
+  const getValidStatus = (status: string): 'pending' | 'in_progress' | 'completed' | 'skipped' | 'cancelled' => {
+    const validStatuses = statusOptions.map(s => s.value) as ('pending' | 'in_progress' | 'completed' | 'skipped' | 'cancelled')[];
+    return validStatuses.includes(status as any) ? status as any : 'pending';
+  };
 
   // Initialize form with existing action or context
   useEffect(() => {
     if (mode === 'edit' && existingAction) {
       setTitle(existingAction.title);
       setDescription(existingAction.description || '');
-      setActionType(existingAction.action_type);
-      setPriority(existingAction.priority);
-      setStatus(existingAction.status);
+      setActionType(getValidActionType(existingAction.action_type));
+      setPriority(getValidPriority(existingAction.priority));
+      setStatus(getValidStatus(existingAction.status));
       setDueDate(existingAction.due_date ? new Date(existingAction.due_date) : null);
       setEstimatedDuration(existingAction.estimated_duration_minutes || 5);
       setNotes(existingAction.notes || '');
+      // If existing action has artifact_id, find and set the artifact
+      if (existingAction.artifact_id) {
+        const linkedArtifact = pogAndAskArtifacts.find((a: any) => a.id === existingAction.artifact_id);
+        setSelectedArtifact(linkedArtifact || null);
+      }
     } else if (mode === 'create' && artifactContext) {
       // Pre-fill based on artifact context
       if (artifactType === 'pog') {
@@ -126,8 +161,13 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
         setTitle(artifactContext.status === 'requested' ? 'Respond to Ask' : 'Follow up on Ask');
         setDescription(`${artifactContext.description || artifactContext.title || 'Ask action'}`);
       }
+      // If artifactId is provided, find and set the artifact
+      if (artifactId) {
+        const linkedArtifact = pogAndAskArtifacts.find((a: any) => a.id === artifactId);
+        setSelectedArtifact(linkedArtifact || null);
+      }
     }
-  }, [mode, existingAction, artifactContext, artifactType]);
+  }, [mode, existingAction, artifactContext, artifactType, artifactId, pogAndAskArtifacts]);
 
   const handleSubmit = async () => {
     try {
@@ -138,7 +178,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
         priority,
         status,
         contact_id: contactId,
-        artifact_id: artifactId,
+        artifact_id: selectedArtifact?.id || artifactId,
         due_date: dueDate?.toISOString(),
         estimated_duration_minutes: estimatedDuration,
         notes: notes || undefined,
@@ -171,6 +211,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
     setDueDate(null);
     setEstimatedDuration(15);
     setNotes('');
+    setSelectedArtifact(null);
   };
 
   const isFormValid = title.trim().length > 0;
@@ -293,6 +334,70 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
               rows={3}
               placeholder="Add more details about this action..."
             />
+
+            {/* POG/Ask Selector */}
+            {contactId && (
+              <Autocomplete
+                fullWidth
+                options={pogAndAskArtifacts}
+                value={selectedArtifact}
+                onChange={(_, newValue) => {
+                  setSelectedArtifact(newValue);
+                  // Auto-update action type based on artifact type
+                  if (newValue?.type === 'pog') {
+                    setActionType('deliver_pog');
+                  } else if (newValue?.type === 'ask') {
+                    setActionType('follow_up_ask');
+                  }
+                }}
+                getOptionLabel={(option) => {
+                  const artifactType = option.type.toUpperCase();
+                  const content = typeof option.content === 'string' ? option.content : 'No description';
+                  const status = (option.metadata as any)?.status || '';
+                  return `[${artifactType}] ${content} ${status ? `(${status})` : ''}`;
+                }}
+                renderOption={(props, option) => (
+                  <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label={option.type.toUpperCase()}
+                      size="small"
+                      sx={{
+                        backgroundColor: (theme.palette.artifacts as any)[option.type]?.light || '#f3f4f6',
+                        color: (theme.palette.artifacts as any)[option.type]?.main || '#6b7280',
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                      }}
+                    />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {typeof option.content === 'string' ? option.content : 'No description'}
+                      </Typography>
+                      {(option.metadata as any)?.status && (
+                        <Typography variant="caption" color="text.secondary">
+                          Status: {(option.metadata as any).status}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Link to POG/Ask (Optional)"
+                    placeholder={pogAndAskArtifacts.length > 0 ? "Select a POG or Ask to associate with this action" : "No POGs or Asks available - create some first to link them"}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <LinkIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            )}
 
             {/* Status and Due Date */}
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>

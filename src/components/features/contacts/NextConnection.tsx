@@ -1,6 +1,8 @@
 import React from 'react';
-import { Box, Typography, Paper, List, ListItem, ListItemText, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Paper, List, ListItem, ListItemText, CircularProgress, Alert, Chip, Divider } from '@mui/material';
 import { useNextConnection } from '@/lib/hooks/useNextConnection';
+import { useUpcomingMeeting } from '@/lib/hooks/useUpcomingMeeting';
+import { Event as EventIcon, LocationOn as LocationIcon, Notes as NotesIcon } from '@mui/icons-material';
 import type { ConnectionAgendaItem } from '@/types'; // Assuming ConnectionAgendaItem is the type for items in ConnectionAgenda
 
 interface NextConnectionProps {
@@ -28,12 +30,23 @@ const agendaItemStyles = {
 export const NextConnection: React.FC<NextConnectionProps> = ({ contactId }) => {
   const { 
     nextConnection,
-    isLoading,
-    error,
+    isLoading: isLoadingLegacy,
+    error: errorLegacy,
     // scheduleConnection, // Available for future actions
     // updateAgenda,       // Available for future actions
     // markCompleted       // Available for future actions
   } = useNextConnection(contactId);
+  
+  // Use the new hook for upcoming meetings from artifacts
+  const { 
+    upcomingMeeting, 
+    isLoading: isLoadingMeeting, 
+    error: errorMeeting 
+  } = useUpcomingMeeting(contactId);
+  
+  // Prefer upcoming meeting data over legacy next connection data
+  const isLoading = isLoadingMeeting || isLoadingLegacy;
+  const error = errorMeeting || errorLegacy;
 
   if (isLoading) {
     return (
@@ -52,8 +65,8 @@ export const NextConnection: React.FC<NextConnectionProps> = ({ contactId }) => 
     );
   }
 
-  if (!nextConnection || nextConnection.status === 'completed' || nextConnection.status === 'cancelled') {
-    // Also consider if other statuses like 'completed' or 'cancelled' mean no *active* upcoming connection
+  if (!upcomingMeeting && (!nextConnection || nextConnection.status === 'completed' || nextConnection.status === 'cancelled')) {
+    // No upcoming meetings or connections
     return (
       <Paper 
         elevation={0}
@@ -67,7 +80,147 @@ export const NextConnection: React.FC<NextConnectionProps> = ({ contactId }) => 
         }}
       >
         <Typography variant="subtitle1" color="text.secondary">No upcoming connection scheduled.</Typography>
-        {/* TODO: Add a button to schedule one using scheduleConnection mutation */}
+        {/* TODO: Add a button to schedule one */}
+      </Paper>
+    );
+  }
+  
+  // Use upcoming meeting data if available, otherwise fall back to legacy connection data
+  if (upcomingMeeting) {
+    const { meeting, agenda } = upcomingMeeting;
+    const meetingDate = new Date(meeting.timestamp);
+    
+    return (
+      <Paper 
+        elevation={0}
+        sx={{
+          p: {xs: 2, md: 3},
+          mb: 2, 
+          background: 'linear-gradient(135deg, #f8faff 0%, #ffffff 100%)',
+          border: '1px solid',
+          borderColor: 'rgba(99, 102, 241, 0.1)',
+          borderRadius: 3,
+          boxShadow: 'var(--shadow-card)',
+          transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            boxShadow: 'var(--shadow-card-hover)',
+            transform: 'translateY(-1px)',
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <EventIcon sx={{ color: '#6366f1' }} />
+          <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: '#3730a3', fontSize: '1.1rem' }}>
+            {(meeting.metadata as any)?.title || 'Meeting'}
+          </Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EventIcon sx={{ fontSize: 18, color: '#4338ca' }} />
+            <Typography variant="body1" sx={{ color: '#4338ca', fontWeight: 500 }}>
+              {formatDate(meetingDate.toISOString())}
+            </Typography>
+          </Box>
+          {(meeting.metadata as any)?.location && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <LocationIcon sx={{ fontSize: 18, color: '#4338ca' }} />
+              <Typography variant="body1" sx={{ color: '#4338ca' }}>
+                {(meeting.metadata as any).location}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+
+        {/* Active POGs and Asks */}
+        {(agenda.pogs.length > 0 || agenda.asks.length > 0) && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#3730a3', mb: 2, fontSize: '1.1rem' }}>
+              Active Exchanges to Discuss:
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {agenda.pogs.map((pog) => (
+                <Box key={pog.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip 
+                    label="POG" 
+                    size="small" 
+                    sx={{ 
+                      backgroundColor: '#d1fae5', 
+                      color: '#047857', 
+                      fontWeight: 600,
+                      fontSize: '0.7rem'
+                    }} 
+                  />
+                  <Typography variant="body2" sx={{ color: '#374151' }}>
+                    {pog.metadata?.description || pog.content}
+                  </Typography>
+                </Box>
+              ))}
+              {agenda.asks.map((ask) => (
+                <Box key={ask.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip 
+                    label="ASK" 
+                    size="small" 
+                    sx={{ 
+                      backgroundColor: '#fee2e2', 
+                      color: '#b91c1c', 
+                      fontWeight: 600,
+                      fontSize: '0.7rem'
+                    }} 
+                  />
+                  <Typography variant="body2" sx={{ color: '#374151' }}>
+                    {ask.metadata?.request_description || ask.content}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {/* Conversation Starters */}
+        {agenda.conversationStarters.length > 0 && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#3730a3', mb: 2, fontSize: '1.1rem' }}>
+              Suggested Conversation Topics:
+            </Typography>
+            <List dense disablePadding>
+              {agenda.conversationStarters.map((starter, index) => (
+                <ListItem key={index} disableGutters sx={{ pl: 0, display: 'list-item', listStyleType: 'disc', ml: 3 }}>
+                  <ListItemText 
+                    primary={starter} 
+                    primaryTypographyProps={{
+                      variant: 'body2',
+                      color: '#4338ca'
+                    }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        )}
+
+        {/* Recent Topics */}
+        {agenda.recentTopics.length > 0 && (
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#3730a3', mb: 1, fontSize: '1.1rem' }}>
+              Recent Discussion Topics:
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {agenda.recentTopics.map((topic, index) => (
+                <Chip 
+                  key={index}
+                  label={topic}
+                  size="small"
+                  variant="outlined"
+                  sx={{ 
+                    borderColor: '#6366f1',
+                    color: '#4338ca'
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+        )}
       </Paper>
     );
   }
@@ -81,15 +234,20 @@ export const NextConnection: React.FC<NextConnectionProps> = ({ contactId }) => 
       sx={{
         p: {xs: 2, md: 3},
         mb: 2, 
-        backgroundColor: '#eef2ff', // indigo-50
-        borderLeft: '4px solid', 
-        borderColor: '#6366f1', // indigo-500
-        borderRadius: '0.75rem',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.07)', 
+        background: 'linear-gradient(135deg, #f8faff 0%, #ffffff 100%)',
+        border: '1px solid',
+        borderColor: 'rgba(99, 102, 241, 0.1)',
+        borderRadius: 3,
+        boxShadow: 'var(--shadow-card)',
+        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          boxShadow: 'var(--shadow-card-hover)',
+          transform: 'translateY(-1px)',
+        }
       }}
     >
-      <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#3730a3', mb: 1.5, fontSize: {xs: '1.25rem', md: '1.5rem'} }}>
-        Next Connection: {nextConnection.connection_type || 'Catch-up'} {/* Use connection_type or a default */}
+      <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: '#3730a3', mb: 1.5, fontSize: '1.1rem' }}>
+        {nextConnection.connection_type || 'Catch-up'} {/* Use connection_type or a default */}
       </Typography>
       <Typography variant="body1" sx={{ color: '#4338ca', fontWeight: 500, mb: 0.5 }}>
         <strong>When:</strong> {formatDate(nextConnection.scheduled_date)}

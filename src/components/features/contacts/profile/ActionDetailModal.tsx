@@ -242,34 +242,46 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
               </Card>
             )}
 
-            {/* Source Artifact */}
+            {/* Source Artifact - Enhanced to show POG/Ask context */}
             {action.sourceArtifact && (
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <SourceIcon sx={{ color: theme.palette.artifacts.communication.main }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      Source Context
+                      Linked {action.sourceArtifact.type.toUpperCase()} Context
                     </Typography>
                   </Box>
                   <Box sx={{ 
                     p: 2, 
                     borderRadius: 2, 
-                    backgroundColor: theme.palette.artifacts.communication.light,
-                    border: `1px solid ${theme.palette.artifacts.communication.main}30`,
+                    backgroundColor: (theme.palette.artifacts as any)[action.sourceArtifact.type]?.light || theme.palette.artifacts.communication.light,
+                    border: `1px solid ${(theme.palette.artifacts as any)[action.sourceArtifact.type]?.main || theme.palette.artifacts.communication.main}30`,
                     cursor: onViewArtifact ? 'pointer' : 'default',
                     transition: 'all 200ms ease',
                     '&:hover': onViewArtifact ? {
-                      backgroundColor: theme.palette.artifacts.communication.main + '10',
+                      backgroundColor: ((theme.palette.artifacts as any)[action.sourceArtifact.type]?.main || theme.palette.artifacts.communication.main) + '10',
                       transform: 'translateY(-1px)',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                     } : {}
                   }}
                   onClick={() => onViewArtifact?.(action.sourceArtifact!.id)}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                      {action.sourceArtifact.type}: {action.sourceArtifact.title}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Chip 
+                        label={action.sourceArtifact.type.toUpperCase()}
+                        size="small"
+                        sx={{
+                          backgroundColor: (theme.palette.artifacts as any)[action.sourceArtifact.type]?.main || theme.palette.primary.main,
+                          color: 'white',
+                          fontWeight: 600,
+                          fontSize: '0.65rem'
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {action.sourceArtifact.title}
+                      </Typography>
+                    </Box>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                       {formatDate(action.sourceArtifact.date)}
                     </Typography>
@@ -278,6 +290,9 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({
                         "{action.sourceArtifact.excerpt}"
                       </Typography>
                     )}
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: theme.palette.primary.main, fontWeight: 500 }}>
+                      Click to view full {action.sourceArtifact.type} details →
+                    </Typography>
                   </Box>
                 </CardContent>
               </Card>

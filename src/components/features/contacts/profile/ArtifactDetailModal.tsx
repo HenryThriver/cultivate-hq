@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -144,6 +144,7 @@ interface ArtifactDetailModalProps {
   isDeleting?: boolean;
   isReprocessing?: boolean;
   onActionRefresh?: () => void;
+  artifacts?: any[]; // Add artifacts prop to pass to CreateActionModal
 }
 
 // Configuration for different artifact types
@@ -220,7 +221,27 @@ const getArtifactConfig = (artifactType: string, theme: any) => {
       deleteConfirmText: 'This will permanently delete this Meeting',
       activeChipText: 'Active Meeting',
       sidebarTitle: 'Meeting Details',
-      getDescription: (artifact: any) => artifact.metadata?.summary || artifact.metadata?.title || artifact.content || 'No summary provided'
+      getDescription: (artifact: any) => {
+        // For meetings, extract just the summary text from the processed content
+        try {
+          let content = artifact.content;
+          // Parse JSON string if needed
+          if (typeof content === 'string') {
+            content = JSON.parse(content);
+          }
+          if (content && typeof content === 'object') {
+            if (content.summary) {
+              return content.summary;
+            }
+            if (content.meeting_notes) {
+              return content.meeting_notes;
+            }
+          }
+        } catch (e) {
+          // If parsing fails, fall through to metadata
+        }
+        return artifact.metadata?.summary || artifact.metadata?.title || 'No summary available';
+      }
     },
     email: {
       icon: EmailIcon,
@@ -308,8 +329,25 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
   isDeleting = false,
   isReprocessing = false,
   onActionRefresh,
+  artifacts = [], // Extract artifacts prop
 }) => {
   const theme = useTheme();
+  
+  // Parse meeting content if it's a string
+  const parsedContent = useMemo(() => {
+    if (artifact.type === 'meeting') {
+      try {
+        let content = artifact.content;
+        if (typeof content === 'string') {
+          content = JSON.parse(content);
+        }
+        return content && typeof content === 'object' ? content : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return artifact.content;
+  }, [artifact]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCreateActionModalOpen, setIsCreateActionModalOpen] = useState(false);
   const [selectedActionForEdit, setSelectedActionForEdit] = useState<DbActionItem | null>(null);
@@ -521,6 +559,104 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
                     />
                   </Box>
                 )}
+
+                {/* Meeting-specific rich content */}
+                {artifact.type === 'meeting' && parsedContent && (
+                  <Box sx={{ mt: 3 }}>
+                    {/* Key Topics */}
+                    {parsedContent.key_topics && Array.isArray(parsedContent.key_topics) && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Key Topics
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {parsedContent.key_topics.map((topic: string, index: number) => (
+                            <Chip 
+                              key={index}
+                              label={topic}
+                              size="small"
+                              variant="outlined"
+                              sx={{ fontSize: '0.75rem' }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {/* Action Items */}
+                    {parsedContent.action_items && Array.isArray(parsedContent.action_items) && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Action Items
+                        </Typography>
+                        <Box sx={{ pl: 2 }}>
+                          {parsedContent.action_items.map((item: any, index: number) => (
+                            <Box key={index} sx={{ mb: 1, display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                              <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600, minWidth: 'fit-content' }}>
+                                •
+                              </Typography>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  {item.task}
+                                </Typography>
+                                {item.owner && (
+                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                    Owner: {item.owner} {item.due_date && `• Due: ${new Date(item.due_date).toLocaleDateString()}`}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {/* Insights */}
+                    {parsedContent.insights && typeof parsedContent.insights === 'object' && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Key Insights
+                        </Typography>
+                        {parsedContent.insights.relationship_notes && (
+                          <Typography variant="body2" sx={{ mb: 1, fontStyle: 'italic' }}>
+                            {parsedContent.insights.relationship_notes}
+                          </Typography>
+                        )}
+                        {parsedContent.insights.opportunities && Array.isArray(parsedContent.insights.opportunities) && (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                              Opportunities:
+                            </Typography>
+                            {parsedContent.insights.opportunities.map((opp: string, index: number) => (
+                              <Typography key={index} variant="body2" sx={{ pl: 2, color: 'success.main' }}>
+                                • {opp}
+                              </Typography>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+
+                    {/* Meeting Notes */}
+                    {parsedContent.meeting_notes && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Notes
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          backgroundColor: 'grey.50', 
+                          p: 2, 
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: 'grey.200',
+                          lineHeight: 1.6
+                        }}>
+                          {parsedContent.meeting_notes}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
               </CardContent>
             </Card>
 
@@ -723,14 +859,16 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
                       <Button
                         fullWidth
                         size="small"
-                        variant="outlined"
-                        color="error"
+                        variant="text"
                         onClick={() => setShowDeleteConfirm(true)}
                         sx={{ 
                           textTransform: 'none',
-                          opacity: 0.7,
+                          color: '#6b7280',
+                          fontSize: '0.875rem',
+                          fontWeight: 400,
                           '&:hover': {
-                            opacity: 1
+                            backgroundColor: 'transparent',
+                            color: '#ef4444',
                           }
                         }}
                       >
@@ -793,6 +931,7 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
           }}
           existingAction={selectedActionForEdit}
           mode={selectedActionForEdit ? 'edit' : 'create'}
+          artifacts={artifacts} // Pass artifacts to CreateActionModal
           onActionCreated={() => {
             setIsCreateActionModalOpen(false);
             onActionRefresh?.();

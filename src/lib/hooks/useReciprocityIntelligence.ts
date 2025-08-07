@@ -43,14 +43,36 @@ export const useReciprocityIntelligence = (contactId: string) => {
         throw new Error(`Failed to fetch artifacts: ${artifactsError.message}`);
       }
 
-      // Convert artifacts to reciprocity items
+      // Convert artifacts to reciprocity items based on directionality
       const items: ReciprocityItem[] = (artifacts || []).map(artifact => {
-        const isGiven = artifact.type === 'pog';
         const metadata = artifact.metadata as any;
+        
+        // Determine if this represents value given or received based on contact direction
+        // For POGs: user giving = recipient_contact_id is the contact (user → contact)
+        //           user receiving = initiator_contact_id is the contact (contact → user)
+        // For Asks: user asking = recipient_contact_id is the contact (user asked contact for help = user received)
+        //           user being asked = initiator_contact_id is the contact (contact asked user = user gave help)
+        let type: 'given' | 'received' = 'given';
+        
+        if (artifact.type === 'pog') {
+          // POG: Check who is giving to whom
+          if (artifact.recipient_contact_id === contactId) {
+            type = 'given'; // User gave POG to contact
+          } else if (artifact.initiator_contact_id === contactId) {
+            type = 'received'; // User received POG from contact
+          }
+        } else if (artifact.type === 'ask') {
+          // Ask: Check who is asking whom
+          if (artifact.recipient_contact_id === contactId) {
+            type = 'received'; // User asked contact for help (user received help)
+          } else if (artifact.initiator_contact_id === contactId) {
+            type = 'given'; // Contact asked user for help (user gave help)
+          }
+        }
         
         return {
           id: artifact.id,
-          type: isGiven ? 'given' : 'received',
+          type,
           description: metadata?.description || artifact.content || 'Untitled action',
           value_estimate: metadata?.value_estimate || 5,
           timestamp: artifact.created_at,

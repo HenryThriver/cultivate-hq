@@ -8,7 +8,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Dashboard } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { default as nextDynamic } from 'next/dynamic';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 // Import actual components
 import { ContactHeader } from '@/components/features/contacts/ContactHeader';
@@ -234,6 +234,52 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     getProcessingStatus
   } = useVoiceMemos({ contact_id: contactId });
 
+  // Fetch goals for this contact
+  const { data: contactGoals = [] } = useQuery({
+    queryKey: ['contact-goals', contactId, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Step 1: Fetch goal contacts without joins
+      const { data: goalContactsRaw, error: goalContactsError } = await supabase
+        .from('goal_contacts')
+        .select('goal_id, relationship_type, relevance_score')
+        .eq('contact_id', contactId)
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (goalContactsError) {
+        console.error('Error fetching contact goals:', goalContactsError);
+        return [];
+      }
+
+      if (!goalContactsRaw || goalContactsRaw.length === 0) return [];
+
+      // Step 2: Fetch goals details separately
+      const goalIds = goalContactsRaw.map(gc => gc.goal_id);
+      const { data: goalsData, error: goalsError } = await supabase
+        .from('goals')
+        .select('id, title, status, target_contact_count, progress_percentage')
+        .in('id', goalIds);
+
+      if (goalsError) {
+        console.error('Error fetching goals details:', goalsError);
+        return [];
+      }
+
+      // Step 3: Client-side join and transform
+      return (goalContactsRaw || []).map((gc: any) => {
+        const goal = (goalsData || []).find(g => g.id === gc.goal_id);
+        return {
+          id: goal?.id || gc.goal_id,
+          title: goal?.title || 'Unknown Goal',
+          isActive: goal?.status === 'active'
+        };
+      });
+    },
+    enabled: !!contactId && !!user?.id,
+  });
+
   // Instantiate useArtifactModalData hook
   const {
     artifactDetails,
@@ -394,23 +440,21 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         }
         
         if (isActive) {
-          // Use database directionality fields instead of metadata
-          // If current user is the initiator, they "gave" something
-          if (artifact.initiator_user_id === user.id) {
-            given++;
-          }
-          // If current user is the recipient, they "received" something
-          else if (artifact.recipient_user_id === user.id) {
-            received++;
-          }
-          // Alternative: check contact-based directionality
-          // If contact is the initiator, user "received" from them
-          else if (artifact.initiator_contact_id === contactId) {
-            received++;
-          }
-          // If contact is the recipient, user "gave" to them
-          else if (artifact.recipient_contact_id === contactId) {
-            given++;
+          // Use contact-based directionality to determine given/received
+          if (artifact.type === 'pog') {
+            // POG: Check who is giving to whom
+            if (artifact.recipient_contact_id === contactId) {
+              given++; // User gave POG to contact
+            } else if (artifact.initiator_contact_id === contactId) {
+              received++; // User received POG from contact
+            }
+          } else if (artifact.type === 'ask') {
+            // Ask: Check who is asking whom
+            if (artifact.recipient_contact_id === contactId) {
+              received++; // User asked contact for help (user received help)
+            } else if (artifact.initiator_contact_id === contactId) {
+              given++; // Contact asked user for help (user gave help)
+            }
           }
         }
       }
@@ -905,8 +949,11 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           contactId={contactId}
           suggestionPriority={suggestionPriority}
           // New enhanced props
-          goals={[]} // TODO: Fetch from goals hook
-          onGoalClick={(goalId) => {}}
+          goals={contactGoals} 
+          onGoalClick={(goalId) => {
+            // Navigate to goals page with specific goal
+            router.push(`/dashboard/goals?goal=${goalId}`);
+          }}
           onRecordVoiceMemo={() => {
             // This will be handled by the embedded recorder
           }}
@@ -1391,6 +1438,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           onDelete={handleDeleteArtifact}
           onReprocess={handleReprocessArtifact}
           onAddAction={handleCreateActionForArtifact}
+          artifacts={contact?.artifacts || []} // Pass artifacts for POG/Ask dropdown
           onActionRefresh={() => {
             // Invalidate and refetch actions
             queryClient.invalidateQueries({ queryKey: ['actions', 'by-artifact', selectedArtifactForDetailModal?.id] });

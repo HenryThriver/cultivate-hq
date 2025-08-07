@@ -264,7 +264,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 3 }}>
+        <DialogContent sx={{ pt: 6, pb: 3, px: 3 }}>
           <Stack spacing={3}>
             {/* Title */}
             <TextField

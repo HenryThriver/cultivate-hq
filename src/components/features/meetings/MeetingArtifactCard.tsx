@@ -119,7 +119,17 @@ export const MeetingArtifactCard: React.FC<MeetingArtifactCardProps> = ({
       };
     }
     
-    // Fall back to metadata (Google Calendar sync)
+    // Check metadata for start_time and end_time
+    const metadataStartTime = getMetadataString(metadata, 'start_time');
+    const metadataEndTime = getMetadataString(metadata, 'end_time');
+    if (metadataStartTime && metadataEndTime) {
+      return {
+        startTime: metadataStartTime,
+        endTime: metadataEndTime
+      };
+    }
+    
+    // Fall back to metadata meeting_date
     const meetingDate = getMetadataString(metadata, 'meeting_date');
     if (meetingDate) {
       const durationMinutes = (getMetadataValue(metadata, 'duration_minutes') as number) || 60; // Default to 1 hour
@@ -142,14 +152,100 @@ export const MeetingArtifactCard: React.FC<MeetingArtifactCardProps> = ({
   const { startTime, endTime } = getMeetingTimes();
 
   const getProcessingStatusIndicator = () => {
-    if (ai_parsing_status === 'pending' || ai_parsing_status === 'processing') {
+    // Show ready for content state for pending or null status
+    if (!ai_parsing_status || ai_parsing_status === 'pending') {
+      return (
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          gap: 1, 
+          my: 1,
+          p: 1.5,
+          borderRadius: 2,
+          backgroundColor: 'rgba(99, 102, 241, 0.05)',
+          border: '1px solid rgba(99, 102, 241, 0.1)'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LightbulbOutlinedIcon fontSize="small" sx={{ color: '#6366f1' }} />
+            <Box>
+              <Typography variant="caption" sx={{ color: '#4338ca', fontWeight: 500 }}>
+                Ready for content
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.7rem' }}>
+                Add notes or transcript to unlock AI insights
+              </Typography>
+            </Box>
+          </Box>
+          {/* Move buttons inside the tile */}
+          {onAddContent && (
+            <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+              <Button 
+                size="small" 
+                startIcon={<NoteAddIcon fontSize="small" />} 
+                variant="outlined" 
+                sx={{ 
+                  textTransform: 'none', 
+                  fontSize: '0.75rem',
+                  borderColor: '#6366f1',
+                  color: '#6366f1',
+                  '&:hover': {
+                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    borderColor: '#6366f1'
+                  }
+                }} 
+                onClick={(e) => {e.stopPropagation(); onAddContent(artifact, 'notes')}}
+              >
+                Notes
+              </Button>
+              <Button 
+                size="small" 
+                startIcon={<RecordVoiceOverIcon fontSize="small" />} 
+                variant="outlined" 
+                sx={{ 
+                  textTransform: 'none', 
+                  fontSize: '0.75rem',
+                  borderColor: '#6366f1',
+                  color: '#6366f1',
+                  '&:hover': {
+                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    borderColor: '#6366f1'
+                  }
+                }} 
+                onClick={(e) => {e.stopPropagation(); onAddContent(artifact, 'transcript')}}
+              >
+                Transcript
+              </Button>
+              <Button 
+                size="small" 
+                startIcon={<CloudUploadIcon fontSize="small" />} 
+                variant="outlined" 
+                sx={{ 
+                  textTransform: 'none', 
+                  fontSize: '0.75rem',
+                  borderColor: '#6366f1',
+                  color: '#6366f1',
+                  '&:hover': {
+                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    borderColor: '#6366f1'
+                  }
+                }} 
+                onClick={(e) => {e.stopPropagation(); onAddContent(artifact, 'recording')}}
+              >
+                Recording
+              </Button>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    if (ai_parsing_status === 'processing') {
       return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
           <HourglassEmptyIcon fontSize="small" color="action" />
           <Typography variant="caption" color="text.secondary">
-            AI processing: {ai_parsing_status}...
+            AI processing in progress...
           </Typography>
-          {ai_parsing_status === 'processing' && <LinearProgress sx={{ width: '50px' }} />}
+          <LinearProgress sx={{ width: '50px' }} />
         </Box>
       );
     }
@@ -217,11 +313,6 @@ export const MeetingArtifactCard: React.FC<MeetingArtifactCardProps> = ({
               {meetingContent.title || getMetadataString(metadata, 'title') || 'Meeting'}
             </Typography>
           </Box>
-          <Tooltip title="More options">
-            <IconButton size="small" onClick={(e) => { e.stopPropagation(); /* Handle menu */}}>
-              <MoreVertIcon />
-            </IconButton>
-          </Tooltip>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', mb: 1 }}>
@@ -334,24 +425,6 @@ export const MeetingArtifactCard: React.FC<MeetingArtifactCardProps> = ({
           </>
         )}
         
-        <Divider sx={{ my: 1.5 }} />
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1.5 }}>
-          <Tooltip title="Add Notes">
-            <Button size="small" startIcon={<NoteAddIcon />} variant="contained" sx={{ textTransform: 'none' }} onClick={(e) => {e.stopPropagation(); onAddContent?.(artifact, 'notes')}}>
-              Notes
-            </Button>
-          </Tooltip>
-          <Tooltip title="Add Transcript">
-            <Button size="small" startIcon={<RecordVoiceOverIcon />} variant="contained" sx={{ textTransform: 'none' }} onClick={(e) => {e.stopPropagation(); onAddContent?.(artifact, 'transcript')}}>
-              Transcript
-            </Button>
-          </Tooltip>
-           <Tooltip title="Upload Recording">
-            <Button size="small" startIcon={<CloudUploadIcon />} variant="contained" sx={{ textTransform: 'none' }} onClick={(e) => {e.stopPropagation(); onAddContent?.(artifact, 'recording')}}>
-              Recording
-            </Button>
-          </Tooltip>
-        </Box>
       </CardContent>
 
       <CardActions sx={{ px: 2, pb: 2 }}>
@@ -363,7 +436,6 @@ export const MeetingArtifactCard: React.FC<MeetingArtifactCardProps> = ({
                 onClick={(e) => { e.stopPropagation(); onOpenModal(artifact); }}
                 variant="text"
                 sx={{ textTransform: 'none' }}
-                endIcon={<ExpandMoreIcon />}
               >
                 View Full Details
               </Button>
@@ -371,13 +443,6 @@ export const MeetingArtifactCard: React.FC<MeetingArtifactCardProps> = ({
           </Box>
           
           <Box display="flex" gap={1}>
-            <IconButton
-              size="small"
-              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              aria-label={expanded ? 'Show less' : 'Show more'}
-            >
-              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
           </Box>
         </Box>
       </CardActions>

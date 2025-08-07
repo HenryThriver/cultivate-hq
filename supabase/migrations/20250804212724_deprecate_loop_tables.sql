@@ -36,21 +36,30 @@ DROP INDEX IF EXISTS idx_loop_analytics_contact_id;
 DROP INDEX IF EXISTS idx_loop_suggestions_contact_id;
 DROP INDEX IF EXISTS idx_loop_templates_user_id;
 
--- Clean up any RLS policies
-DROP POLICY IF EXISTS "Users can view their own loop templates" ON loop_templates;
-DROP POLICY IF EXISTS "Users can insert their own loop templates" ON loop_templates;
-DROP POLICY IF EXISTS "Users can update their own loop templates" ON loop_templates;
-DROP POLICY IF EXISTS "Users can delete their own loop templates" ON loop_templates;
+-- Clean up any RLS policies - check if table exists first
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'loop_templates') THEN
+        DROP POLICY IF EXISTS "Users can view their own loop templates" ON loop_templates;
+        DROP POLICY IF EXISTS "Users can insert their own loop templates" ON loop_templates;
+        DROP POLICY IF EXISTS "Users can update their own loop templates" ON loop_templates;
+        DROP POLICY IF EXISTS "Users can delete their own loop templates" ON loop_templates;
+    END IF;
 
-DROP POLICY IF EXISTS "Users can view their own loop suggestions" ON loop_suggestions;
-DROP POLICY IF EXISTS "Users can insert their own loop suggestions" ON loop_suggestions;
-DROP POLICY IF EXISTS "Users can update their own loop suggestions" ON loop_suggestions;
-DROP POLICY IF EXISTS "Users can delete their own loop suggestions" ON loop_suggestions;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'loop_suggestions') THEN
+        DROP POLICY IF EXISTS "Users can view their own loop suggestions" ON loop_suggestions;
+        DROP POLICY IF EXISTS "Users can insert their own loop suggestions" ON loop_suggestions;
+        DROP POLICY IF EXISTS "Users can update their own loop suggestions" ON loop_suggestions;
+        DROP POLICY IF EXISTS "Users can delete their own loop suggestions" ON loop_suggestions;
+    END IF;
 
-DROP POLICY IF EXISTS "Users can view their own loop analytics" ON loop_analytics;
-DROP POLICY IF EXISTS "Users can insert their own loop analytics" ON loop_analytics;
-DROP POLICY IF EXISTS "Users can update their own loop analytics" ON loop_analytics;
-DROP POLICY IF EXISTS "Users can delete their own loop analytics" ON loop_analytics;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'loop_analytics') THEN
+        DROP POLICY IF EXISTS "Users can view their own loop analytics" ON loop_analytics;
+        DROP POLICY IF EXISTS "Users can insert their own loop analytics" ON loop_analytics;
+        DROP POLICY IF EXISTS "Users can update their own loop analytics" ON loop_analytics;
+        DROP POLICY IF EXISTS "Users can delete their own loop analytics" ON loop_analytics;
+    END IF;
+END $$;
 
 -- Add a comment to the artifacts table noting the deprecation
 COMMENT ON TABLE artifacts IS 'Stores all types of relationship artifacts including voice memos, meetings, emails, POGs, Asks, etc. Loop functionality has been deprecated and incorporated into POG/Ask artifacts with actions.';

@@ -78,13 +78,47 @@ export const MeetingDetailModal: React.FC<MeetingDetailModalProps> = ({
     content: false,
   });
 
-  const meetingContent = meeting.content as MeetingArtifactContent;
-  const insights = meetingContent.insights;
-  const startTime = meetingContent.startTime ? new Date(meetingContent.startTime) : 
-    meetingContent.meeting_date ? new Date(meetingContent.meeting_date) : new Date();
-  const endTime = meetingContent.endTime ? new Date(meetingContent.endTime) : 
-    meetingContent.meeting_date && meetingContent.duration_minutes ? 
-      new Date(new Date(meetingContent.meeting_date).getTime() + meetingContent.duration_minutes * 60000) : 
+  const meetingContent = meeting.content as any; // Use any to access actual database structure
+  
+  // Map the actual database structure to what the modal expects
+  const insights = {
+    summary: meetingContent?.summary,
+    actionItems: meetingContent?.action_items?.map((item: any) => ({
+      id: item.id || `action-${Math.random()}`,
+      description: item.task,
+      assignee: item.owner,
+      dueDate: item.due_date,
+      priority: item.priority || 'medium',
+      completed: item.completed || false,
+    })) || [],
+    keyTopics: meetingContent?.key_topics || [],
+    followUpSuggestions: meetingContent?.insights?.follow_ups?.map((followUp: string, index: number) => ({
+      id: `followup-${index}`,
+      type: 'pog' as const,
+      description: followUp,
+      priority: 1,
+      reasoning: 'Suggested based on meeting conversation',
+    })) || [],
+    nextSteps: meetingContent?.insights?.next_steps || [],
+    sentiment: meetingContent?.insights?.sentiment,
+  };
+  
+  // Map additional content fields
+  const mappedContent = {
+    ...meetingContent,
+    title: meetingContent?.title || meetingContent?.metadata?.title || 'Meeting',
+    location: meetingContent?.metadata?.location,
+    meeting_date: meetingContent?.metadata?.start_time,
+    duration_minutes: meetingContent?.metadata?.duration_minutes,
+    attendees: meetingContent?.attendees,
+    notes: meetingContent?.meeting_notes,
+    insights,
+  } as MeetingArtifactContent;
+  const startTime = mappedContent.startTime ? new Date(mappedContent.startTime) : 
+    mappedContent.meeting_date ? new Date(mappedContent.meeting_date) : new Date();
+  const endTime = mappedContent.endTime ? new Date(mappedContent.endTime) : 
+    mappedContent.meeting_date && mappedContent.duration_minutes ? 
+      new Date(new Date(mappedContent.meeting_date).getTime() + mappedContent.duration_minutes * 60000) : 
       new Date();
   
   const duration = intervalToDuration({ start: startTime, end: endTime });
@@ -157,7 +191,7 @@ export const MeetingDetailModal: React.FC<MeetingDetailModalProps> = ({
         <Box display="flex" justifyContent="space-between" alignItems="flex-start">
           <Box sx={{ flexGrow: 1, mr: 2 }}>
             <Typography variant="h5" gutterBottom>
-              {meetingContent.title || 'Meeting'}
+              {mappedContent.title || 'Meeting'}
             </Typography>
             <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
               <Chip 

@@ -8,53 +8,35 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { PersonalContext as PersonalContextType } from '@/types';
 import type { Json } from '@/lib/supabase/database.types';
 
-// RQ Bubble Colors (from your HTML example)
-const rqBubbleColors: { [key: number]: { backgroundColor: string; color: string; } } = {
-  0: { backgroundColor: '#9ca3af', color: 'white' },      // gray-400
-  1: { backgroundColor: '#fecaca', color: '#7f1d1d' },      // red-200, red-800 text
-  2: { backgroundColor: '#fca5a5', color: '#7f1d1d' },      // red-300, red-800 text
-  3: { backgroundColor: '#f87171', color: 'white' },      // red-400
-  4: { backgroundColor: '#fb923c', color: 'white' },      // orange-400
-  5: { backgroundColor: '#f59e0b', color: 'white' },      // amber-500
-  6: { backgroundColor: '#d97706', color: 'white' },      // amber-600
-};
 
-interface RelationshipScorePillProps {
+interface RelationshipScoreEditorProps {
   score: number;
-  isEditable: boolean;
-  onUpdate?: (newScore: number) => void;
-  rqStyle: { backgroundColor: string; color: string };
+  onUpdate: (newScore: number) => Promise<void>;
 }
 
-const RelationshipScorePill: React.FC<RelationshipScorePillProps> = ({
+const RelationshipScoreEditor: React.FC<RelationshipScoreEditorProps> = ({
   score,
-  isEditable,
   onUpdate,
-  rqStyle,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempScore, setTempScore] = useState(score);
 
-  // Sync tempScore with score prop when it changes
   useEffect(() => {
     setTempScore(score);
   }, [score]);
 
-  const handleClick = () => {
-    if (isEditable) {
-      setIsEditing(true);
-      setTempScore(score);
-    }
+  const handleEdit = () => {
+    setIsEditing(true);
+    setTempScore(score);
   };
 
   const handleSave = async () => {
-    if (onUpdate && tempScore !== score) {
+    if (tempScore >= 0 && tempScore <= 6) {
       try {
         await onUpdate(tempScore);
       } catch (error) {
         console.error('Failed to update score:', error);
-        // Reset to original value on error
-        setTempScore(score);
+        setTempScore(score); // Revert on error
       }
     }
     setIsEditing(false);
@@ -64,11 +46,6 @@ const RelationshipScorePill: React.FC<RelationshipScorePillProps> = ({
     if (isEditing) {
       handleSave();
     }
-  };
-
-  const handleSliderChange = (_: Event, newValue: number | number[]) => {
-    const newScore = Array.isArray(newValue) ? newValue[0] : newValue;
-    setTempScore(newScore);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -83,78 +60,68 @@ const RelationshipScorePill: React.FC<RelationshipScorePillProps> = ({
   if (isEditing) {
     return (
       <ClickAwayListener onClickAway={handleClickAway}>
-        <Box
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-          sx={{
-            backgroundColor: 'white',
-            border: '2px solid #3b82f6',
-            borderRadius: '9999px',
-            padding: '0.75rem 1rem',
-            minWidth: '120px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-            outline: 'none',
-          }}
-        >
-          <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', minWidth: '20px' }}>
-            {tempScore}
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+          <Typography sx={{ color: '#4b5563', fontSize: '0.875rem' }}>
+            Relationship Quality Score:{' '}
           </Typography>
-          <Slider
-            value={tempScore}
-            onChange={handleSliderChange}
-            min={0}
-            max={6}
-            step={1}
-            size="small"
-            sx={{
-              flexGrow: 1,
-              '& .MuiSlider-thumb': {
-                width: 16,
-                height: 16,
-              },
-              '& .MuiSlider-track': {
-                backgroundColor: rqStyle.backgroundColor,
-              },
-              '& .MuiSlider-rail': {
-                backgroundColor: '#e5e7eb',
-              },
-            }}
-          />
-          <Typography variant="body2" sx={{ fontSize: '0.7rem', color: '#9ca3af', minWidth: '10px' }}>
-            6
-          </Typography>
+          <Box sx={{ mx: 0.5, minWidth: '40px', display: 'inline-block' }}>
+            <TextField
+              value={tempScore}
+              onChange={(e) => setTempScore(parseInt(e.target.value) || 0)}
+              onKeyDown={handleKeyDown}
+              type="number"
+              size="small"
+              autoFocus
+              inputProps={{ min: 0, max: 6 }}
+              sx={{
+                '& .MuiInputBase-root': {
+                  fontSize: '0.875rem',
+                  fontWeight: 'medium',
+                  color: '#4b5563',
+                  backgroundColor: 'white',
+                  border: '1px solid #9ca3af',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  width: '50px',
+                },
+                '& .MuiInputBase-input': {
+                  padding: '2px 0',
+                  textAlign: 'center',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  border: 'none',
+                },
+              }}
+            />
+          </Box>
         </Box>
       </ClickAwayListener>
     );
   }
 
   return (
-    <Chip
-      label={score}
-      onClick={handleClick}
-      sx={{
-        backgroundColor: rqStyle.backgroundColor,
-        color: rqStyle.color,
-        fontSize: '0.8rem',
-        fontWeight: 600,
-        minWidth: '32px',
-        borderRadius: '9999px',
-        height: 'auto',
-        padding: '0.3rem 0.6rem',
-        cursor: isEditable ? 'pointer' : 'default',
-        transition: 'all 0.2s ease-in-out',
-        '&:hover': isEditable ? {
-          transform: 'scale(1.05)',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        } : {},
-        '&:active': isEditable ? {
-          transform: 'scale(0.98)',
-        } : {},
-      }}
-    />
+    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+      <Typography sx={{ color: '#4b5563', fontSize: '0.875rem' }}>
+        Relationship Quality Score:{' '}
+        <Box
+          component="span"
+          onClick={handleEdit}
+          sx={{
+            cursor: 'pointer',
+            fontWeight: 'medium',
+            textDecoration: 'underline',
+            textDecorationStyle: 'dotted',
+            '&:hover': {
+              backgroundColor: '#f3f4f6',
+              padding: '1px 3px',
+              borderRadius: '3px',
+            },
+          }}
+        >
+          {score}
+        </Box>
+      </Typography>
+    </Box>
   );
 };
 
@@ -752,11 +719,7 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
   onUpdateRelationshipScore,
   onUpdateCadence,
 }) => {
-
-  const rqStyle = rqBubbleColors[relationshipScore ?? 0] || rqBubbleColors[0];
-
   const userGoal = personalContext?.relationship_goal;
-
 
   return (
     <Paper 
@@ -784,7 +747,7 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
               height: { xs: 80, md: 96 }, 
               mr: 2,
               border: '2px solid',
-              borderColor: rqStyle.backgroundColor // Use RQ color for border for effect
+              borderColor: '#e5e7eb' // Subtle gray border
             }}
           >
             {name ? name.charAt(0).toUpperCase() : 'C'}
@@ -795,15 +758,6 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 {name || 'Unnamed Contact'}
               </Typography>
               
-              {relationshipScore !== undefined && (
-                <RelationshipScorePill
-                  score={relationshipScore}
-                  isEditable={!!onUpdateRelationshipScore}
-                  onUpdate={onUpdateRelationshipScore}
-                  rqStyle={rqStyle}
-                />
-              )}
-              
               {contactId && (
                 <SuggestionBellBadge
                   contactId={contactId}
@@ -812,9 +766,17 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
               )}
             </Box>
             
+            {/* Relationship Quality Score */}
+            {relationshipScore !== undefined && onUpdateRelationshipScore && (
+              <RelationshipScoreEditor
+                score={relationshipScore}
+                onUpdate={onUpdateRelationshipScore}
+              />
+            )}
+            
             {/* Goal badges */}
             {goals.length > 0 && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1, mt: 1 }}>
                 {goals.map((goal) => (
                   <Chip
                     key={goal.id}

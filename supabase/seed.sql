@@ -462,14 +462,6 @@ VALUES
   (
     '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
     'e1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- AI/ML goal
-    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
-    0.9,
-    'AI/ML expertise - strategic partnership opportunities',
-    NOW() - INTERVAL '1 week'
-  ),
-  (
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- AI/ML goal
     'a2222222-89ab-cdef-0123-456789abcdef'::uuid,  -- Marcus Rodriguez
     0.95,
     'ML Infrastructure expert - technical leadership',
@@ -965,34 +957,8 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
--- Create loop analytics for reciprocity tracking
-INSERT INTO public.loop_analytics (id, user_id, contact_id, loop_artifact_id, loop_type, status_transitions, completion_time_days, reciprocity_impact, success_score, created_at)
-VALUES
-  (
-    'aa111111-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
-    'b3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    'INTRODUCTION',
-    '{"QUEUED": "2024-07-20", "ACTIVE": "2024-07-21", "COMPLETED": "2024-07-27"}'::jsonb,
-    6,
-    6.0,
-    9.0,
-    NOW() - INTERVAL '1 day'
-  ),
-  (
-    'aa222222-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    'b2222222-89ab-cdef-0123-456789abcdef'::uuid,
-    'ASK',
-    '{"QUEUED": "2024-07-01", "ACTIVE": "2024-07-02", "COMPLETED": "2024-07-18"}'::jsonb,
-    14,
-    5.2,
-    6.0,
-    NOW() - INTERVAL '10 days'
-  )
-ON CONFLICT (id) DO NOTHING;
+-- Loop analytics table has been deprecated - functionality moved to artifacts with actions
+-- Reciprocity tracking is now handled through artifact directionality fields
 
 -- ============================================================================
 -- EXPANDED CONTACT NETWORK (21 NEW CONTACTS)
@@ -1260,6 +1226,17 @@ VALUES
     0.95,
     'VP Product at TechFlow - perfect for strategic AI/ML product partnerships',
     NOW() - INTERVAL '1 week'
+  ),
+  -- Also connect Sarah to the AI/ML Network goal
+  (
+    '11111112-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Expand Strategic Network in AI/ML goal
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    'industry_expert',
+    0.90,
+    'Key influencer in AI/ML product space with extensive network',
+    NOW() - INTERVAL '2 weeks'
   )
 ON CONFLICT (id) DO NOTHING;
 
@@ -1487,6 +1464,55 @@ VALUES
     '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving ask)
     'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen asking)
     NULL   -- recipient_contact_id (user has no contact record)
+  ),
+
+  -- RECIPROCAL POGs FROM SARAH CHEN (she initiated these)
+  -- POG: Sarah introduced user to her VC connections
+  (
+    'a0000021-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Sarah introduced me to two VCs from her network who are interested in AI infrastructure',
+    NOW() - INTERVAL '10 days',
+    'completed',
+    NOW() - INTERVAL '10 days',
+    '{
+      "description": "Introduction to VC partners interested in AI",
+      "status": "delivered",
+      "type_of_pog": "investor_introduction",
+      "active_exchange": false,
+      "initiator": "contact",
+      "value_delivered": "VC connections for fundraising"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (tracking in system)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen giving)
+    NULL   -- recipient_contact_id (user has no contact record as recipient)
+  ),
+  
+  -- POG: Sarah shared her product roadmap template
+  (
+    'a0000022-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Sarah shared her comprehensive product roadmap template that helped her scale TechFlow',
+    NOW() - INTERVAL '2 weeks',
+    'completed',
+    NOW() - INTERVAL '2 weeks',
+    '{
+      "description": "Shared her proven product roadmap template",
+      "status": "delivered",
+      "type_of_pog": "resource_sharing",
+      "active_exchange": false,
+      "initiator": "contact",
+      "value_delivered": "Strategic planning template"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (tracking in system)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen giving)
+    NULL   -- recipient_contact_id (user has no contact record as recipient)
   )
 ON CONFLICT (id) DO NOTHING;
 
@@ -1503,14 +1529,33 @@ VALUES
     'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
     '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
     'meeting',
-    'Coffee chat about AI product strategy and market validation approaches',
+    '{
+      "summary": "Productive coffee chat about AI product strategy and market validation",
+      "key_topics": ["AI product development", "Market validation techniques", "User research methodologies"],
+      "action_items": [
+        {"task": "Share market research template with Sarah", "owner": "user", "due_date": "2025-08-10"},
+        {"task": "Review AI ethics framework for product", "owner": "Sarah", "due_date": "2025-08-12"}
+      ],
+      "insights": {
+        "relationship_notes": "Sarah has strong opinions on ethical AI development and user-centric design",
+        "opportunities": ["Introduction to her VC network", "Collaboration on AI ethics guidelines"],
+        "follow_ups": ["Share latest user research findings", "Discuss potential partnership opportunities"]
+      },
+      "attendees": [
+        {"name": "Sarah Chen", "role": "VP Product", "company": "TechFlow Dynamics"},
+        {"name": "Henry", "role": "Product Strategy Consultant"}
+      ],
+      "meeting_notes": "Sarah shared fascinating insights about scaling AI products at TechFlow. Key takeaway: focus on ethical considerations early in product development. She mentioned potential collaboration opportunities and offered to introduce me to her VC network. Strong alignment on user-centric design principles."
+    }',
     NOW() - INTERVAL '3 days',
-    'completed',
+    'completed',  -- Successfully processed with AI insights showing rich content
     NOW() - INTERVAL '3 days',
     '{
       "meeting_type": "coffee_chat",
       "duration_minutes": 45,
       "location": "Blue Bottle Coffee, Hayes Valley",
+      "start_time": "2025-08-04T14:00:00Z",
+      "end_time": "2025-08-04T14:45:00Z",
       "topics": ["AI product strategy", "market validation", "user research"],
       "outcome": "Shared insights on MVP development approach"
     }'::jsonb
@@ -1522,12 +1567,14 @@ VALUES
     'meeting',
     'Technical deep-dive session on AI infrastructure scaling and ML ops best practices',
     NOW() - INTERVAL '1 week',
-    'completed',
+    NULL,  -- No AI parsing for this one to show variety
     NOW() - INTERVAL '1 week',
     '{
       "meeting_type": "technical_session",
       "duration_minutes": 90,
       "location": "Virtual (Zoom)",
+      "start_time": "2025-07-31T10:00:00Z",
+      "end_time": "2025-07-31T11:30:00Z",
       "topics": ["MLOps", "infrastructure scaling", "deployment strategies"],
       "outcome": "Discussed potential collaboration on infrastructure project"
     }'::jsonb
@@ -1600,6 +1647,65 @@ VALUES
       "location": "InnovateAI Offices, SOMA",
       "topics": ["partnership opportunities", "technical architecture", "go-to-market strategy"],
       "preparation_notes": "Prepare partnership proposal, review technical requirements"
+    }'::jsonb
+  ),
+
+  -- Additional upcoming meetings as requested (5, 15, 35 days out)
+  (
+    'a0000107-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Product strategy review and investor update preparation',
+    NOW() + INTERVAL '5 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "strategy_session",
+      "duration_minutes": 60,
+      "location": "WeWork Golden Gate",
+      "start_time": "2025-08-12T15:00:00Z",
+      "end_time": "2025-08-12T16:00:00Z",
+      "topics": ["product roadmap", "investor updates", "metrics review"],
+      "preparation_notes": "Review latest metrics, prepare investor deck updates"
+    }'::jsonb
+  ),
+  (
+    'a0000108-89ab-cdef-0123-456789abcdef'::uuid,
+    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,  -- Jennifer Walsh
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Executive coaching session: Board readiness and strategic positioning',
+    NOW() + INTERVAL '15 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "coaching_session",
+      "duration_minutes": 90,
+      "location": "Private Club, Financial District",
+      "start_time": "2025-08-22T09:00:00Z",
+      "end_time": "2025-08-22T10:30:00Z",
+      "topics": ["board readiness", "executive presence", "strategic positioning"],
+      "preparation_notes": "Complete board readiness assessment, review positioning strategy"
+    }'::jsonb
+  ),
+  (
+    'a0000109-89ab-cdef-0123-456789abcdef'::uuid,
+    'a4444444-89ab-cdef-0123-456789abcdef'::uuid,  -- Dr. Amit Patel
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'AI Ethics Symposium: Panel discussion on responsible AI in enterprise',
+    NOW() + INTERVAL '35 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "panel_discussion",
+      "duration_minutes": 180,
+      "location": "Stanford Campus, Huang Engineering Center",
+      "start_time": "2025-09-11T13:00:00Z",
+      "end_time": "2025-09-11T16:00:00Z",
+      "topics": ["AI ethics", "enterprise AI governance", "responsible innovation"],
+      "preparation_notes": "Prepare panel talking points, review latest AI ethics papers"
     }'::jsonb
   )
 ON CONFLICT (id) DO NOTHING;

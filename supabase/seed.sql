@@ -138,27 +138,159 @@ VALUES
     'https://linkedin.com/in/sarahchen',
     '{
       "current_role": "VP Product",
-      "current_company": "TechFlow Dynamics", 
-      "expertise_areas": ["AI/ML Strategy", "Product-Led Growth", "B2B SaaS"],
-      "goals": ["Strategic partnerships in AI space", "Board positions at emerging tech companies"],
-      "networking_objectives": ["Find technical co-founder for side project", "Connect with AI researchers"],
-      "opportunities": ["Introduction to VCs", "Product strategy insights", "Team building advice"]
+      "current_company": "TechFlow Dynamics",
+      "current_role_description": "Leading product strategy for AI-powered analytics platform serving 500+ enterprise customers",
+      "key_responsibilities": [
+        "Define product roadmap for AI/ML features",
+        "Lead cross-functional team of 15 engineers and designers",
+        "Drive partnerships with strategic AI vendors",
+        "Manage $3M annual product development budget"
+      ],
+      "projects_involved": [
+        "AI-powered customer analytics platform",
+        "Machine learning recommendation engine",
+        "Real-time data visualization dashboard"
+      ],
+      "skills": ["Product Strategy", "AI/ML Implementation", "Team Leadership", "Data Analytics", "B2B SaaS"],
+      "work_challenges": [
+        "Scaling AI models for enterprise customers",
+        "Balancing feature velocity with technical debt",
+        "Building AI ethics framework for product decisions"
+      ],
+      "background": {
+        "focus_areas": "Product management in AI/ML and enterprise software with focus on data-driven decision making",
+        "previous_companies": ["Google", "Salesforce", "Palantir", "Stripe"],
+        "expertise_areas": ["AI/ML Strategy", "Product-Led Growth", "B2B SaaS", "Enterprise Software", "Data Analytics"]
+      },
+      "achievements": [
+        {
+          "event": "Led product launch that generated $10M ARR in first year",
+          "date": "2023",
+          "details": "AI analytics platform for enterprise customers"
+        },
+        {
+          "event": "Named Top 40 Under 40 Product Leaders",
+          "date": "2022", 
+          "details": "TechCrunch recognition for AI product innovation"
+        },
+        {
+          "event": "Built and scaled product team from 3 to 25 people",
+          "date": "2021-2023",
+          "details": "During TechFlow''s Series B growth phase"
+        }
+      ],
+      "goals": [
+        "Launch AI ethics certification program for product teams",
+        "Secure board position at emerging AI company",
+        "Establish strategic partnerships with 3 major AI vendors"
+      ],
+      "networking_objectives": [
+        "Connect with AI researchers at Stanford and MIT", 
+        "Build relationships with enterprise AI buyers",
+        "Find technical co-founder for AI ethics startup"
+      ],
+      "opportunities_to_help": [
+        "Introduction to enterprise customers for AI pilots",
+        "Product strategy consulting for AI startups",
+        "Mentoring product managers in AI/ML space",
+        "Board advisory roles for B2B SaaS companies"
+      ],
+      "introduction_needs": [
+        "AI research scientists for technical advisory",
+        "Enterprise AI buyers for market research",
+        "Experienced CTOs for scaling advice"
+      ],
+      "resource_needs": [
+        "Access to latest AI research papers",
+        "Connections to AI ethics thought leaders",
+        "Industry reports on enterprise AI adoption"
+      ]
     }'::jsonb,
     '{
-      "interests": ["Classical music", "Marathon running", "Sustainable technology"],
       "family": {
-        "partner": {"name": "David", "relationship": "Partner", "details": "Software architect at Meta"},
-        "children": [{"name": "Emma", "relationship": "Daughter", "details": "Age 8, loves robotics"}]
+        "partner": {"name": "David", "details": "Software architect at Meta"},
+        "children": [
+          {"name": "Emma", "relationship": "Daughter", "details": "Age 8, loves robotics"}
+        ],
+        "parents": "Live in Vancouver, both retired teachers",
+        "siblings": "One younger brother, Alex, who works in renewable energy"
       },
+      "values": ["Innovation with purpose", "Work-life balance", "Environmental sustainability", "Ethical technology", "Continuous learning"],
+      "education": "Stanford Computer Science (BS), MIT Sloan (MBA)",
+      "key_life_events": [
+        "Completed first marathon in Boston (2023)",
+        "Led family volunteer trip to build schools in Guatemala (2022)", 
+        "Achieved work-life balance after burnout at previous job (2021)",
+        "Started AI ethics nonprofit side project (2023)"
+      ],
+      "living_situation": "Lives in Palo Alto with family, recently renovated home to be solar-powered",
+      "current_challenges": [
+        "Balancing demanding VP role with family time",
+        "Finding time for AI ethics nonprofit project",
+        "Managing Emma''s increasing interest in competitive robotics"
+      ],
+      "upcoming_changes": [
+        "Planning sabbatical in 2024 to focus on AI ethics startup",
+        "Emma starting advanced STEM program in fall",
+        "Considering move to Boulder for better work-life balance"
+      ],
+      "interests": ["Classical music", "Marathon running", "Sustainable technology", "AI ethics", "Urban gardening", "Cooking", "Travel"],
+      "hobbies": ["Piano playing", "Trail running", "Organic gardening", "Wine tasting", "Photography"],
+      "travel_plans": [
+        "Family trip to New Zealand planned for winter break",
+        "Solo running retreat in Big Sur this fall",
+        "Conference speaking in London next month"
+      ],
+      "motivations": [
+        "Creating technology that benefits humanity",
+        "Being a role model for women in tech",
+        "Raising Emma to be confident in STEM",
+        "Building sustainable future through innovation"
+      ],
+      "milestones": [
+        {
+          "event": "🏃‍♀️ Completed Boston Marathon",
+          "date": "April 2023",
+          "impact": "Personal achievement after 2 years of training"
+        },
+        {
+          "event": "🎓 Graduated from MIT Sloan",
+          "date": "May 2019",
+          "impact": "Career pivot from engineering to product management"
+        },
+        {
+          "event": "👶 Emma was born",
+          "date": "2015",
+          "impact": "Shifted priorities toward work-life balance"
+        }
+      ],
+      "anecdotes": [
+        "Once debugged a critical production issue while at Emma''s robotics competition",
+        "Accidentally gave a product demo in Mandarin during a jet-lagged investor meeting",
+        "David proposed during a work conference in Tokyo - very romantic despite the setting"
+      ],
+      "communication_style": "Direct but empathetic, prefers structured conversations with clear outcomes, values transparency and authenticity",
+      "relationship_goal": "Build meaningful professional relationships that create mutual value and contribute to positive impact in the AI space",
       "conversation_starters": {
-        "professional": ["Ask about her AI ethics framework", "Discuss the future of product management"],
-        "personal": ["Her recent marathon in Boston", "Family trip to Japan last summer"]
+        "professional": [
+          "Ask about her AI ethics framework for product development",
+          "Discuss the future of product management in AI-first companies",
+          "Her thoughts on responsible AI deployment at enterprise scale",
+          "Challenges of building diverse product teams in tech"
+        ],
+        "personal": [
+          "Her recent marathon training and Boston Marathon experience",
+          "Family trip to Japan last summer and cultural experiences",
+          "Emma''s robotics competitions and STEM education",
+          "Sustainable living initiatives and solar home renovation",
+          "Piano playing and classical music recommendations"
+        ]
       }
     }'::jsonb,
     5.5,
-    NOW() - INTERVAL '5 days',
-    '2024-01-15'::timestamp,
-    '2024-07-20'::timestamp
+    NOW() - INTERVAL '2 days',
+    NOW() - INTERVAL '6 months',
+    NOW() - INTERVAL '1 day'
   ),
   (
     'a2222222-89ab-cdef-0123-456789abcdef'::uuid,
@@ -183,8 +315,8 @@ VALUES
     }'::jsonb,
     6.0,
     NOW() - INTERVAL '12 days',
-    '2024-02-10'::timestamp,
-    '2024-07-18'::timestamp
+    NOW() - INTERVAL '4 months',
+    NOW() - INTERVAL '3 days'
   ),
   (
     'a3333333-89ab-cdef-0123-456789abcdef'::uuid,
@@ -215,8 +347,8 @@ VALUES
     }'::jsonb,
     6.0,
     NOW() - INTERVAL '8 days',
-    '2024-03-05'::timestamp,
-    '2024-07-25'::timestamp
+    NOW() - INTERVAL '5 months',
+    NOW() - INTERVAL '1 week'
   ),
   (
     'a4444444-89ab-cdef-0123-456789abcdef'::uuid,
@@ -245,8 +377,34 @@ VALUES
     }'::jsonb,
     5.8,
     NOW() - INTERVAL '15 days',
-    '2024-01-20'::timestamp,
-    '2024-07-22'::timestamp
+    NOW() - INTERVAL '3 months',
+    NOW() - INTERVAL '5 days'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert contact emails for email management functionality  
+INSERT INTO public.contact_emails (id, contact_id, email, email_type, is_primary, verified, created_at, updated_at)
+VALUES
+  -- Sarah Chen emails
+  (
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    'sarah.chen@techflow.com',
+    'work',
+    true,  -- Primary email
+    true,
+    NOW() - INTERVAL '6 months',
+    NOW() - INTERVAL '1 day'
+  ),
+  (
+    'e1111112-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen  
+    'sarah.chen.personal@gmail.com',
+    'personal',
+    false,
+    true,
+    NOW() - INTERVAL '6 months',
+    NOW() - INTERVAL '1 day'
   )
 ON CONFLICT (id) DO NOTHING;
 

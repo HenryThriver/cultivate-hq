@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, Paper, Avatar, Chip, Slider, ClickAwayListener, TextField, IconButton, CircularProgress, Alert, LinearProgress, Button } from '@mui/material';
+import { Box, Typography, Paper, Avatar, Chip, Slider, ClickAwayListener, TextField, IconButton, CircularProgress, Alert, LinearProgress, Button, Tooltip } from '@mui/material';
 import { Mic, Stop, CheckCircle } from '@mui/icons-material';
 import { SuggestionBellBadge } from '../suggestions/UnifiedSuggestionManager';
 import { supabase } from '@/lib/supabase/client';
@@ -669,6 +669,9 @@ interface Goal {
   id: string;
   title: string;
   isActive: boolean;
+  relationship_type?: string;
+  relevance_score?: number;
+  how_they_help?: string;
 }
 
 // Enhanced props for redesigned contact header
@@ -777,24 +780,63 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
             {/* Goal badges */}
             {goals.length > 0 && (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1, mt: 1 }}>
-                {goals.map((goal) => (
-                  <Chip
-                    key={goal.id}
-                    label={goal.title}
-                    size="small"
-                    clickable={!!onGoalClick}
-                    onClick={() => onGoalClick?.(goal.id)}
-                    sx={{
-                      backgroundColor: goal.isActive ? '#d1fae5' : '#f3f4f6',
-                      color: goal.isActive ? '#059669' : '#6b7280',
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      '&:hover': onGoalClick ? {
-                        backgroundColor: goal.isActive ? '#bbf7d0' : '#e5e7eb',
-                      } : {},
-                    }}
-                  />
-                ))}
+                {goals.map((goal) => {
+                  const formatRelationshipType = (type: string) => {
+                    return type.split('_').map(word => 
+                      word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ');
+                  };
+
+                  const relevancePercentage = goal.relevance_score 
+                    ? Math.round(goal.relevance_score * 100) 
+                    : null;
+
+                  const tooltipContent = (
+                    <Box>
+                      {goal.relationship_type && (
+                        <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
+                          {formatRelationshipType(goal.relationship_type)}
+                        </Typography>
+                      )}
+                      {goal.how_they_help && (
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          {goal.how_they_help}
+                        </Typography>
+                      )}
+                      {relevancePercentage && (
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                          Relevance: {relevancePercentage}%
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+
+                  return (
+                    <Tooltip 
+                      key={goal.id}
+                      title={tooltipContent}
+                      placement="top"
+                      arrow
+                      enterDelay={500}
+                    >
+                      <Chip
+                        label={goal.title}
+                        size="small"
+                        clickable={!!onGoalClick}
+                        onClick={() => onGoalClick?.(goal.id)}
+                        sx={{
+                          backgroundColor: goal.isActive ? '#d1fae5' : '#f3f4f6',
+                          color: goal.isActive ? '#059669' : '#6b7280',
+                          fontSize: '0.75rem',
+                          fontWeight: 500,
+                          '&:hover': onGoalClick ? {
+                            backgroundColor: goal.isActive ? '#bbf7d0' : '#e5e7eb',
+                          } : {},
+                        }}
+                      />
+                    </Tooltip>
+                  );
+                })}
               </Box>
             )}
             {(title || company) && (
@@ -808,11 +850,6 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
                 <Box component="span" className="emoji" sx={{ mr: 0.75, color: 'text.secondary'}}>📍</Box>
                 {location}
               </Typography>
-            )}
-            {userGoal && (
-                <Typography sx={{color: '#4f46e5' /* indigo-600 */, fontSize: '0.75rem', fontWeight: 'medium', mt: 0.75}}>
-                    My Goal: {userGoal}
-                </Typography>
             )}
             {connectCadence && onUpdateCadence && (
               <ConnectionCadenceEditor

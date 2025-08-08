@@ -243,7 +243,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       // Step 1: Fetch goal contacts without joins
       const { data: goalContactsRaw, error: goalContactsError } = await supabase
         .from('goal_contacts')
-        .select('goal_id, relationship_type, relevance_score')
+        .select('goal_id, relationship_type, relevance_score, how_they_help')
         .eq('contact_id', contactId)
         .eq('user_id', user.id)
         .eq('status', 'active');
@@ -273,7 +273,10 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         return {
           id: goal?.id || gc.goal_id,
           title: goal?.title || 'Unknown Goal',
-          isActive: goal?.status === 'active'
+          isActive: goal?.status === 'active',
+          relationship_type: gc.relationship_type,
+          relevance_score: gc.relevance_score,
+          how_they_help: gc.how_they_help
         };
       });
     },
@@ -1323,6 +1326,11 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               </Box>
             </Box>
 
+            <ContextSections 
+              contactData={contact}
+              contactId={contactId}
+            />
+
             {/* Email Management Integration Point */}
             <Box sx={{ mt: 3 }}>
               <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
@@ -1348,11 +1356,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               </Box>
             )}
             */}
-
-            <ContextSections 
-              contactData={contact}
-              contactId={contactId}
-            />
         </Box>
       </Box>
 

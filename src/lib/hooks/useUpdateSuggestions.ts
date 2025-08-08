@@ -13,6 +13,11 @@ export interface UseUpdateSuggestionsProps {
 // Explicitly define the table name as a literal type
 const CONTACT_UPDATE_SUGGESTIONS_TABLE = 'contact_update_suggestions' as const;
 
+// Helper function to get nested values from objects using dot notation
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((current, key) => current?.[key], obj);
+};
+
 export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) => {
   // const supabase = useSupabaseClient(); // Replaced
   const queryClient = useQueryClient();
@@ -40,15 +45,42 @@ export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) =
       // Even with generated types, explicit casting might be needed if the select string complexity
       // outpaces the type inference for `data`.
       // Also, ensure nested JSON fields are correctly typed.
-      return data ? data.map((s: Record<string, unknown>) => ({
-        ...s,
-        suggested_updates: s.suggested_updates as unknown as { suggestions: ContactUpdateSuggestion[] },
-        // Ensure artifacts is handled, it can be null from the query
-        artifacts: s.artifacts ? { 
-            transcription: (s.artifacts as Record<string, unknown>).transcription, 
-            created_at: (s.artifacts as Record<string, unknown>).created_at 
-        } : undefined 
-      })) as UpdateSuggestionRecord[] : []; 
+      return data ? data.map((s: Record<string, unknown>) => {
+        // Parse suggested_updates from JSON
+        const suggestedUpdates = s.suggested_updates ? 
+          (typeof s.suggested_updates === 'string' 
+            ? JSON.parse(s.suggested_updates) 
+            : s.suggested_updates) 
+          : {};
+        
+        // Parse confidence_scores from JSON  
+        const confidenceScores = s.confidence_scores ? 
+          (typeof s.confidence_scores === 'string' 
+            ? JSON.parse(s.confidence_scores) 
+            : s.confidence_scores) 
+          : {};
+        
+        // Convert the flat structure to suggestions array with confidence scores
+        const suggestions = Object.keys(confidenceScores).map(fieldPath => ({
+          field_path: fieldPath,
+          confidence: confidenceScores[fieldPath] || 0,
+          suggested_value: getNestedValue(suggestedUpdates, fieldPath),
+          action: 'update' as const, // Infer action type - most suggestions are updates
+          reasoning: `AI-generated suggestion based on recent interactions with confidence ${Math.round((confidenceScores[fieldPath] || 0) * 100)}%`,
+        }));
+        
+        return {
+          ...s,
+          suggested_updates: {
+            suggestions: suggestions
+          },
+          // Ensure artifacts is handled, it can be null from the query
+          artifacts: s.artifacts ? { 
+              transcription: (s.artifacts as Record<string, unknown>).transcription, 
+              created_at: (s.artifacts as Record<string, unknown>).created_at 
+          } : undefined 
+        };
+      }) as UpdateSuggestionRecord[] : []; 
     },
     enabled: !!contactId, // Only run query if contactId is not null/undefined
   });
@@ -184,10 +216,18 @@ export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) =
   });
 
   // Calculate derived values
-  const pendingCount = suggestions.filter((s: UpdateSuggestionRecord) => s.status === 'pending').length;
-  const highConfidenceCount = suggestions.reduce((count, record) => 
-    count + record.suggested_updates.suggestions.filter(s => s.confidence >= 0.9).length, 0
-  );
+  const pendingCount = suggestions.reduce((count, record) => {
+    if (record.status !== 'pending') return count;
+    // Count individual suggestions within each pending record
+    const recordSuggestions = record.suggested_updates?.suggestions || [];
+    return count + recordSuggestions.length;
+  }, 0);
+  
+  const highConfidenceCount = suggestions.reduce((count, record) => {
+    // Safely access suggestions array with fallback
+    const recordSuggestions = record.suggested_updates?.suggestions || [];
+    return count + recordSuggestions.filter(s => s.confidence >= 0.9).length;
+  }, 0);
 
   return {
     suggestions,

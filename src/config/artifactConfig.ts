@@ -22,7 +22,7 @@ const isObjectContent = (content: unknown): content is Record<string, unknown> =
 const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> = {
   note: {
     icon: FiFileText,
-    color: 'primary.main',
+    color: 'artifacts.communication.main',
     badgeLabel: 'Note',
     getPreview: (content) => {
       if (isObjectContent(content)) {
@@ -33,7 +33,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   voice_memo: {
     icon: FiMic,
-    color: 'secondary.main',
+    color: 'artifacts.communication.main',
     badgeLabel: 'Voice Memo',
     getPreview: (content) => {
       if (isObjectContent(content)) {
@@ -46,7 +46,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   meeting: {
     icon: FiVideo,
-    color: '#1976d2', // Blue for meetings
+    color: 'artifacts.meeting.main',
     badgeLabel: 'Meeting',
     getPreview: (content: unknown) => {
       // Handle both old and new meeting artifact formats
@@ -68,7 +68,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   email: {
     icon: FiMail,
-    color: 'info.main',
+    color: 'artifacts.communication.main',
     badgeLabel: 'Email',
     getPreview: (content: unknown) => {
       // Handle EmailArtifactContent from metadata
@@ -92,7 +92,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   linkedin_interaction: {
     icon: FiLink,
-    color: '#0077B5', // LinkedIn Blue
+    color: 'artifacts.communication.main',
     badgeLabel: 'LinkedIn Interaction',
     getPreview: (content) => {
       if (isObjectContent(content)) {
@@ -125,7 +125,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   loop: {
     icon: LoopIcon, // Updated Icon
-    color: '#9C27B0', // Purple for loops
+    color: 'artifacts.loop.main',
     badgeLabel: 'Loop',
     getPreview: (contentArg) => { // Changed from artifact: ArtifactGlobal
       const content = contentArg as LoopArtifactContent;
@@ -175,7 +175,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   linkedin_message: {
     icon: FiLink,
-    color: '#0077B5',
+    color: 'artifacts.communication.main',
     badgeLabel: 'LinkedIn Message',
     getPreview: (content) => {
       if (isObjectContent(content)) {
@@ -186,7 +186,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   linkedin_post: {
     icon: FiLink,
-    color: '#0077B5',
+    color: 'artifacts.communication.main',
     badgeLabel: 'LinkedIn Post',
     getPreview: (content: unknown) => {
       // Handle LinkedIn post artifact metadata
@@ -236,7 +236,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   linkedin_profile: {
     icon: FiLink,
-    color: '#0077B5',
+    color: 'artifacts.communication.main',
     badgeLabel: 'LinkedIn Profile',
     getPreview: (content) => {
       if (isObjectContent(content)) {
@@ -247,7 +247,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   pog: {
     icon: FiFileText, // Or a specific POG icon
-    color: 'info.light',
+    color: 'artifacts.pog.main',
     badgeLabel: 'POG',
     getPreview: (content) => {
       if (isObjectContent(content)) {
@@ -258,7 +258,7 @@ const ARTIFACT_CONFIG: Record<ArtifactType | 'default', ArtifactTimelineConfig> 
   },
   ask: {
     icon: FiFileText, // Or a specific Ask icon
-    color: 'warning.light',
+    color: 'artifacts.ask.main',
     badgeLabel: 'Ask',
     getPreview: (content) => {
       if (isObjectContent(content)) {

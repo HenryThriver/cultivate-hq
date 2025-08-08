@@ -54,13 +54,13 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
   const getActionColor = (action: string) => {
     switch (action) {
       case 'add':
-        return 'success';
-      case 'update':
-        return 'info';
+        return '#059669'; // Sage Green from design system
+      case 'update': 
+        return '#2196F3'; // Primary Blue from design system
       case 'remove':
-        return 'error';
+        return '#616161'; // Neutral Gray from design system
       default:
-        return 'default';
+        return '#9E9E9E'; // Secondary text gray
     }
   };
 
@@ -115,9 +115,13 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
               <Chip
                 label={suggestion.action.charAt(0).toUpperCase() + suggestion.action.slice(1)}
                 size="small"
-                color={getActionColor(suggestion.action)}
                 variant="outlined"
-                sx={{ fontSize: '0.75rem' }}
+                sx={{ 
+                  fontSize: '0.75rem',
+                  color: getActionColor(suggestion.action),
+                  borderColor: getActionColor(suggestion.action),
+                  backgroundColor: 'transparent'
+                }}
               />
             </Box>
 
@@ -141,10 +145,10 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 sx={{ 
                   mt: 0.5,
                   p: 1,
-                  backgroundColor: 'grey.50',
+                  backgroundColor: '#FAFAFA', // Design system subtle background
                   borderRadius: 1,
                   border: '1px solid',
-                  borderColor: 'grey.200',
+                  borderColor: '#EEEEEE', // Design system border color
                   fontFamily: 'monospace',
                   fontSize: compact ? '0.75rem' : '0.875rem',
                   wordBreak: 'break-word'

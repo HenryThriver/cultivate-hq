@@ -1,29 +1,38 @@
 import React, { useState, useRef } from 'react';
 import { Fab, Box, Paper, MenuList, MenuItem, ListItemIcon, ListItemText, ClickAwayListener, Grow, Popper } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import NoteAddIcon from '@mui/icons-material/NoteAdd'; // For Add Note
-import EventIcon from '@mui/icons-material/Event'; // For Add Meeting
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // For Add POG
-import PanToolIcon from '@mui/icons-material/PanTool'; // For Add Ask (using PanTool as a placeholder)
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'; // For Add Milestone
+import { 
+  Favorite as HeartIcon,
+  Help as HandIcon,
+  Assignment as TaskIcon,
+  MeetingRoom as MeetingIcon,
+  Email as EmailIcon,
+  Mic as VoiceMemoIcon,
+} from '@mui/icons-material';
+import { CreateArtifactModal } from '../artifacts/CreateArtifactModal';
 
-// Props will be added later for handling actions
+// Contact interface for selection
+interface Contact {
+  id: string;
+  name: string;
+  email?: string;
+  company?: string;
+}
+
 interface QuickAddProps {
-  onAddNote: () => void;
-  onAddMeeting: () => void;
-  onAddPOG: () => void;
-  onAddAsk: () => void;
-  onAddMilestone: () => void;
+  contacts?: Contact[];
+  onArtifactCreated?: (artifactData: any) => void;
+  onArtifactCreating?: (artifactData: any) => Promise<void>;
 }
 
 export const QuickAdd: React.FC<QuickAddProps> = ({
-  onAddNote,
-  onAddMeeting,
-  onAddPOG,
-  onAddAsk,
-  onAddMilestone,
+  contacts = [],
+  onArtifactCreated,
+  onArtifactCreating,
 }) => {
   const [open, setOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedArtifactType, setSelectedArtifactType] = useState<'pog' | 'ask' | 'meeting' | 'email' | 'voice_memo' | 'task'>('pog');
   const anchorRef = useRef<HTMLButtonElement>(null);
 
   const handleToggle = () => {
@@ -44,12 +53,49 @@ export const QuickAdd: React.FC<QuickAddProps> = ({
     }
   }
 
+  const handleOpenCreateModal = (artifactType: typeof selectedArtifactType) => {
+    setSelectedArtifactType(artifactType);
+    setIsCreateModalOpen(true);
+    setOpen(false);
+  };
+
   const menuItems = [
-    { label: 'Add Note', icon: <NoteAddIcon fontSize="small" />, action: onAddNote },
-    { label: 'Add Meeting', icon: <EventIcon fontSize="small" />, action: onAddMeeting },
-    { label: 'Add POG', icon: <CardGiftcardIcon fontSize="small" />, action: onAddPOG },
-    { label: 'Add Ask', icon: <PanToolIcon fontSize="small" />, action: onAddAsk }, // Placeholder icon
-    { label: 'Add Milestone', icon: <EmojiEventsIcon fontSize="small" />, action: onAddMilestone },
+    { 
+      label: 'Add POG', 
+      icon: <HeartIcon fontSize="small" />, 
+      action: () => handleOpenCreateModal('pog'),
+      color: '#10B981' // Emerald green for POGs
+    },
+    { 
+      label: 'Add Ask', 
+      icon: <HandIcon fontSize="small" />, 
+      action: () => handleOpenCreateModal('ask'),
+      color: '#F97316' // Orange for Asks
+    },
+    { 
+      label: 'Add Task', 
+      icon: <TaskIcon fontSize="small" />, 
+      action: () => handleOpenCreateModal('task'),
+      color: '#8B5CF6' // Violet for Tasks
+    },
+    { 
+      label: 'Add Meeting', 
+      icon: <MeetingIcon fontSize="small" />, 
+      action: () => handleOpenCreateModal('meeting'),
+      color: '#0EA5E9' // Sky blue for Meetings
+    },
+    { 
+      label: 'Add Email', 
+      icon: <EmailIcon fontSize="small" />, 
+      action: () => handleOpenCreateModal('email'),
+      color: '#64748B' // Slate for Emails
+    },
+    { 
+      label: 'Add Voice Memo', 
+      icon: <VoiceMemoIcon fontSize="small" />, 
+      action: () => handleOpenCreateModal('voice_memo'),
+      color: '#64748B' // Slate for Voice Memos
+    },
   ];
 
   return (
@@ -115,7 +161,7 @@ export const QuickAdd: React.FC<QuickAddProps> = ({
                             }
                         }}
                     >
-                      <ListItemIcon sx={{minWidth: '32px', color: 'inherit'}}>{item.icon}</ListItemIcon>
+                      <ListItemIcon sx={{minWidth: '32px', color: item.color || 'inherit'}}>{item.icon}</ListItemIcon>
                       <ListItemText primary={item.label} />
                     </MenuItem>
                   ))}
@@ -125,6 +171,16 @@ export const QuickAdd: React.FC<QuickAddProps> = ({
           </Grow>
         )}
       </Popper>
+
+      {/* Create Artifact Modal */}
+      <CreateArtifactModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        artifactType={selectedArtifactType}
+        contacts={contacts}
+        onArtifactCreated={onArtifactCreated}
+        onArtifactCreating={onArtifactCreating}
+      />
     </Box>
   );
 }; 

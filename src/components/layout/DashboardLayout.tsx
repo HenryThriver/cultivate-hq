@@ -26,6 +26,7 @@ import {
   AccountCircle as AccountCircleIcon,
   Settings as SettingsIcon,
   AdminPanelSettings as AdminIcon,
+  TrackChanges as GoalsIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -79,6 +80,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       text: 'Contacts',
       icon: <PeopleIcon />,
       path: '/dashboard/contacts',
+    },
+    {
+      text: 'Goals',
+      icon: <GoalsIcon />,
+      path: '/dashboard/goals',
     },
     {
       text: 'Profile',

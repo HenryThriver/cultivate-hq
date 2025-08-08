@@ -8,26 +8,24 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Dashboard } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { default as nextDynamic } from 'next/dynamic';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 // Import actual components
 import { ContactHeader } from '@/components/features/contacts/ContactHeader';
 import { NextConnection } from '@/components/features/contacts/NextConnection';
-import { ActionQueues, ActionItemStatus as ActionQueuesActionItemStatus } from '@/components/features/contacts/ActionQueues';
-import { ReciprocityDashboard } from '@/components/features/contacts/ReciprocityDashboard';
+import { ActionItemStatus as ActionQueuesActionItemStatus } from '@/components/features/contacts/ActionQueues';
 import { ContextSections } from '@/components/features/contacts/ContextSections';
-import { QuickAdd } from '@/components/features/contacts/QuickAdd';
 import { ArtifactModal } from '@/components/features/timeline/ArtifactModal';
 
 // Import LoopDashboard
-import { LoopDashboard } from '@/components/features/loops/LoopDashboard';
+// import { LoopDashboard } from '@/components/features/loops/LoopDashboard'; // Deprecated - functionality moved to artifacts and actions
 // Import LoopSuggestions
-import { LoopSuggestions } from '@/components/features/loops/LoopSuggestions';
+// import { LoopSuggestions } from '@/components/features/loops/LoopSuggestions'; // Deprecated - functionality moved to artifacts and actions
 
 // Import EnhancedLoopModal NEW
-import { EnhancedLoopModal } from '@/components/features/loops/EnhancedLoopModal';
+// import { EnhancedLoopModal } from '@/components/features/loops/EnhancedLoopModal'; // Deprecated - functionality moved to artifacts and actions
 
-// Dynamically import VoiceRecorder
+// Dynamically import VoiceRecorder for modal
 const VoiceRecorder = nextDynamic(() => 
   import('@/components/features/voice-memos/VoiceRecorder').then(mod => mod.VoiceRecorder),
   { 
@@ -36,8 +34,7 @@ const VoiceRecorder = nextDynamic(() =>
   }
 );
 
-// Import new suggestion components
-import { FullSuggestionManager } from '@/components/features/suggestions/UnifiedSuggestionManager';
+// Suggestion components are now integrated into ContactHeader
 // Placeholder for the new VoiceMemoDetailModal
 import { VoiceMemoDetailModal } from '@/components/features/voice/VoiceMemoDetailModal'; // Uncommented
 
@@ -53,12 +50,20 @@ import { LinkedInPostsSyncStatus } from '@/components/features/linkedin';
 // Import OnboardingTour for walkthrough
 import { OnboardingTour } from '@/components/features/onboarding/OnboardingTour';
 
+// Import new redesigned components
+import { RelationshipPulseDashboard } from '@/components/features/contacts/profile/RelationshipPulseDashboard';
+import { ActionIntelligenceCenter } from '@/components/features/contacts/profile/ActionIntelligenceCenter';
+import { ArtifactDetailModal } from '@/components/features/contacts/profile/ArtifactDetailModal';
+import { CreateArtifactModal } from '@/components/features/artifacts/CreateArtifactModal';
+import { CreateActionModal } from '@/components/features/contacts/profile/CreateActionModal';
+
 // Import hooks and types
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
 import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos';
+import { useActionsByArtifact, useActionsByContact, useCreateAction, useUpdateAction, type ActionItem } from '@/lib/hooks/useActions';
 // Import useUpdateSuggestions hook for priority calculation only
 import { useUpdateSuggestions } from '@/lib/hooks/useUpdateSuggestions';
-import { useArtifacts } from '@/lib/hooks/useArtifacts';
+import { useArtifacts, type NewArtifact } from '@/lib/hooks/useArtifacts';
 import { useArtifactModalData } from '@/lib/hooks/useArtifactModalData';
 import type { 
     BaseArtifact,
@@ -69,12 +74,14 @@ import type {
     POGArtifact,
     AskArtifact,
     LinkedInArtifactContent,
-    LoopArtifact,
-    LoopStatus,
-    LoopArtifactContent
+    // LoopArtifact, // Removed - loops deprecated
+    // LoopStatus, // Removed - loops deprecated
+    // LoopArtifactContent, // Removed - loops deprecated
+    Contact
 } from '@/types';
 import { useToast } from '@/lib/contexts/ToastContext';
 import { ProcessingStatusBar } from '@/components/features/voice/ProcessingStatusBar'; // Revert to alias import
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface ContactProfilePageProps {
   // Props interface for Next.js 14 App Router
@@ -112,6 +119,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const { showToast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
   const [audioPlaybackError, setAudioPlaybackError] = useState<string | null>(null);
@@ -128,9 +136,65 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // Add loading states for modal actions
   const [isReprocessingMemo, setIsReprocessingMemo] = useState(false);
 
-  // NEW state for EnhancedLoopModal
-  const [selectedLoopForEnhancedModal, setSelectedLoopForEnhancedModal] = useState<LoopArtifact | null>(null);
-  const [isEnhancedLoopModalOpen, setIsEnhancedLoopModalOpen] = useState(false);
+  // EnhancedLoopModal state removed - loops deprecated
+
+  // NEW state for unified ArtifactDetailModal
+  const [selectedArtifactForDetailModal, setSelectedArtifactForDetailModal] = useState<POGArtifact | AskArtifact | null>(null);
+  const [isArtifactDetailModalOpen, setIsArtifactDetailModalOpen] = useState(false);
+
+  // Action creation modals for ActionIntelligenceCenter
+  const [isCreateArtifactModalOpen, setIsCreateArtifactModalOpen] = useState(false);
+  const [createArtifactType, setCreateArtifactType] = useState<'pog' | 'ask'>('pog');
+  const [isCreateActionModalOpen, setIsCreateActionModalOpen] = useState(false);
+  const [selectedActionForEdit, setSelectedActionForEdit] = useState<ActionItem | null>(null);
+
+  // Action hooks
+  const createActionMutation = useCreateAction();
+  const updateActionMutation = useUpdateAction();
+  const { data: contactActions = [] } = useActionsByContact(contactId);
+
+  // Action type mapping functions
+  const mapActionTypeToDisplay = (actionType: string): 'pog' | 'ask' | 'general' | 'follow_up' => {
+    if (actionType === 'deliver_pog') return 'pog';
+    if (actionType === 'follow_up_ask') return 'ask';
+    if (actionType === 'send_follow_up' || actionType === 'follow_up') return 'follow_up';
+    return 'general';
+  };
+
+  const mapActionStatusToDisplay = (status: string): 'queued' | 'active' | 'pending' | 'completed' => {
+    if (status === 'in_progress') return 'active';
+    if (status === 'pending') return 'pending';
+    if (status === 'completed') return 'completed';
+    return 'queued';
+  };
+
+  const mapActionPriorityToDisplay = (priority: string): 'high' | 'medium' | 'low' => {
+    if (priority === 'urgent' || priority === 'high') return 'high';
+    if (priority === 'low') return 'low';
+    return 'medium';
+  };
+
+  const mapDisplayStatusToDatabase = (status: 'queued' | 'active' | 'pending' | 'completed'): 'pending' | 'in_progress' | 'completed' | 'skipped' | 'cancelled' => {
+    if (status === 'active') return 'in_progress';
+    if (status === 'pending') return 'pending';
+    if (status === 'completed') return 'completed';
+    return 'pending';
+  };
+
+  // Get actions for selected artifact
+  const { data: artifactActions = [] } = useActionsByArtifact(selectedArtifactForDetailModal?.id);
+
+  // Transform database actions to modal format
+  const transformDbActionToModalAction = useCallback((dbAction: any) => ({
+    id: dbAction.id,
+    title: dbAction.title,
+    description: dbAction.description,
+    status: dbAction.status === 'cancelled' || dbAction.status === 'skipped' ? 'completed' : dbAction.status,
+    priority: dbAction.priority === 'urgent' ? 'high' : dbAction.priority,
+    dueDate: dbAction.due_date ? new Date(dbAction.due_date) : undefined,
+    createdAt: new Date(dbAction.created_at),
+  }), []);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -169,6 +233,55 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     processingCount,
     getProcessingStatus
   } = useVoiceMemos({ contact_id: contactId });
+
+  // Fetch goals for this contact
+  const { data: contactGoals = [] } = useQuery({
+    queryKey: ['contact-goals', contactId, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Step 1: Fetch goal contacts without joins
+      const { data: goalContactsRaw, error: goalContactsError } = await supabase
+        .from('goal_contacts')
+        .select('goal_id, relationship_type, relevance_score, how_they_help')
+        .eq('contact_id', contactId)
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (goalContactsError) {
+        console.error('Error fetching contact goals:', goalContactsError);
+        return [];
+      }
+
+      if (!goalContactsRaw || goalContactsRaw.length === 0) return [];
+
+      // Step 2: Fetch goals details separately
+      const goalIds = goalContactsRaw.map(gc => gc.goal_id);
+      const { data: goalsData, error: goalsError } = await supabase
+        .from('goals')
+        .select('id, title, status, target_contact_count, progress_percentage')
+        .in('id', goalIds);
+
+      if (goalsError) {
+        console.error('Error fetching goals details:', goalsError);
+        return [];
+      }
+
+      // Step 3: Client-side join and transform
+      return (goalContactsRaw || []).map((gc: any) => {
+        const goal = (goalsData || []).find(g => g.id === gc.goal_id);
+        return {
+          id: goal?.id || gc.goal_id,
+          title: goal?.title || 'Unknown Goal',
+          isActive: goal?.status === 'active',
+          relationship_type: gc.relationship_type,
+          relevance_score: gc.relevance_score,
+          how_they_help: gc.how_they_help
+        };
+      });
+    },
+    enabled: !!contactId && !!user?.id,
+  });
 
   // Instantiate useArtifactModalData hook
   const {
@@ -211,6 +324,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const { highConfidenceCount } = useUpdateSuggestions({ contactId });
 
   const {
+    createArtifact,
     deleteArtifact,
   } = useArtifacts();
 
@@ -218,6 +332,37 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const suggestionPriority = useMemo(() => {
     return highConfidenceCount > 0 ? 'high' : 'medium';
   }, [highConfidenceCount]);
+
+  // Show toast notifications for new high confidence suggestions
+  useEffect(() => {
+    if (highConfidenceCount > 0 && contact?.name) {
+      const toastKey = `suggestions-${contactId}-${highConfidenceCount}`;
+      const hasShownToast = sessionStorage.getItem(toastKey);
+      
+      if (!hasShownToast) {
+        showToast(
+          `✨ ${highConfidenceCount} high-confidence suggestion${highConfidenceCount > 1 ? 's' : ''} available for ${contact.name}!`,
+          'info',
+          { 
+            icon: "💡", 
+            duration: 8000,
+            action: {
+              label: 'View',
+              onClick: () => {
+                // Scroll to ContactHeader where suggestions are displayed
+                const headerElement = document.querySelector('[data-testid="contact-header"]');
+                if (headerElement) {
+                  headerElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }
+            }
+          }
+        );
+        // Mark this toast as shown for this session
+        sessionStorage.setItem(toastKey, 'true');
+      }
+    }
+  }, [highConfidenceCount, contact?.name, contactId, showToast]);
 
   const personalContextForHeader = useMemo(() => {
     return contact?.personal_context 
@@ -234,22 +379,11 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // Use useCallback for event handlers to prevent re-renders
 
   const handleUpdateStatus = useCallback((itemId: string, newStatus: ActionQueuesActionItemStatus, type: 'pog' | 'ask') => {
-    console.log(`Update ${type} item ${itemId} to ${newStatus}`);
   }, []);
 
   const handleBrainstormPogs = useCallback(() => {
-    console.log('Brainstorm POGs clicked');
   }, []);
 
-  const handleQuickAdd = useCallback((type: string) => {
-    console.log(`Quick Add ${type} clicked`);
-  }, []);
-
-  const handleQuickAddNote = useCallback(() => handleQuickAdd('note'), [handleQuickAdd]);
-  const handleQuickAddMeeting = useCallback(() => handleQuickAdd('meeting'), [handleQuickAdd]);
-  const handleQuickAddPOG = useCallback(() => handleQuickAdd('POG'), [handleQuickAdd]);
-  const handleQuickAddAsk = useCallback(() => handleQuickAdd('Ask'), [handleQuickAdd]);
-  const handleQuickAddMilestone = useCallback(() => handleQuickAdd('milestone'), [handleQuickAdd]);
 
 
 
@@ -287,6 +421,123 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           type: 'ask' as const,
         };
       });
+  }, [contact?.artifacts]);
+
+  // Calculate reciprocity data based on artifact directionality
+  const reciprocityData = useMemo(() => {
+    if (!contact?.artifacts || !user) return { balance: 0, given: 0, received: 0 };
+    
+    let given = 0;
+    let received = 0;
+    
+    contact.artifacts.forEach((artifact: any) => {
+      // Check for POGs and Asks with proper directionality fields
+      if (artifact.type === 'pog' || artifact.type === 'ask') {
+        // Determine if the exchange is in an active/completed state
+        let isActive = false;
+        
+        if (artifact.type === 'pog' && artifact.metadata?.status) {
+          isActive = ['offered', 'in_progress', 'delivered', 'closed'].includes(artifact.metadata.status);
+        } else if (artifact.type === 'ask' && artifact.metadata?.status) {
+          isActive = ['requested', 'in_progress', 'received', 'closed'].includes(artifact.metadata.status);
+        }
+        
+        if (isActive) {
+          // Use contact-based directionality to determine given/received
+          if (artifact.type === 'pog') {
+            // POG: Check who is giving to whom
+            if (artifact.recipient_contact_id === contactId) {
+              given++; // User gave POG to contact
+            } else if (artifact.initiator_contact_id === contactId) {
+              received++; // User received POG from contact
+            }
+          } else if (artifact.type === 'ask') {
+            // Ask: Check who is asking whom
+            if (artifact.recipient_contact_id === contactId) {
+              received++; // User asked contact for help (user received help)
+            } else if (artifact.initiator_contact_id === contactId) {
+              given++; // Contact asked user for help (user gave help)
+            }
+          }
+        }
+      }
+    });
+    
+    // Calculate balance: -1 (all received) to 1 (all given)
+    const total = given + received;
+    const balance = total > 0 ? (given - received) / total : 0;
+    
+    return { balance, given, received };
+  }, [contact?.artifacts, user, contactId]);
+
+  // Calculate active exchanges
+  const activeExchanges = useMemo(() => {
+    if (!contact?.artifacts) return { pogs: { active: 0, total: 0 }, asks: { active: 0, total: 0 } };
+    
+    let pogsActive = 0;
+    let pogsTotal = 0;
+    let asksActive = 0;
+    let asksTotal = 0;
+    
+    contact.artifacts.forEach((artifact: any) => {
+      if (artifact.type === 'pog') {
+        pogsTotal++;
+        if (artifact.metadata?.active_exchange || 
+            ['offered', 'in_progress'].includes(artifact.metadata?.status)) {
+          pogsActive++;
+        }
+      } else if (artifact.type === 'ask') {
+        asksTotal++;
+        if (artifact.metadata?.active_exchange || 
+            ['requested', 'in_progress'].includes(artifact.metadata?.status)) {
+          asksActive++;
+        }
+      }
+    });
+    
+    return {
+      pogs: { active: pogsActive, total: pogsTotal },
+      asks: { active: asksActive, total: asksTotal }
+    };
+  }, [contact?.artifacts]);
+
+  // Calculate real last contact date from all artifacts
+  const lastContactDate = useMemo(() => {
+    if (!contact?.artifacts) return undefined;
+    
+    const now = new Date();
+    const allArtifacts = contact.artifacts
+      .filter((art: any) => new Date(art.timestamp) < now)
+      .map((art: any) => new Date(art.timestamp))
+      .sort((a, b) => b.getTime() - a.getTime()); // Sort descending (most recent first)
+    
+    return allArtifacts.length > 0 ? allArtifacts[0] : undefined;
+  }, [contact?.artifacts]);
+
+  // Find last and next live connections (meetings/calls)
+  const liveConnections = useMemo(() => {
+    if (!contact?.artifacts) return { last: undefined, next: undefined };
+    
+    const now = new Date();
+    const liveArtifacts = contact.artifacts
+      .filter((art: any) => art.type === 'meeting' || art.type === 'call')
+      .map((art: any) => ({
+        type: art.type as 'meeting' | 'call',
+        date: new Date(art.timestamp),
+        title: (art.metadata?.title || art.content || '') as string
+      }));
+    
+    // Sort by date
+    liveArtifacts.sort((a, b) => a.date.getTime() - b.date.getTime());
+    
+    // Find last (most recent past) and next (soonest future)
+    const past = liveArtifacts.filter(a => a.date < now);
+    const future = liveArtifacts.filter(a => a.date >= now);
+    
+    return {
+      last: past.length > 0 ? past[past.length - 1] : undefined,
+      next: future.length > 0 ? future[0] : undefined
+    };
   }, [contact?.artifacts]);
 
 
@@ -356,18 +607,23 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
 
   const handleOpenArtifactModal = useCallback((artifact: BaseArtifact) => {
     if (artifact.type === 'loop') {
-      setSelectedLoopForEnhancedModal(artifact as unknown as LoopArtifact);
-      setIsEnhancedLoopModalOpen(true);
-      setIsArtifactModalOpen(false);
+      // Loops deprecated - show info message
+      showToast('Loop functionality has been moved to POGs and Asks', 'info');
+      return;
     } else if (artifact.type === 'voice_memo') {
         setSelectedVoiceMemoForDetail(artifact as VoiceMemoArtifact);
         setIsVoiceMemoDetailModalOpen(true);
         setIsArtifactModalOpen(false);
+        setIsArtifactDetailModalOpen(false);
+    } else if (artifact.type === 'pog' || artifact.type === 'ask') {
+        setSelectedArtifactForDetailModal(artifact as POGArtifact | AskArtifact);
+        setIsArtifactDetailModalOpen(true);
+        setIsArtifactModalOpen(false);
+        setIsVoiceMemoDetailModalOpen(false);
     } else {
       fetchArtifactData(artifact.id, contactId);
       setIsArtifactModalOpen(true);
-      setSelectedLoopForEnhancedModal(null);
-      setIsEnhancedLoopModalOpen(false);
+      setIsArtifactDetailModalOpen(false);
     }
   }, [fetchArtifactData, contactId]);
 
@@ -377,7 +633,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     const artifactTypeFromQuery = searchParams.get('artifactType') as BaseArtifact['type'] | null;
 
     if (artifactIdFromQuery && artifactTypeFromQuery && contactId) {
-      console.log(`Attempting to open artifact from URL: ID=${artifactIdFromQuery}, Type=${artifactTypeFromQuery}`);
       const placeholderArtifact: BaseArtifact = {
           id: artifactIdFromQuery,
           type: artifactTypeFromQuery,
@@ -398,36 +653,59 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
     }
   }, [searchParams, contactId, handleOpenArtifactModal, router]);
 
-  // Placeholder handlers for EnhancedLoopModal props
-  // These would ideally interact with a useLoops hook instance available in this scope
-  // or be passed down from a higher-level state management for loops.
-  const handleLoopStatusUpdate = useCallback((loopId: string, newStatus: LoopStatus) => {
-    console.log(`ContactProfilePage: Update status for loop ${loopId} to ${newStatus}`);
-    // Example: get loops hook and call updateLoopStatus({loopId, newStatus})
-    // queryClient.invalidateQueries(['loops', contactId]); // Example invalidation
-  }, []);
+  // Loop handlers removed - functionality deprecated
 
-  const handleEditLoopDetails = useCallback((loopId: string, updates: Partial<LoopArtifactContent>) => {
-    console.log(`ContactProfilePage: Edit details for loop ${loopId}`, updates);
-    // Open an edit modal or form - perhaps reuse EnhancedCreateLoopModal with initialData
-  }, []);
+  // Unified artifact modal handlers
+  const handleDeleteArtifact = useCallback(async (artifactId: string) => {
+    const artifactType = selectedArtifactForDetailModal?.type;
+    const artifactName = artifactType === 'pog' ? 'POG' : artifactType === 'ask' ? 'Ask' : 'Artifact';
+    
+    try {
+      await deleteArtifact({ id: artifactId, contactId: contactId }); 
+      showToast(`${artifactName} deleted successfully`, 'success');
+      setIsArtifactDetailModalOpen(false);
+      setSelectedArtifactForDetailModal(null);
+      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+      queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+    } catch (error: unknown) {
+      if (error instanceof Error && (error as Error & { code?: string }).code === 'ARTIFACT_IS_SOURCE') {
+        showToast(`Cannot delete: This ${artifactName} is referenced by other data.`, 'error');
+      } else if (error instanceof Error) {
+        showToast(`Error deleting: ${error.message}`, 'error');
+      } else {
+        showToast('An unknown error occurred during deletion.', 'error');
+      }
+    }
+  }, [deleteArtifact, contactId, showToast, queryClient, selectedArtifactForDetailModal?.type]);
 
-  const handleDeleteLoop = useCallback((loopId: string) => {
-    console.log(`ContactProfilePage: Delete loop ${loopId}`);
-    // Example: deleteLoop({loopId})
-    // queryClient.invalidateQueries(['loops', contactId]);
-    setIsEnhancedLoopModalOpen(false); // Close modal after delete
-  }, []);
+  const handleReprocessArtifact = useCallback(async (artifactId: string) => {
+    const artifactType = selectedArtifactForDetailModal?.type;
+    const artifactName = artifactType === 'pog' ? 'POG' : artifactType === 'ask' ? 'Ask' : 'Artifact';
+    
+    try {
+      await reprocessVoiceMemo(artifactId); // Note: reprocessVoiceMemo works for all artifacts
+      showToast(`${artifactName} reprocessing started`, 'success');
+      queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+      queryClient.invalidateQueries({ queryKey: ['artifactDetail', artifactId] });
+      queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+      if (selectedArtifactForDetailModal?.id === artifactId) {
+        const { data: updatedArtifact } = await supabase.from('artifacts').select('*').eq('id', artifactId).single();
+        if (updatedArtifact) setSelectedArtifactForDetailModal(updatedArtifact as POGArtifact | AskArtifact);
+      }
+    } catch (error: unknown) { 
+      if (error instanceof Error) {
+        showToast(`Error reprocessing: ${error.message}`, 'error');
+      } else {
+        showToast('An unknown error occurred during reprocessing.', 'error');
+      }
+    }
+  }, [reprocessVoiceMemo, showToast, queryClient, contactId, selectedArtifactForDetailModal]);
 
-  const handleShareLoopWithContact = useCallback((loopId: string) => {
-    console.log(`ContactProfilePage: Share loop ${loopId} with contact`);
-    // Implement sharing logic
-  }, []);
-
-  const handleCompleteLoop = useCallback((loopId: string, outcome: Partial<Pick<LoopArtifactContent, 'outcome' | 'satisfaction_score' | 'lessons_learned'>>) => {
-    console.log(`ContactProfilePage: Complete loop ${loopId} with outcome`, outcome);
-    // Example: completeLoop({loopId, ...outcome })
-    // queryClient.invalidateQueries(['loops', contactId]);
+  // Action creation handlers
+  // This will be handled by the CreateActionModal in ArtifactDetailModal
+  const handleCreateActionForArtifact = useCallback(() => {
+    // This function is now a placeholder as action creation is handled in the modal
   }, []);
 
   // Real-time completion/failure notifications
@@ -474,7 +752,6 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       )
       .subscribe((status: string, err: unknown) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`Subscribed to artifact updates for contact: ${contactId}`);
         }
         if (err) {
           console.error(`Error subscribing to artifact updates for ${contactId}:`, err);
@@ -540,6 +817,12 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               relationshipScore={demoContact.relationship_score}
               contactId={demoContact.id}
               suggestionPriority="high"
+              onUpdateRelationshipScore={async (newScore) => {
+                // For demo, just log - no actual save needed
+              }}
+              onUpdateCadence={async (newCadence) => {
+                // For demo, just log - no actual save needed
+              }}
             />
 
             {/* Demo content for walkthrough */}
@@ -661,13 +944,80 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           company={contact.company}
           email={contact.email}
           connectCadence={connectCadenceText}
-          connectDate={contact.last_interaction_date ? new Date(contact.last_interaction_date) : undefined}
+          connectDate={lastContactDate}
           personalContext={personalContextForHeader}
           profilePhotoUrl={(contact.linkedin_data as unknown as LinkedInArtifactContent)?.profilePicture || undefined}
           location={contact.location}
           relationshipScore={contact.relationship_score}
           contactId={contactId}
           suggestionPriority={suggestionPriority}
+          // New enhanced props
+          goals={contactGoals} 
+          onGoalClick={(goalId) => {
+            // Navigate to goals page with specific goal
+            router.push(`/dashboard/goals?goal=${goalId}`);
+          }}
+          onRecordVoiceMemo={() => {
+            // This will be handled by the embedded recorder
+          }}
+          onUpdateRelationshipScore={async (newScore) => {
+            
+            // Optimistic update - immediately update the UI
+            queryClient.setQueryData(['contact-profile', contactId], (oldData: Contact | null) => {
+              if (!oldData) return oldData;
+              return { ...oldData, relationship_score: newScore };
+            });
+            
+            try {
+              // Update the database
+              const { error } = await supabase
+                .from('contacts')
+                .update({ relationship_score: newScore })
+                .eq('id', contactId);
+
+              if (error) {
+                console.error('Failed to update relationship score:', error);
+                // Revert optimistic update on error
+                queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+                throw error;
+              }
+
+            } catch (error) {
+              console.error('Error updating relationship score:', error);
+              throw error; // Re-throw so the component can handle the error
+            }
+          }}
+          onUpdateCadence={async (newCadence) => {
+            
+            // Extract number of days from cadence text (e.g., "Connect every 42 days" -> 42)
+            const daysMatch = newCadence.match(/(\d+)/);
+            const days = daysMatch ? parseInt(daysMatch[1]) : null;
+            
+            // Optimistic update
+            queryClient.setQueryData(['contact-profile', contactId], (oldData: Contact | null) => {
+              if (!oldData) return oldData;
+              return { ...oldData, connection_cadence_days: days };
+            });
+            
+            try {
+              // Update the database
+              const { error } = await supabase
+                .from('contacts')
+                .update({ connection_cadence_days: days })
+                .eq('id', contactId);
+
+              if (error) {
+                console.error('Failed to update cadence:', error);
+                // Revert optimistic update on error
+                queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+                throw error;
+              }
+
+            } catch (error) {
+              console.error('Error updating cadence:', error);
+              throw error;
+            }
+          }}
         />
 
         {/* Demo content for walkthrough */}
@@ -755,43 +1105,231 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           contactName={contact.name || undefined} 
         />
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <NextConnection 
-              contactId={contactId} 
-            />
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
             
-            <ActionQueues 
-              pogs={pogs}
-              asks={asks}
-              onUpdateStatus={handleUpdateStatus}
-              onBrainstormPogs={handleBrainstormPogs}
+            {/* New Relationship Pulse Dashboard */}
+            <RelationshipPulseDashboard
+              reciprocityBalance={reciprocityData.balance}
+              reciprocityItems={{ given: reciprocityData.given, received: reciprocityData.received }}
+              activeExchanges={activeExchanges}
+              lastLiveConnection={liveConnections.last}
+              nextLiveConnection={liveConnections.next}
+              contactName={contact.name || 'Contact'}
+              contactId={contactId}
+              onArtifactCreated={(data) => {
+                // Refresh relevant queries
+                queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+                queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+              }}
+              onArtifactCreating={async (data) => {
+                
+                if (!user) {
+                  throw new Error('User not authenticated');
+                }
+                
+                // Convert CreateArtifactModal data to database format
+                const newArtifact: NewArtifact = {
+                  type: data.type,
+                  content: data.content,
+                  contact_id: data.contactId,
+                  user_id: user.id,
+                  metadata: data.metadata,
+                  timestamp: new Date().toISOString(),
+                  ai_parsing_status: 'pending' as const,
+                  // Set directionality fields for POGs and Asks
+                  ...(data.type === 'pog' && {
+                    initiator_user_id: user.id,
+                    recipient_contact_id: data.contactId,
+                  }),
+                  ...(data.type === 'ask' && {
+                    initiator_user_id: user.id,
+                    recipient_contact_id: data.contactId,
+                  }),
+                };
+                
+                // Create the artifact in the database
+                await createArtifact(newArtifact);
+              }}
+              onExchangeClick={(exchangeId) => {
+                // Find the artifact and open its modal
+                const artifact = contact.artifacts?.find((art: any) => art.id === exchangeId);
+                if (artifact) {
+                  handleOpenArtifactModal(artifact);
+                }
+              }}
+              mockExchanges={[
+                // Create POG exchanges based on the same logic as activeExchanges calculation
+                ...contact.artifacts
+                  ?.filter((artifact: any) => artifact.type === 'pog')
+                  ?.filter((artifact: any) => 
+                    artifact.metadata?.active_exchange || 
+                    ['offered', 'in_progress'].includes(artifact.metadata?.status)
+                  )
+                  ?.map((artifact: any) => ({
+                    id: artifact.id,
+                    title: artifact.metadata?.description || artifact.content || 'No description',
+                    type: 'pog' as const,
+                    status: 'active' as const,
+                    createdAt: new Date(artifact.timestamp || Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+                    contactName: contact.name || 'Contact',
+                    sourceArtifact: {
+                      type: 'voice_memo',
+                      title: 'Recent conversation',
+                      date: new Date(artifact.timestamp || Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000)
+                    }
+                  })) || [],
+                // Create Ask exchanges based on the same logic as activeExchanges calculation
+                ...contact.artifacts
+                  ?.filter((artifact: any) => artifact.type === 'ask')
+                  ?.filter((artifact: any) => 
+                    artifact.metadata?.active_exchange || 
+                    ['requested', 'in_progress'].includes(artifact.metadata?.status)
+                  )
+                  ?.map((artifact: any) => ({
+                    id: artifact.id,
+                    title: artifact.metadata?.request_description || artifact.content || 'No description',
+                    type: 'ask' as const,
+                    status: 'active' as const,
+                    createdAt: new Date(artifact.timestamp || Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+                    contactName: contact.name || 'Contact',
+                    sourceArtifact: {
+                      type: 'meeting',
+                      title: 'Follow-up discussion',
+                      date: new Date(artifact.timestamp || Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000)
+                    }
+                  })) || []
+              ]}
             />
 
-            <ReciprocityDashboard 
-              outstandingCommitments={undefined}
+            {/* New Action Intelligence Center */}
+            <ActionIntelligenceCenter
+              contactId={contactId}
+              contactName={contact.name || 'Contact'}
+              actions={contactActions.map(action => {
+                // Find the linked artifact if it exists
+                const linkedArtifact = action.artifact_id 
+                  ? contact?.artifacts?.find((art: any) => art.id === action.artifact_id)
+                  : null;
+                
+                // Determine type based on linked artifact, not database action_type
+                const getActionTypeFromArtifact = (): 'pog' | 'ask' | 'general' | 'follow_up' => {
+                  if (linkedArtifact) {
+                    if (linkedArtifact.type === 'pog') return 'pog';
+                    if (linkedArtifact.type === 'ask') return 'ask';
+                  }
+                  // Fall back to original mapping for unlinked actions
+                  return mapActionTypeToDisplay(action.action_type);
+                };
+                
+                return {
+                  id: action.id,
+                  title: action.title,
+                  description: action.description,
+                  type: getActionTypeFromArtifact(),
+                  status: mapActionStatusToDisplay(action.status),
+                  priority: mapActionPriorityToDisplay(action.priority),
+                  dueDate: action.due_date ? new Date(action.due_date) : undefined,
+                  source: action.artifact_id ? 'Related to artifact' : undefined,
+                  sourceArtifact: linkedArtifact ? {
+                    id: linkedArtifact.id,
+                    type: linkedArtifact.type,
+                    title: linkedArtifact.content || linkedArtifact.metadata?.title || linkedArtifact.metadata?.description || 'No description',
+                    date: new Date(linkedArtifact.timestamp || linkedArtifact.created_at),
+                    excerpt: linkedArtifact.metadata?.excerpt || (typeof linkedArtifact.content === 'string' ? linkedArtifact.content.substring(0, 100) : String(linkedArtifact.content || '').substring(0, 100))
+                  } : undefined,
+                };
+              })}
+              onUpdateActionStatus={async (actionId, newStatus) => {
+                try {
+                  await updateActionMutation.mutateAsync({
+                    id: actionId,
+                    updates: {
+                      status: mapDisplayStatusToDatabase(newStatus),
+                      ...(newStatus === 'completed' && { completed_at: new Date().toISOString() }),
+                    },
+                  });
+                } catch (error) {
+                  console.error('Failed to update action status:', error);
+                }
+              }}
+              onEditAction={(actionId) => {
+                // Find the original database action instead of transforming
+                const actionToEdit = contactActions.find(action => action.id === actionId);
+                if (actionToEdit) {
+                  setSelectedActionForEdit(actionToEdit);
+                  setIsCreateActionModalOpen(true);
+                }
+              }}
+              onCreateAction={(type) => {
+                if (type === 'pog' || type === 'ask') {
+                  // Open CreateArtifactModal for POGs and Asks
+                  setCreateArtifactType(type);
+                  setIsCreateArtifactModalOpen(true);
+                } else {
+                  // Open CreateActionModal for general actions
+                  setIsCreateActionModalOpen(true);
+                }
+              }}
+              timingOpportunities={[]} // TODO: Generate from contact data
+              onActOnOpportunity={(opportunityId) => {
+              }}
+              nextBestAction={
+                pogs.length > 0 || asks.length > 0 
+                  ? {
+                      id: 'next-best',
+                      title: 'Follow up on recent conversation',
+                      type: 'follow_up',
+                      status: 'queued',
+                      priority: 'high',
+                    }
+                  : undefined
+              }
             />
 
-            {/* Loop System Integration Point */}
+            {/* Meeting Intelligence - Unified Section */}
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
-                Loop Management
-              </Typography>
-              {/* AI Loop Suggestions */}
-              <LoopSuggestions contactId={contactId} />
-              {/* Existing Loop Dashboard */}
-              <LoopDashboard contactId={contactId} contactName={contact.name || 'Contact'} />
-            </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  Meeting Intelligence
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    // Navigate to timeline filtered by meetings
+                    router.push(`/dashboard/timeline?contact=${contactId}&type=meeting`);
+                  }}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Show All Meetings
+                </Button>
+              </Box>
+              
+              {/* Upcoming Meeting */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 1.5, fontSize: '1.1rem' }}>
+                  Upcoming Connection
+                </Typography>
+                <NextConnection 
+                  contactId={contactId} 
+                />
+              </Box>
 
-            {/* Meeting Intelligence Integration Point */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
-                Meeting Intelligence
-              </Typography>
-                              <MeetingManager 
+              {/* Past Meetings Needing Processing */}
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 1.5, fontSize: '1.1rem' }}>
+                  Recent Meetings
+                </Typography>
+                <MeetingManager 
                   contactId={contactId}
                 />
+              </Box>
             </Box>
+
+            <ContextSections 
+              contactData={contact}
+              contactId={contactId}
+            />
 
             {/* Email Management Integration Point */}
             <Box sx={{ mt: 3 }}>
@@ -804,7 +1342,8 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
               />
             </Box>
 
-            {/* LinkedIn Posts Integration Point */}
+            {/* LinkedIn Posts Integration Point - Removed from contact profile, will be moved elsewhere */}
+            {/* 
             {contact.linkedin_url && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="h5" gutterBottom component="div" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
@@ -816,29 +1355,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
                 />
               </Box>
             )}
-
-            <ContextSections 
-              contactData={contact}
-              contactId={contactId}
-            />
-          </Box>
-          
-          <Box sx={{ width: '300px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2, position: 'sticky', top: '70px' }}>
-            {isClient && <VoiceRecorder 
-              contactId={contactId} 
-            />}
-            <QuickAdd 
-              onAddNote={handleQuickAddNote}
-              onAddMeeting={handleQuickAddMeeting}
-              onAddPOG={handleQuickAddPOG}
-              onAddAsk={handleQuickAddAsk}
-              onAddMilestone={handleQuickAddMilestone} 
-            />
-            <FullSuggestionManager
-              contactId={contactId}
-              priority={suggestionPriority}
-            />
-          </Box>
+            */}
         </Box>
       </Box>
 
@@ -900,19 +1417,122 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         />
       )}
 
-      {isClient && (
-        <EnhancedLoopModal
-          open={isEnhancedLoopModalOpen}
-          onClose={() => setIsEnhancedLoopModalOpen(false)}
-          artifact={selectedLoopForEnhancedModal}
+      {/* EnhancedLoopModal removed - loops deprecated */}
+
+      {/* Unified Artifact Detail Modal */}
+      {selectedArtifactForDetailModal && user && (
+        <ArtifactDetailModal
+          open={isArtifactDetailModalOpen}
+          onClose={() => {
+            setIsArtifactDetailModalOpen(false);
+            setSelectedArtifactForDetailModal(null);
+          }}
+          artifact={selectedArtifactForDetailModal}
           contactName={contact?.name || 'Contact'}
-          onStatusUpdate={handleLoopStatusUpdate}
-          onEdit={handleEditLoopDetails}
-          onDelete={handleDeleteLoop}
-          onShare={handleShareLoopWithContact}
-          onComplete={handleCompleteLoop}
+          contactId={contactId}
+          currentUserId={user.id}
+          sourceArtifact={
+            // Find the source artifact if available
+            selectedArtifactForDetailModal?.metadata?.source_artifact_id 
+              ? contact?.artifacts?.find((art: any) => art.id === selectedArtifactForDetailModal?.metadata?.source_artifact_id)
+              : undefined
+          }
+          relatedActions={artifactActions.map(transformDbActionToModalAction)}
+          onDelete={handleDeleteArtifact}
+          onReprocess={handleReprocessArtifact}
+          onAddAction={handleCreateActionForArtifact}
+          artifacts={contact?.artifacts || []} // Pass artifacts for POG/Ask dropdown
+          onActionRefresh={() => {
+            // Invalidate and refetch actions
+            queryClient.invalidateQueries({ queryKey: ['actions', 'by-artifact', selectedArtifactForDetailModal?.id] });
+            queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
+          }}
+          onViewAction={(actionId) => {
+            // TODO: Open action detail modal
+            showToast('Action details coming soon!', 'info');
+          }}
+          onViewSource={(artifactId) => {
+            // Find and open the source artifact
+            const sourceArtifact = contact?.artifacts?.find((art: any) => art.id === artifactId);
+            if (sourceArtifact) {
+              handleOpenArtifactModal(sourceArtifact);
+            }
+          }}
+          isDeleting={isDeleting}
+          isReprocessing={isReprocessingArtifactModal}
         />
       )}
+
+      {/* CreateArtifactModal for POGs and Asks */}
+      <CreateArtifactModal
+        open={isCreateArtifactModalOpen}
+        onClose={() => setIsCreateArtifactModalOpen(false)}
+        artifactType={createArtifactType}
+        preSelectedContactId={contactId}
+        preSelectedContactName={contact?.name ?? undefined}
+        contacts={[]} // TODO: Add contacts list if needed
+        onArtifactCreated={(data) => {
+          // Refresh relevant queries
+          queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
+          queryClient.invalidateQueries({ queryKey: ['artifacts', { contact_id: contactId }] });
+          setIsCreateArtifactModalOpen(false);
+        }}
+        onArtifactCreating={async (data) => {
+          
+          if (!user) {
+            throw new Error('User not authenticated');
+          }
+          
+          // Convert CreateArtifactModal data to database format  
+          const newArtifact: NewArtifact = {
+            type: data.type === 'task' ? 'other' : data.type, // Map 'task' to 'other' for database
+            content: data.content,
+            contact_id: data.contactId || contactId, // Ensure contact_id is always set
+            user_id: user.id,
+            metadata: data.metadata,
+            timestamp: new Date().toISOString(),
+            ai_parsing_status: 'pending' as const,
+            // Set directionality fields for POGs and Asks
+            ...(data.type === 'pog' && {
+              initiator_user_id: user.id,
+              recipient_contact_id: data.contactId,
+            }),
+            ...(data.type === 'ask' && {
+              initiator_user_id: user.id,
+              recipient_contact_id: data.contactId,
+            }),
+          };
+          
+          // Create the artifact in the database
+          await createArtifact(newArtifact);
+        }}
+      />
+
+      {/* CreateActionModal for general actions */}
+      <CreateActionModal
+        open={isCreateActionModalOpen}
+        onClose={() => {
+          setIsCreateActionModalOpen(false);
+          setSelectedActionForEdit(null);
+        }}
+        contactId={contactId}
+        contactName={contact?.name ?? undefined}
+        existingAction={selectedActionForEdit}
+        mode={selectedActionForEdit ? 'edit' : 'create'}
+        artifacts={contact?.artifacts || []}
+        onActionCreated={(action) => {
+          // Refresh actions queries
+          queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
+          setIsCreateActionModalOpen(false);
+          setSelectedActionForEdit(null);
+        }}
+        onActionUpdated={(action) => {
+          // Refresh actions queries
+          queryClient.invalidateQueries({ queryKey: ['actions', 'by-contact', contactId] });
+          setIsCreateActionModalOpen(false);
+          setSelectedActionForEdit(null);
+        }}
+      />
 
       {/* Onboarding Tour */}
       <OnboardingTour 

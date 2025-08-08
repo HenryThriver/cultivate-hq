@@ -77,11 +77,12 @@ export const LinkedInPostsSyncStatus: React.FC<LinkedInPostsSyncStatusProps> = (
     }
   }, [contactId]);
 
-  // Fetch status on mount
+  // Fetch status on mount and after manual sync
   useEffect(() => {
     fetchSyncStatus();
-    const interval = setInterval(fetchSyncStatus, 10000);
-    return () => clearInterval(interval);
+    // Removed frequent polling - sync happens on schedule instead
+    // const interval = setInterval(fetchSyncStatus, 10000);
+    // return () => clearInterval(interval);
   }, [fetchSyncStatus]);
 
   const getSyncStatusChip = () => {
@@ -223,16 +224,23 @@ export const LinkedInPostsSyncStatus: React.FC<LinkedInPostsSyncStatusProps> = (
       )}
 
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="body2" color="text.secondary">
-          {syncStatus === 'never' 
-            ? 'Sync LinkedIn posts to see activity timeline'
-            : syncStatus === 'failed'
-            ? 'Last sync failed. Try again?'
-            : syncStatus === 'in_progress'
-            ? 'Syncing posts from LinkedIn...'
-            : `${postsCount} posts synced`
-          }
-        </Typography>
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            {syncStatus === 'never' 
+              ? 'Sync LinkedIn posts to see activity timeline'
+              : syncStatus === 'failed'
+              ? 'Last sync failed. Try again?'
+              : syncStatus === 'in_progress'
+              ? 'Syncing posts from LinkedIn...'
+              : `${postsCount} posts synced`
+            }
+          </Typography>
+          {syncStatus !== 'never' && syncStatus !== 'in_progress' && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+              Next sync: Weekly on Mondays {/* TODO: Fetch actual schedule from linkedin_sync_schedules table */}
+            </Typography>
+          )}
+        </Box>
         
         <Button
           size="small"

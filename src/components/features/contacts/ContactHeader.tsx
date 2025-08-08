@@ -770,7 +770,7 @@ export const ContactHeader: React.FC<ContactHeaderProps> = ({
             </Box>
             
             {/* Relationship Quality Score */}
-            {relationshipScore !== undefined && onUpdateRelationshipScore && (
+            {relationshipScore !== undefined && relationshipScore !== null && onUpdateRelationshipScore && (
               <RelationshipScoreEditor
                 score={relationshipScore}
                 onUpdate={onUpdateRelationshipScore}

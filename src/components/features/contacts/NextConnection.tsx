@@ -226,7 +226,7 @@ export const NextConnection: React.FC<NextConnectionProps> = ({ contactId }) => 
   }
 
   // Assuming nextConnection.agenda is of type ConnectionAgenda which has an items array
-  const agendaItems = nextConnection.agenda?.items;
+  const agendaItems = nextConnection?.agenda?.items;
 
   return (
     <Paper 
@@ -247,13 +247,13 @@ export const NextConnection: React.FC<NextConnectionProps> = ({ contactId }) => 
       }}
     >
       <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: '#3730a3', mb: 1.5, fontSize: '1.1rem' }}>
-        {nextConnection.connection_type || 'Catch-up'} {/* Use connection_type or a default */}
+        {nextConnection?.connection_type || 'Catch-up'} {/* Use connection_type or a default */}
       </Typography>
       <Typography variant="body1" sx={{ color: '#4338ca', fontWeight: 500, mb: 0.5 }}>
-        <strong>When:</strong> {formatDate(nextConnection.scheduled_date)}
+        <strong>When:</strong> {nextConnection?.scheduled_date ? formatDate(nextConnection.scheduled_date) : 'Date TBD'}
       </Typography>
       <Typography variant="body1" sx={{ color: '#4338ca', mb: {xs: 2, md: 3} }}>
-        <strong>Where:</strong> {nextConnection.location || 'Location TBD'} {/* Add platform if available and needed */}
+        <strong>Where:</strong> {nextConnection?.location || 'Location TBD'} {/* Add platform if available and needed */}
       </Typography>
 
       {agendaItems && agendaItems.length > 0 && (

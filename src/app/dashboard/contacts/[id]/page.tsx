@@ -1433,8 +1433,8 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           currentUserId={user.id}
           sourceArtifact={
             // Find the source artifact if available
-            selectedArtifactForDetailModal.metadata?.source_artifact_id 
-              ? contact?.artifacts?.find((art: any) => art.id === selectedArtifactForDetailModal.metadata?.source_artifact_id)
+            selectedArtifactForDetailModal?.metadata?.source_artifact_id 
+              ? contact?.artifacts?.find((art: any) => art.id === selectedArtifactForDetailModal?.metadata?.source_artifact_id)
               : undefined
           }
           relatedActions={artifactActions.map(transformDbActionToModalAction)}
@@ -1469,7 +1469,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
         onClose={() => setIsCreateArtifactModalOpen(false)}
         artifactType={createArtifactType}
         preSelectedContactId={contactId}
-        preSelectedContactName={contact?.name}
+        preSelectedContactName={contact?.name ?? undefined}
         contacts={[]} // TODO: Add contacts list if needed
         onArtifactCreated={(data) => {
           // Refresh relevant queries
@@ -1516,7 +1516,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           setSelectedActionForEdit(null);
         }}
         contactId={contactId}
-        contactName={contact?.name}
+        contactName={contact?.name ?? undefined}
         existingAction={selectedActionForEdit}
         mode={selectedActionForEdit ? 'edit' : 'create'}
         artifacts={contact?.artifacts || []}

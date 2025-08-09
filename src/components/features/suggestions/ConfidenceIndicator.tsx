@@ -18,11 +18,12 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
   size = 'medium'
 }) => {
   const getConfidenceColor = () => {
-    if (conflicting) return 'error';
-    if (confidence >= 0.9) return 'success';
-    if (confidence >= 0.7) return 'warning';
-    if (confidence >= 0.5) return 'info';
-    return 'error';
+    // Use design system colors - more muted and sophisticated
+    if (conflicting) return '#616161'; // Neutral gray instead of error red
+    if (confidence >= 0.9) return '#059669'; // Sage green for high confidence (wisdom)
+    if (confidence >= 0.7) return '#2196F3'; // Primary blue for good confidence  
+    if (confidence >= 0.5) return '#9E9E9E'; // Secondary gray for medium confidence
+    return '#616161'; // Neutral gray for low confidence
   };
 
   const getConfidenceLabel = () => {
@@ -34,11 +35,12 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
   };
 
   const getProgressColor = () => {
-    if (conflicting) return 'error';
-    if (confidence >= 0.9) return 'success';
-    if (confidence >= 0.7) return 'warning';
-    if (confidence >= 0.5) return 'info';
-    return 'error';
+    // Match the chip colors for consistency
+    if (conflicting) return '#616161'; // Neutral gray
+    if (confidence >= 0.9) return '#059669'; // Sage green
+    if (confidence >= 0.7) return '#2196F3'; // Primary blue
+    if (confidence >= 0.5) return '#9E9E9E'; // Secondary gray
+    return '#616161'; // Neutral gray
   };
 
   const getSizeProps = () => {
@@ -90,12 +92,14 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
           <LinearProgress
             variant="determinate"
             value={confidence * 100}
-            color={getProgressColor()}
             sx={{
               flexGrow: 1,
               height: sizeProps.progressHeight,
               borderRadius: 1,
-              backgroundColor: 'grey.200'
+              backgroundColor: '#E0E0E0', // Design system neutral border color
+              '& .MuiLinearProgress-bar': {
+                backgroundColor: getProgressColor()
+              }
             }}
           />
           <Typography
@@ -115,11 +119,13 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
           <Chip
             label={getConfidenceLabel()}
             size={sizeProps.chipSize}
-            color={getConfidenceColor()}
-            variant={confidence >= 0.7 ? 'filled' : 'outlined'}
+            variant="outlined"
             sx={{
               fontSize: sizeProps.fontSize,
               fontWeight: 500,
+              color: getConfidenceColor(),
+              borderColor: getConfidenceColor(),
+              backgroundColor: 'transparent',
               '& .MuiChip-label': {
                 px: 1
               }
@@ -127,7 +133,7 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
           />
           {conflicting && (
             <WarningIcon 
-              color="error" 
+              sx={{ color: '#616161' }} // Design system neutral instead of error red
               fontSize={size === 'large' ? 'medium' : 'small'} 
             />
           )}

@@ -20,7 +20,7 @@ export interface BaseArtifact<TContent = Record<string, unknown> | string | null
   timestamp: string; 
   created_at: string;
   updated_at: string;
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null; // Added here
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null | undefined; // Added here
 }
 
 // Database-compatible artifact type (what we get from Supabase)

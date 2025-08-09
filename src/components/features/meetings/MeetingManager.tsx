@@ -3,7 +3,7 @@
 import React from 'react';
 import { Box, Alert, Snackbar } from '@mui/material';
 import { MeetingArtifactCard } from './MeetingArtifactCard';
-import { MeetingDetailModal } from './MeetingDetailModal';
+import { ArtifactDetailModal } from '../contacts/profile/ArtifactDetailModal';
 import { MeetingContentUpload } from './MeetingContentUpload';
 import { useMeetingModals } from '@/lib/hooks/useMeetingModals';
 import { useMeetings } from '@/lib/hooks/useMeetings';
@@ -130,14 +130,13 @@ export const MeetingManager: React.FC<MeetingManagerProps> = ({
 
       {/* Meeting Detail Modal */}
       {selectedMeeting && (
-        <MeetingDetailModal
+        <ArtifactDetailModal
           open={detailModalOpen}
           onClose={closeDetailModal}
-          meeting={selectedMeeting}
-          onUpdateActionItem={handleUpdateActionItem}
-          onApplySuggestion={handleApplySuggestion}
-          onAddContent={handleAddContent}
-          contactId={contactId}
+          artifact={selectedMeeting}
+          contactId={contactId || ''}
+          contactName="Contact" // TODO: Pass actual contact name
+          onArtifactCreated={() => refetch()}
         />
       )}
 

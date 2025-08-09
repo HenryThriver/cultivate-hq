@@ -15,7 +15,22 @@ const CONTACTS_TABLE = 'contacts';
 async function fetchContactWithContext(contactId: string): Promise<Contact | null> {
   const { data, error } = await supabase
     .from(CONTACTS_TABLE)
-    .select('*') // Select all columns, including new JSONB fields
+    .select(`
+      *,
+      artifacts!artifacts_contact_id_fkey (
+        id,
+        type,
+        content,
+        metadata,
+        timestamp,
+        created_at,
+        initiator_user_id,
+        recipient_user_id,
+        initiator_contact_id,
+        recipient_contact_id,
+        loop_status
+      )
+    `) // Include artifacts relationship using specific foreign key
     .eq('id', contactId)
     .single();
 

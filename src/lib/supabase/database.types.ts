@@ -1,37 +1,9 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+// Temporary database types file
+// This will be replaced with generated types from Supabase
 
-export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
+export interface Database {
   public: {
     Tables: {
       actions: {
@@ -1941,89 +1913,13 @@ export type Database = {
         Relationships: []
       }
     }
+>>>>>>> origin/main
     Functions: {
-      create_goal_from_voice_memo: {
-        Args: {
-          p_user_id: string
-          p_voice_memo_id: string
-          p_title: string
-          p_description?: string
-          p_category?: string
-          p_timeline?: string
-          p_success_criteria?: string
-          p_is_primary?: boolean
-        }
-        Returns: string
-      }
-      get_decrypted_secret: {
-        Args: { secret_name: string }
-        Returns: string
-      }
-      get_or_create_self_contact: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
-      get_primary_goal: {
-        Args: { p_user_id: string }
-        Returns: {
-          id: string
-          title: string
-          description: string
-          category: string
-          timeline: string
-          success_criteria: string
-          progress_percentage: number
-          created_at: string
-        }[]
-      }
-      get_self_contact_id: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
-      get_user_integration: {
-        Args: { p_user_id: string; p_integration_type: string }
-        Returns: {
-          id: string
-          access_token: string
-          refresh_token: string
-          token_expires_at: string
-          scopes: string[]
-          metadata: Json
-        }[]
-      }
-      is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_feature_enabled_for_current_user: {
-        Args: { flag_name: string }
-        Returns: boolean
-      }
-      log_admin_action: {
-        Args: {
-          p_admin_user_id: string
-          p_action: string
-          p_resource_type: string
-          p_resource_id?: string
-          p_details?: string
-          p_ip_address?: string
-          p_user_agent?: string
-        }
-        Returns: undefined
-      }
-      upsert_user_integration: {
-        Args: {
-          p_user_id: string
-          p_integration_type: string
-          p_access_token: string
-          p_refresh_token?: string
-          p_token_expires_at?: string
-          p_scopes?: string[]
-          p_metadata?: Json
-        }
-        Returns: string
-      }
-    }
+      [key: string]: {
+        Args: Record<string, any>;
+        Returns: any;
+      };
+    };
     Enums: {
       artifact_type_enum:
         | "note"
@@ -2714,4 +2610,3 @@ export const Constants = {
     },
   },
 } as const
-

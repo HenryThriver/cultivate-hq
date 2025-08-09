@@ -333,40 +333,6 @@ export const PersonalContextDisplay: React.FC<PersonalContextProps> = ({ persona
           </Box>
         )}
         
-        {/* Conversation Starters */}
-        {conversation_starters && (conversation_starters.personal?.length || conversation_starters.professional?.length) && (
-            <Box mb={2}>
-                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium' }}>Conversation Starters</Typography>
-                 {conversation_starters.personal && conversation_starters.personal.length > 0 && (
-                     <Box mb={1}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'medium' }}>Personal:</Typography>
-                        <List dense disablePadding>
-                            {conversation_starters.personal.map((starter, index) => (
-                                <ListItem key={`personal-starter-${index}`} sx={{pl:1}}>
-                                  <SourcedField fieldPath={`personal_context.conversation_starters.personal.${index}`} contactId={contactId} showIndicator={false} compact={true}>
-                                    <ListItemText primary={starter} />
-                                  </SourcedField>
-                                </ListItem>
-                            ))}
-                        </List>
-                     </Box>
-                 )}
-                 {conversation_starters.professional && conversation_starters.professional.length > 0 && (
-                     <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'medium' }}>Professional:</Typography>
-                        <List dense disablePadding>
-                            {conversation_starters.professional.map((starter, index) => (
-                                <ListItem key={`prof-starter-${index}`} sx={{pl:1}}>
-                                  <SourcedField fieldPath={`personal_context.conversation_starters.professional.${index}`} contactId={contactId} showIndicator={false} compact={true}>
-                                    <ListItemText primary={starter} />
-                                  </SourcedField>
-                                </ListItem>
-                            ))}
-                        </List>
-                     </Box>
-                 )}
-            </Box>
-        )}
 
       </CardContent>
     </Card>

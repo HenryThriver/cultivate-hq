@@ -138,27 +138,159 @@ VALUES
     'https://linkedin.com/in/sarahchen',
     '{
       "current_role": "VP Product",
-      "current_company": "TechFlow Dynamics", 
-      "expertise_areas": ["AI/ML Strategy", "Product-Led Growth", "B2B SaaS"],
-      "goals": ["Strategic partnerships in AI space", "Board positions at emerging tech companies"],
-      "networking_objectives": ["Find technical co-founder for side project", "Connect with AI researchers"],
-      "opportunities": ["Introduction to VCs", "Product strategy insights", "Team building advice"]
+      "current_company": "TechFlow Dynamics",
+      "current_role_description": "Leading product strategy for AI-powered analytics platform serving 500+ enterprise customers",
+      "key_responsibilities": [
+        "Define product roadmap for AI/ML features",
+        "Lead cross-functional team of 15 engineers and designers",
+        "Drive partnerships with strategic AI vendors",
+        "Manage $3M annual product development budget"
+      ],
+      "projects_involved": [
+        "AI-powered customer analytics platform",
+        "Machine learning recommendation engine",
+        "Real-time data visualization dashboard"
+      ],
+      "skills": ["Product Strategy", "AI/ML Implementation", "Team Leadership", "Data Analytics", "B2B SaaS"],
+      "work_challenges": [
+        "Scaling AI models for enterprise customers",
+        "Balancing feature velocity with technical debt",
+        "Building AI ethics framework for product decisions"
+      ],
+      "background": {
+        "focus_areas": "Product management in AI/ML and enterprise software with focus on data-driven decision making",
+        "previous_companies": ["Google", "Salesforce", "Palantir", "Stripe"],
+        "expertise_areas": ["AI/ML Strategy", "Product-Led Growth", "B2B SaaS", "Enterprise Software", "Data Analytics"]
+      },
+      "achievements": [
+        {
+          "event": "Led product launch that generated $10M ARR in first year",
+          "date": "2023",
+          "details": "AI analytics platform for enterprise customers"
+        },
+        {
+          "event": "Named Top 40 Under 40 Product Leaders",
+          "date": "2022", 
+          "details": "TechCrunch recognition for AI product innovation"
+        },
+        {
+          "event": "Built and scaled product team from 3 to 25 people",
+          "date": "2021-2023",
+          "details": "During TechFlow''s Series B growth phase"
+        }
+      ],
+      "goals": [
+        "Launch AI ethics certification program for product teams",
+        "Secure board position at emerging AI company",
+        "Establish strategic partnerships with 3 major AI vendors"
+      ],
+      "networking_objectives": [
+        "Connect with AI researchers at Stanford and MIT", 
+        "Build relationships with enterprise AI buyers",
+        "Find technical co-founder for AI ethics startup"
+      ],
+      "opportunities_to_help": [
+        "Introduction to enterprise customers for AI pilots",
+        "Product strategy consulting for AI startups",
+        "Mentoring product managers in AI/ML space",
+        "Board advisory roles for B2B SaaS companies"
+      ],
+      "introduction_needs": [
+        "AI research scientists for technical advisory",
+        "Enterprise AI buyers for market research",
+        "Experienced CTOs for scaling advice"
+      ],
+      "resource_needs": [
+        "Access to latest AI research papers",
+        "Connections to AI ethics thought leaders",
+        "Industry reports on enterprise AI adoption"
+      ]
     }'::jsonb,
     '{
-      "interests": ["Classical music", "Marathon running", "Sustainable technology"],
       "family": {
-        "partner": {"name": "David", "relationship": "Partner", "details": "Software architect at Meta"},
-        "children": [{"name": "Emma", "relationship": "Daughter", "details": "Age 8, loves robotics"}]
+        "partner": {"name": "David", "details": "Software architect at Meta"},
+        "children": [
+          {"name": "Emma", "relationship": "Daughter", "details": "Age 8, loves robotics"}
+        ],
+        "parents": "Live in Vancouver, both retired teachers",
+        "siblings": "One younger brother, Alex, who works in renewable energy"
       },
+      "values": ["Innovation with purpose", "Work-life balance", "Environmental sustainability", "Ethical technology", "Continuous learning"],
+      "education": "Stanford Computer Science (BS), MIT Sloan (MBA)",
+      "key_life_events": [
+        "Completed first marathon in Boston (2023)",
+        "Led family volunteer trip to build schools in Guatemala (2022)", 
+        "Achieved work-life balance after burnout at previous job (2021)",
+        "Started AI ethics nonprofit side project (2023)"
+      ],
+      "living_situation": "Lives in Palo Alto with family, recently renovated home to be solar-powered",
+      "current_challenges": [
+        "Balancing demanding VP role with family time",
+        "Finding time for AI ethics nonprofit project",
+        "Managing Emma''s increasing interest in competitive robotics"
+      ],
+      "upcoming_changes": [
+        "Planning sabbatical in 2024 to focus on AI ethics startup",
+        "Emma starting advanced STEM program in fall",
+        "Considering move to Boulder for better work-life balance"
+      ],
+      "interests": ["Classical music", "Marathon running", "Sustainable technology", "AI ethics", "Urban gardening", "Cooking", "Travel"],
+      "hobbies": ["Piano playing", "Trail running", "Organic gardening", "Wine tasting", "Photography"],
+      "travel_plans": [
+        "Family trip to New Zealand planned for winter break",
+        "Solo running retreat in Big Sur this fall",
+        "Conference speaking in London next month"
+      ],
+      "motivations": [
+        "Creating technology that benefits humanity",
+        "Being a role model for women in tech",
+        "Raising Emma to be confident in STEM",
+        "Building sustainable future through innovation"
+      ],
+      "milestones": [
+        {
+          "event": "🏃‍♀️ Completed Boston Marathon",
+          "date": "April 2023",
+          "impact": "Personal achievement after 2 years of training"
+        },
+        {
+          "event": "🎓 Graduated from MIT Sloan",
+          "date": "May 2019",
+          "impact": "Career pivot from engineering to product management"
+        },
+        {
+          "event": "👶 Emma was born",
+          "date": "2015",
+          "impact": "Shifted priorities toward work-life balance"
+        }
+      ],
+      "anecdotes": [
+        "Once debugged a critical production issue while at Emma''s robotics competition",
+        "Accidentally gave a product demo in Mandarin during a jet-lagged investor meeting",
+        "David proposed during a work conference in Tokyo - very romantic despite the setting"
+      ],
+      "communication_style": "Direct but empathetic, prefers structured conversations with clear outcomes, values transparency and authenticity",
+      "relationship_goal": "Build meaningful professional relationships that create mutual value and contribute to positive impact in the AI space",
       "conversation_starters": {
-        "professional": ["Ask about her AI ethics framework", "Discuss the future of product management"],
-        "personal": ["Her recent marathon in Boston", "Family trip to Japan last summer"]
+        "professional": [
+          "Ask about her AI ethics framework for product development",
+          "Discuss the future of product management in AI-first companies",
+          "Her thoughts on responsible AI deployment at enterprise scale",
+          "Challenges of building diverse product teams in tech"
+        ],
+        "personal": [
+          "Her recent marathon training and Boston Marathon experience",
+          "Family trip to Japan last summer and cultural experiences",
+          "Emma''s robotics competitions and STEM education",
+          "Sustainable living initiatives and solar home renovation",
+          "Piano playing and classical music recommendations"
+        ]
       }
     }'::jsonb,
     5.5,
-    NOW() - INTERVAL '5 days',
-    '2024-01-15'::timestamp,
-    '2024-07-20'::timestamp
+    NOW() - INTERVAL '2 days',
+    NOW() - INTERVAL '6 months',
+    NOW() - INTERVAL '1 day'
   ),
   (
     'a2222222-89ab-cdef-0123-456789abcdef'::uuid,
@@ -183,8 +315,8 @@ VALUES
     }'::jsonb,
     6.0,
     NOW() - INTERVAL '12 days',
-    '2024-02-10'::timestamp,
-    '2024-07-18'::timestamp
+    NOW() - INTERVAL '4 months',
+    NOW() - INTERVAL '3 days'
   ),
   (
     'a3333333-89ab-cdef-0123-456789abcdef'::uuid,
@@ -215,8 +347,8 @@ VALUES
     }'::jsonb,
     6.0,
     NOW() - INTERVAL '8 days',
-    '2024-03-05'::timestamp,
-    '2024-07-25'::timestamp
+    NOW() - INTERVAL '5 months',
+    NOW() - INTERVAL '1 week'
   ),
   (
     'a4444444-89ab-cdef-0123-456789abcdef'::uuid,
@@ -245,8 +377,34 @@ VALUES
     }'::jsonb,
     5.8,
     NOW() - INTERVAL '15 days',
-    '2024-01-20'::timestamp,
-    '2024-07-22'::timestamp
+    NOW() - INTERVAL '3 months',
+    NOW() - INTERVAL '5 days'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert contact emails for email management functionality  
+INSERT INTO public.contact_emails (id, contact_id, email, email_type, is_primary, verified, created_at, updated_at)
+VALUES
+  -- Sarah Chen emails
+  (
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    'sarah.chen@techflow.com',
+    'work',
+    true,  -- Primary email
+    true,
+    NOW() - INTERVAL '6 months',
+    NOW() - INTERVAL '1 day'
+  ),
+  (
+    'e1111112-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen  
+    'sarah.chen.personal@gmail.com',
+    'personal',
+    false,
+    true,
+    NOW() - INTERVAL '6 months',
+    NOW() - INTERVAL '1 day'
   )
 ON CONFLICT (id) DO NOTHING;
 
@@ -459,14 +617,6 @@ INSERT INTO public.goal_contacts (
   created_at
 )
 VALUES 
-  (
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- AI/ML goal
-    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
-    0.9,
-    'AI/ML expertise - strategic partnership opportunities',
-    NOW() - INTERVAL '1 week'
-  ),
   (
     '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
     'e1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- AI/ML goal
@@ -965,34 +1115,8 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
--- Create loop analytics for reciprocity tracking
-INSERT INTO public.loop_analytics (id, user_id, contact_id, loop_artifact_id, loop_type, status_transitions, completion_time_days, reciprocity_impact, success_score, created_at)
-VALUES
-  (
-    'aa111111-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
-    'b3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    'INTRODUCTION',
-    '{"QUEUED": "2024-07-20", "ACTIVE": "2024-07-21", "COMPLETED": "2024-07-27"}'::jsonb,
-    6,
-    6.0,
-    9.0,
-    NOW() - INTERVAL '1 day'
-  ),
-  (
-    'aa222222-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    'b2222222-89ab-cdef-0123-456789abcdef'::uuid,
-    'ASK',
-    '{"QUEUED": "2024-07-01", "ACTIVE": "2024-07-02", "COMPLETED": "2024-07-18"}'::jsonb,
-    14,
-    5.2,
-    6.0,
-    NOW() - INTERVAL '10 days'
-  )
-ON CONFLICT (id) DO NOTHING;
+-- Loop analytics table has been deprecated - functionality moved to artifacts with actions
+-- Reciprocity tracking is now handled through artifact directionality fields
 
 -- ============================================================================
 -- EXPANDED CONTACT NETWORK (21 NEW CONTACTS)
@@ -1231,3 +1355,690 @@ INSERT INTO goal_milestones (
     NOW() - INTERVAL '10 days'
   )
 ON CONFLICT (id) DO NOTHING;
+
+-- Add additional goal for Sarah Chen demonstration
+INSERT INTO public.goals (id, user_id, title, description, target_date, status, progress_percentage, created_at, updated_at)
+VALUES
+  (
+    'e4444444-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'Build Strategic Product Partnerships',
+    'Establish 5 strategic partnerships with AI/ML companies to enhance our product capabilities',
+    (NOW() + INTERVAL '6 months')::date,
+    'active',
+    30,
+    NOW() - INTERVAL '2 weeks',
+    NOW() - INTERVAL '1 day'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Associate Sarah Chen with the new goal
+INSERT INTO public.goal_contacts (id, user_id, goal_id, contact_id, relationship_type, relevance_score, how_they_help, created_at)
+VALUES
+  (
+    '11111111-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'e4444444-89ab-cdef-0123-456789abcdef'::uuid,  -- Build Strategic Product Partnerships goal
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    'collaborator',
+    0.95,
+    'VP Product at TechFlow - perfect for strategic AI/ML product partnerships',
+    NOW() - INTERVAL '1 week'
+  ),
+  -- Also connect Sarah to the AI/ML Network goal
+  (
+    '11111112-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Expand Strategic Network in AI/ML goal
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    'industry_expert',
+    0.90,
+    'Key influencer in AI/ML product space with extensive network',
+    NOW() - INTERVAL '2 weeks'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Add contact update suggestions for Sarah Chen to test the UI
+INSERT INTO public.contact_update_suggestions (id, artifact_id, contact_id, user_id, suggested_updates, field_paths, confidence_scores, status, created_at)
+VALUES
+  (
+    '01111111-89ab-cdef-0123-456789abcdef'::uuid,
+    'b1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen voice memo artifact
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen contact
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    '{
+      "professional_context": {
+        "current_projects": ["AI-powered analytics platform", "ML model optimization"],
+        "team_size": "15 engineers",
+        "quarterly_goals": "Q1 2024: Launch new AI features, expand ML capabilities"
+      },
+      "personal_context": {
+        "interests": ["AI ethics", "startup mentoring", "sustainable technology"],
+        "conversation_starters": {
+          "professional": ["AI model deployment challenges", "product-market fit for AI features"],
+          "personal": ["sustainable tech initiatives", "mentoring early-stage founders"]
+        }
+      }
+    }'::jsonb,
+    '{professional_context.current_projects,professional_context.team_size,professional_context.quarterly_goals,personal_context.interests,personal_context.conversation_starters}',
+    '{
+      "professional_context.current_projects": 0.92,
+      "professional_context.team_size": 0.85,
+      "professional_context.quarterly_goals": 0.88,
+      "personal_context.interests": 0.90,
+      "personal_context.conversation_starters": 0.87
+    }'::jsonb,
+    'pending',
+    NOW() - INTERVAL '2 hours'
+  ),
+  (
+    '02222222-89ab-cdef-0123-456789abcdef'::uuid,
+    'b1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen voice memo artifact
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen contact
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    '{
+      "professional_context": {
+        "current_company": "TechFlow Dynamics",
+        "recent_achievements": ["Led $5M Series B product strategy", "Launched 3 AI features with 40% user adoption"],
+        "industry_expertise": ["AI/ML product development", "enterprise software", "data platform scaling"]
+      }
+    }'::jsonb,
+    '{professional_context.recent_achievements,professional_context.industry_expertise}',
+    '{
+      "professional_context.recent_achievements": 0.94,
+      "professional_context.industry_expertise": 0.96
+    }'::jsonb,
+    'pending',
+    NOW() - INTERVAL '1 hour'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- POG AND ASK ARTIFACTS FOR TESTING RELATIONSHIP EXCHANGE FLOWS
+-- These create the sophisticated POGs and Asks that will have actions associated
+-- ============================================================================
+
+-- Add POG and Ask artifacts for Sarah Chen
+INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata, initiator_user_id, recipient_user_id, initiator_contact_id, recipient_contact_id)
+VALUES
+  -- POG: Connected her with market research network (in progress)
+  (
+    'a0000001-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Connected Sarah with my market research network to help with her AI product validation',
+    NOW() - INTERVAL '5 days',
+    'completed',
+    NOW() - INTERVAL '5 days',
+    '{
+      "description": "Connected her with my network for market research",
+      "status": "in_progress",
+      "type_of_pog": "introduction",
+      "active_exchange": true,
+      "initiator": "user",
+      "value_delivered": "Market research connections"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen)
+  ),
+  -- POG: Shared PM course early access (delivered)
+  (
+    'a0000002-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Gave Sarah early access to my product management course focused on AI product development',
+    NOW() - INTERVAL '2 weeks',
+    'completed',
+    NOW() - INTERVAL '2 weeks',
+    '{
+      "description": "Shared early access to my product management course",
+      "status": "delivered",
+      "type_of_pog": "resource_sharing",
+      "active_exchange": false,
+      "initiator": "user",
+      "value_delivered": "Educational content"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen)
+  ),
+  -- POG: TechCorp partnership introduction (delivered)
+  (
+    'a0000003-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Introduced Sarah to my contact at TechCorp for potential product partnership',
+    NOW() - INTERVAL '3 weeks',
+    'completed',
+    NOW() - INTERVAL '3 weeks',
+    '{
+      "description": "Introduction to my contact at TechCorp for product partnership",
+      "status": "delivered",
+      "type_of_pog": "business_introduction",
+      "active_exchange": false,
+      "initiator": "user",
+      "value_delivered": "Strategic business connection"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen)
+  ),
+  -- POG: AI strategy framework (offered)
+  (
+    'a0000004-89ab-cdef-0123-456789abcdef'::uuid,
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid,  -- Marcus Rodriguez
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Offered to share my comprehensive AI product strategy framework with Marcus',
+    NOW() - INTERVAL '1 week',
+    'completed',
+    NOW() - INTERVAL '1 week',
+    '{
+      "description": "Shared my framework for AI product strategy", 
+      "status": "offered",
+      "type_of_pog": "strategic_framework",
+      "active_exchange": true,
+      "initiator": "user",
+      "value_delivered": "Strategic planning resources"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user giving)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Marcus Rodriguez)
+  ),
+
+  -- ASK: Investor introductions (in progress)
+  (
+    'a0000011-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'ask',
+    'Sarah asked for introductions to investors in the fintech space for her new AI startup',
+    NOW() - INTERVAL '1 week',
+    'completed',
+    NOW() - INTERVAL '1 week',
+    '{
+      "description": "Introduction to investors in fintech space",
+      "status": "in_progress", 
+      "type_of_ask": "investor_introduction",
+      "active_exchange": true,
+      "initiator": "contact",
+      "request_details": "Fintech investor connections for AI startup"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (actually, contact initiated but user tracks)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving ask)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen asking)
+    NULL   -- recipient_contact_id (user has no contact record)
+  ),
+  -- ASK: Pitch deck feedback (requested)
+  (
+    'a0000012-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'ask',
+    'Asked for feedback on my startup pitch deck, particularly around the AI product strategy section',
+    NOW() - INTERVAL '3 days',
+    'completed',
+    NOW() - INTERVAL '3 days',
+    '{
+      "description": "Asked for feedback on my startup pitch deck",
+      "status": "requested",
+      "type_of_ask": "feedback_request",
+      "active_exchange": true,
+      "initiator": "user",
+      "request_details": "Pitch deck review and feedback"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (user asking)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (same user for now)
+    NULL,  -- initiator_contact_id (user has no contact record)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid   -- recipient_contact_id (Sarah Chen being asked)
+  ),
+  -- ASK: User research help (received)
+  (
+    'a0000013-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'ask',
+    'Sarah asked for help with user research methodology for her new AI product',
+    NOW() - INTERVAL '2 weeks',
+    'completed',
+    NOW() - INTERVAL '2 weeks',
+    '{
+      "description": "Help with user research for her new product",
+      "status": "received",
+      "type_of_ask": "consultation",
+      "active_exchange": false,
+      "initiator": "contact",
+      "request_details": "User research methodology guidance"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (actually, contact initiated but user tracks)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving ask)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen asking)
+    NULL   -- recipient_contact_id (user has no contact record)
+  ),
+
+  -- RECIPROCAL POGs FROM SARAH CHEN (she initiated these)
+  -- POG: Sarah introduced user to her VC connections
+  (
+    'a0000021-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Sarah introduced me to two VCs from her network who are interested in AI infrastructure',
+    NOW() - INTERVAL '10 days',
+    'completed',
+    NOW() - INTERVAL '10 days',
+    '{
+      "description": "Introduction to VC partners interested in AI",
+      "status": "delivered",
+      "type_of_pog": "investor_introduction",
+      "active_exchange": false,
+      "initiator": "contact",
+      "value_delivered": "VC connections for fundraising"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (tracking in system)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen giving)
+    NULL   -- recipient_contact_id (user has no contact record as recipient)
+  ),
+  
+  -- POG: Sarah shared her product roadmap template
+  (
+    'a0000022-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'pog',
+    'Sarah shared her comprehensive product roadmap template that helped her scale TechFlow',
+    NOW() - INTERVAL '2 weeks',
+    'completed',
+    NOW() - INTERVAL '2 weeks',
+    '{
+      "description": "Shared her proven product roadmap template",
+      "status": "delivered",
+      "type_of_pog": "resource_sharing",
+      "active_exchange": false,
+      "initiator": "contact",
+      "value_delivered": "Strategic planning template"
+    }'::jsonb,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- initiator_user_id (tracking in system)
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,  -- recipient_user_id (user receiving)
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- initiator_contact_id (Sarah Chen giving)
+    NULL   -- recipient_contact_id (user has no contact record as recipient)
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- LIVE CONNECTIONS: MEETING ARTIFACTS WITH RECENT PAST AND FUTURE DATES
+-- These create the live connections for the relationship pulse dashboard
+-- ============================================================================
+
+INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata)
+VALUES
+  -- Recent past meetings (within last 2 weeks)
+  (
+    'a0000101-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    '{
+      "summary": "Productive coffee chat about AI product strategy and market validation",
+      "key_topics": ["AI product development", "Market validation techniques", "User research methodologies"],
+      "action_items": [
+        {"task": "Share market research template with Sarah", "owner": "user", "due_date": "2025-08-10"},
+        {"task": "Review AI ethics framework for product", "owner": "Sarah", "due_date": "2025-08-12"}
+      ],
+      "insights": {
+        "relationship_notes": "Sarah has strong opinions on ethical AI development and user-centric design",
+        "opportunities": ["Introduction to her VC network", "Collaboration on AI ethics guidelines"],
+        "follow_ups": ["Share latest user research findings", "Discuss potential partnership opportunities"]
+      },
+      "attendees": [
+        {"name": "Sarah Chen", "role": "VP Product", "company": "TechFlow Dynamics"},
+        {"name": "Henry", "role": "Product Strategy Consultant"}
+      ],
+      "meeting_notes": "Sarah shared fascinating insights about scaling AI products at TechFlow. Key takeaway: focus on ethical considerations early in product development. She mentioned potential collaboration opportunities and offered to introduce me to her VC network. Strong alignment on user-centric design principles."
+    }',
+    NOW() - INTERVAL '3 days',
+    'completed',  -- Successfully processed with AI insights showing rich content
+    NOW() - INTERVAL '3 days',
+    '{
+      "meeting_type": "coffee_chat",
+      "duration_minutes": 45,
+      "location": "Blue Bottle Coffee, Hayes Valley",
+      "start_time": "2025-08-04T14:00:00Z",
+      "end_time": "2025-08-04T14:45:00Z",
+      "topics": ["AI product strategy", "market validation", "user research"],
+      "outcome": "Shared insights on MVP development approach"
+    }'::jsonb
+  ),
+  (
+    'a0000102-89ab-cdef-0123-456789abcdef'::uuid,
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid,  -- Marcus Rodriguez
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Technical deep-dive session on AI infrastructure scaling and ML ops best practices',
+    NOW() - INTERVAL '1 week',
+    NULL,  -- No AI parsing for this one to show variety
+    NOW() - INTERVAL '1 week',
+    '{
+      "meeting_type": "technical_session",
+      "duration_minutes": 90,
+      "location": "Virtual (Zoom)",
+      "start_time": "2025-07-31T10:00:00Z",
+      "end_time": "2025-07-31T11:30:00Z",
+      "topics": ["MLOps", "infrastructure scaling", "deployment strategies"],
+      "outcome": "Discussed potential collaboration on infrastructure project"
+    }'::jsonb
+  ),
+  (
+    'a0000103-89ab-cdef-0123-456789abcdef'::uuid,
+    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,  -- Jennifer Walsh
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Strategic networking dinner to discuss board opportunities and industry trends',
+    NOW() - INTERVAL '5 days',
+    'completed',
+    NOW() - INTERVAL '5 days',
+    '{
+      "meeting_type": "dinner_meeting",
+      "duration_minutes": 120,
+      "location": "The French Laundry, Yountville",
+      "topics": ["board opportunities", "industry trends", "executive networking"],
+      "outcome": "Identified three potential board matches for consideration"
+    }'::jsonb
+  ),
+
+  -- Future meetings (within next 2 weeks)
+  (
+    'a0000104-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Follow-up session to review progress on investor introductions and discuss pitch refinements',
+    NOW() + INTERVAL '2 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "follow_up",
+      "duration_minutes": 60,
+      "location": "Virtual (Google Meet)",
+      "topics": ["investor introductions", "pitch deck refinement", "funding strategy"],
+      "preparation_notes": "Review intro responses, prepare pitch feedback summary"
+    }'::jsonb
+  ),
+  (
+    'a0000105-89ab-cdef-0123-456789abcdef'::uuid,
+    'a4444444-89ab-cdef-0123-456789abcdef'::uuid,  -- Dr. Amit Patel
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Quarterly AI ethics framework review and collaboration planning session',
+    NOW() + INTERVAL '1 week',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "quarterly_review",
+      "duration_minutes": 75,
+      "location": "Stanford AI Institute",
+      "topics": ["AI ethics framework", "research collaboration", "publication planning"],
+      "preparation_notes": "Prepare framework updates, review latest research papers"
+    }'::jsonb
+  ),
+  (
+    'a0000106-89ab-cdef-0123-456789abcdef'::uuid,
+    'a2222222-89ab-cdef-0123-456789abcdef'::uuid,  -- Marcus Rodriguez
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Strategic partnership exploration meeting to discuss potential AI infrastructure collaboration',
+    NOW() + INTERVAL '10 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "partnership_exploration",
+      "duration_minutes": 90,
+      "location": "InnovateAI Offices, SOMA",
+      "topics": ["partnership opportunities", "technical architecture", "go-to-market strategy"],
+      "preparation_notes": "Prepare partnership proposal, review technical requirements"
+    }'::jsonb
+  ),
+
+  -- Additional upcoming meetings as requested (5, 15, 35 days out)
+  (
+    'a0000107-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,  -- Sarah Chen
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Product strategy review and investor update preparation',
+    NOW() + INTERVAL '5 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "strategy_session",
+      "duration_minutes": 60,
+      "location": "WeWork Golden Gate",
+      "start_time": "2025-08-12T15:00:00Z",
+      "end_time": "2025-08-12T16:00:00Z",
+      "topics": ["product roadmap", "investor updates", "metrics review"],
+      "preparation_notes": "Review latest metrics, prepare investor deck updates"
+    }'::jsonb
+  ),
+  (
+    'a0000108-89ab-cdef-0123-456789abcdef'::uuid,
+    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,  -- Jennifer Walsh
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'Executive coaching session: Board readiness and strategic positioning',
+    NOW() + INTERVAL '15 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "coaching_session",
+      "duration_minutes": 90,
+      "location": "Private Club, Financial District",
+      "start_time": "2025-08-22T09:00:00Z",
+      "end_time": "2025-08-22T10:30:00Z",
+      "topics": ["board readiness", "executive presence", "strategic positioning"],
+      "preparation_notes": "Complete board readiness assessment, review positioning strategy"
+    }'::jsonb
+  ),
+  (
+    'a0000109-89ab-cdef-0123-456789abcdef'::uuid,
+    'a4444444-89ab-cdef-0123-456789abcdef'::uuid,  -- Dr. Amit Patel
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    'AI Ethics Symposium: Panel discussion on responsible AI in enterprise',
+    NOW() + INTERVAL '35 days',
+    'pending',
+    NOW(),
+    '{
+      "meeting_type": "panel_discussion",
+      "duration_minutes": 180,
+      "location": "Stanford Campus, Huang Engineering Center",
+      "start_time": "2025-09-11T13:00:00Z",
+      "end_time": "2025-09-11T16:00:00Z",
+      "topics": ["AI ethics", "enterprise AI governance", "responsible innovation"],
+      "preparation_notes": "Prepare panel talking points, review latest AI ethics papers"
+    }'::jsonb
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- ACTIONS LINKED TO POG AND ASK ARTIFACTS
+-- Realistic actions that demonstrate the full POG/Ask → Action relationship
+-- ============================================================================
+
+INSERT INTO public.actions (
+  user_id,
+  action_type,
+  title,
+  description,
+  priority,
+  status,
+  artifact_id,
+  contact_id,
+  due_date,
+  estimated_duration_minutes,
+  created_source,
+  action_data
+) VALUES 
+-- Actions for POG001: Market research connections (in_progress)
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'follow_up_ask',
+  'Follow up on market research connections',
+  'Check in with Sarah to see how the market research connections are working out',
+  'medium',
+  'pending',
+  'a0000001-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '3 days',
+  15,
+  'ai_suggestion',
+  '{"connection_type": "market_research", "follow_up_stage": "initial"}'
+),
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'send_follow_up',
+  'Send additional researcher contacts',
+  'Share 2-3 more market researcher contacts who specialize in AI product validation',
+  'low',
+  'pending',
+  'a0000001-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '1 week',
+  30,
+  'ai_suggestion',
+  '{"connection_type": "market_research", "additional_contacts": true}'
+),
+
+-- Actions for POG002: PM course (delivered)
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'follow_up_ask',
+  'Check course progress and gather feedback',
+  'Ask Sarah for feedback on the course content and see if she needs clarification on any modules',
+  'medium',
+  'pending',
+  'a0000002-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '2 weeks',
+  20,
+  'ai_suggestion',
+  '{"pog_type": "course_access", "follow_up_stage": "feedback_collection"}'
+),
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'share_content',
+  'Share additional PM resources',
+  'Send her my favorite product management tools and templates that complement the course',
+  'low',
+  'completed',
+  'a0000002-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() - interval '3 days',
+  25,
+  'manual',
+  '{"pog_type": "course_access", "additional_resources": ["tools", "templates"]}'
+),
+
+-- Actions for POG004: AI strategy framework (offered)
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'deliver_pog',
+  'Send AI product strategy framework',
+  'Package and send the comprehensive AI product strategy framework document to Marcus',
+  'high',
+  'pending',
+  'a0000004-89ab-cdef-0123-456789abcdef'::uuid,
+  'a2222222-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '2 days',
+  40,
+  'manual',
+  '{"pog_type": "framework_sharing", "delivery_method": "document"}'
+),
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'schedule_meeting',
+  'Schedule framework walkthrough call',
+  'Set up call to walk through the AI strategy framework and answer Marcus''s questions',
+  'medium',
+  'pending',
+  'a0000004-89ab-cdef-0123-456789abcdef'::uuid,
+  'a2222222-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '1 week',
+  45,
+  'ai_suggestion',
+  '{"pog_type": "framework_sharing", "meeting_type": "walkthrough"}'
+),
+
+-- Actions for ASK001: Investor introductions (in_progress)
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'make_introduction',
+  'Intro to fintech investors from my network',
+  'Connect Sarah with 2-3 relevant fintech investors: Alex Chen (Series A focus), Maria Rodriguez (B2B fintech), David Kim (early stage)',
+  'high',
+  'in_progress',
+  'a0000011-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '5 days',
+  45,
+  'manual',
+  '{"ask_type": "investor_intro", "investor_names": ["Alex Chen", "Maria Rodriguez", "David Kim"], "focus_areas": ["Series A", "B2B fintech", "early stage"]}'
+),
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'send_follow_up',
+  'Prepare intro email template',
+  'Draft compelling introduction email highlighting Sarah''s fintech startup and unique value proposition',
+  'medium',
+  'completed',
+  'a0000011-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() - interval '1 day',
+  30,
+  'manual',
+  '{"ask_type": "investor_intro", "preparation_step": "email_template"}'
+),
+
+-- Actions for ASK002: Pitch deck feedback (requested)
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'review_goal',
+  'Review Sarah''s pitch deck thoroughly',
+  'Go through each slide and provide detailed feedback on messaging, flow, and investor appeal',
+  'high',
+  'pending',
+  'a0000012-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '2 days',
+  60,
+  'manual',
+  '{"ask_type": "pitch_deck_feedback", "review_areas": ["messaging", "flow", "investor_appeal"]}'
+),
+(
+  '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+  'schedule_meeting',
+  'Schedule pitch practice session',
+  'Set up 30-min call to walk through the pitch deck together and practice delivery',
+  'medium',
+  'pending',
+  'a0000012-89ab-cdef-0123-456789abcdef'::uuid,
+  'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+  now() + interval '1 week',
+  30,
+  'ai_suggestion',
+  '{"ask_type": "pitch_deck_feedback", "meeting_type": "practice_session"}'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Feature flags for development/testing
+INSERT INTO public.feature_flags (name, description, enabled_globally) VALUES 
+('banner', 'Test banner for development/testing environments', false)
+ON CONFLICT (name) DO NOTHING;

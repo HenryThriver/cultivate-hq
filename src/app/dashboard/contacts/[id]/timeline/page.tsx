@@ -229,10 +229,27 @@ export default function ContactTimelinePage() {
             fontWeight: 600,
             fontSize: { xs: '1.75rem', md: '2rem' },
             letterSpacing: '-0.02em',
-            color: 'text.primary'
+            color: 'text.primary',
+            textShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            animation: 'sophisticatedEntrance 800ms cubic-bezier(0.0, 0, 0.2, 1) both',
+            mb: 1
           }}
         >
-          Strategic Timeline Intelligence
+          Relationship Intelligence Timeline
+        </Typography>
+        
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: 'text.secondary',
+            fontStyle: 'italic',
+            mb: 4,
+            animation: 'sophisticatedEntrance 800ms cubic-bezier(0.0, 0, 0.2, 1) both',
+            animationDelay: '200ms',
+            opacity: 0.9
+          }}
+        >
+          Every strategic connection tells a story of mutual value creation.
         </Typography>
         
         <ArtifactTimeline

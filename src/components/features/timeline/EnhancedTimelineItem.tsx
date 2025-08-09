@@ -21,12 +21,14 @@ interface EnhancedTimelineItemProps {
   artifact: BaseArtifact<unknown>;
   position: 'left' | 'right';
   onClick: () => void;
+  index?: number; // For staggered animations
 }
 
 export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
   artifact,
   position,
-  onClick
+  onClick,
+  index = 0
 }) => {
   // Email artifact handling - continue with standard timeline treatment
 
@@ -299,8 +301,17 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transition: 'all 300ms var(--ease-confident)',
+        cursor: 'pointer',
+        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
         animation: isPremium ? 'timeline-pulse 2s ease-in-out infinite' : 'none',
+        '&:hover': {
+          transform: 'translateX(-50%) scale(1.4)',
+          boxShadow: isPremium 
+            ? `0 0 25px ${colorValue}50, 0 6px 20px rgba(0,0,0,0.2)`
+            : `0 0 15px ${colorValue}40, 0 4px 12px rgba(0,0,0,0.15)`,
+          filter: 'brightness(1.1)',
+          animation: isPremium ? 'premiumGlow 1.5s ease-in-out infinite' : 'none',
+        }
       }}>
         <IconComponent style={{ fontSize: '10px', color: 'white' }} />
       </Box>
@@ -311,15 +322,23 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
         left: { xs: '30px', md: '50%' },
         top: '30px',
         width: { xs: '22%', md: '22%' },
-        height: '2px',
-        backgroundColor: colorValue,
+        height: isPremium ? '3px' : '2px',
+        background: isPremium 
+          ? `linear-gradient(90deg, ${colorValue} 0%, ${colorValue}AA 100%)`
+          : colorValue,
         transform: { 
           xs: 'translateX(10px)',
           md: position === 'left' 
             ? 'translateX(-100%) translateX(-10px)' 
             : 'translateX(10px)'
         },
-        zIndex: 5
+        zIndex: 5,
+        borderRadius: '1px',
+        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          height: isPremium ? '4px' : '3px',
+          boxShadow: `0 0 8px ${colorValue}40`,
+        }
       }} />
 
       {/* Artifact Card */}
@@ -342,17 +361,24 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
           background: isPremium
             ? `linear-gradient(135deg, #ffffff 0%, ${colorValue}05 100%)`
             : 'background.paper',
-          transition: 'all 400ms var(--ease-confident)',
+          transition: 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
+          transformOrigin: 'center center',
           '&:hover': {
             transform: isPremium 
-              ? 'translateY(-3px) scale(1.03)' 
+              ? 'translateY(-4px) scale(1.03)' 
               : 'translateY(-2px) scale(1.02)',
             boxShadow: isPremium 
-              ? 'var(--shadow-elevated)'
-              : 'var(--shadow-card-hover)',
-            borderColor: `${colorValue}60`
+              ? `var(--shadow-elevated), 0 0 40px ${colorValue}20`
+              : `var(--shadow-card-hover), 0 0 20px ${colorValue}15`,
+            borderColor: `${colorValue}80`,
+            '&::before': isPremium ? {
+              background: `linear-gradient(135deg, ${colorValue}15 0%, transparent 50%)`,
+            } : {}
           },
+          // Add staggered entrance animation
+          animation: 'sophisticatedEntrance 600ms cubic-bezier(0.0, 0, 0.2, 1) both',
+          animationDelay: `${index * 100}ms`, // Stagger by 100ms per item
           // Premium glow effect
           ...(isPremium && {
             '&::before': {

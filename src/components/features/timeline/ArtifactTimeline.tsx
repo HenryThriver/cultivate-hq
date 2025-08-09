@@ -67,11 +67,39 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
 
   if (!timelineData?.allArtifacts || timelineData.allArtifacts.length === 0) {
     return (
-      <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary', maxWidth: '600px', mx: 'auto' }}>
-        <Typography sx={{ fontSize: '3rem', mb: 2 }}>📭</Typography>
-        <Typography variant="h6" gutterBottom>No artifacts recorded yet</Typography>
-        <Typography>
-          Record a voice memo or add a note to start building this contact&apos;s timeline.
+      <Box sx={{ 
+        textAlign: 'center', 
+        py: 8, 
+        color: 'text.secondary', 
+        maxWidth: '600px', 
+        mx: 'auto',
+        background: 'var(--color-background-premium)',
+        borderRadius: 'var(--radius-large)',
+        p: { xs: 4, md: 6 },
+        animation: 'sophisticatedEntrance 800ms cubic-bezier(0.0, 0, 0.2, 1) both'
+      }}>
+        <Typography sx={{ 
+          fontSize: '4rem', 
+          mb: 3,
+          opacity: 0.7,
+          animation: 'timeline-pulse 2s ease-in-out infinite'
+        }}>
+          ✨
+        </Typography>
+        <Typography variant="h5" sx={{ 
+          fontWeight: 600, 
+          mb: 2, 
+          color: 'text.primary' 
+        }}>
+          Strategic Timeline Awaits
+        </Typography>
+        <Typography sx={{ 
+          fontSize: '1.125rem',
+          lineHeight: 1.6,
+          fontStyle: 'italic',
+          color: 'text.secondary'
+        }}>
+          Begin cultivating relationship intelligence by recording your first insight or interaction.
         </Typography>
       </Box>
     );
@@ -91,11 +119,36 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
           filterTypes={filterTypes}
           onFilterChange={setFilterTypes}
         />
-        <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary', mt:2 }}>
-          <Typography sx={{ fontSize: '3rem', mb: 2 }}>🧐</Typography>
-          <Typography variant="h6" gutterBottom>No artifacts match your filters</Typography>
-          <Typography>
-            Try adjusting your filter selection or clearing all filters.
+        <Box sx={{ 
+          textAlign: 'center', 
+          py: 6, 
+          color: 'text.secondary', 
+          mt: 3,
+          animation: 'sophisticatedEntrance 600ms cubic-bezier(0.0, 0, 0.2, 1) both'
+        }}>
+          <Typography sx={{ 
+            fontSize: '3rem', 
+            mb: 3,
+            opacity: 0.8,
+            filter: 'grayscale(0.3)'
+          }}>
+            🎯
+          </Typography>
+          <Typography variant="h6" sx={{ 
+            fontWeight: 600, 
+            mb: 2, 
+            color: 'text.primary' 
+          }}>
+            Refining Your Strategic View
+          </Typography>
+          <Typography sx={{ 
+            fontSize: '1rem',
+            lineHeight: 1.5,
+            fontStyle: 'italic',
+            maxWidth: '400px',
+            mx: 'auto'
+          }}>
+            Your current filters are highly selective. Adjust your view to reveal more relationship intelligence.
           </Typography>
         </Box>
       </Box>
@@ -215,6 +268,7 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
                 artifact={artifact}
                 position={index % 2 === 0 ? 'left' : 'right'}
                 onClick={() => onArtifactClick?.(artifact)}
+                index={index} // Pass index for staggered animations
               />
             ))}
           </Box>

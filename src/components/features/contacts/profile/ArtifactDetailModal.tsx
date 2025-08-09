@@ -37,6 +37,7 @@ import {
   Mic as VoiceMemoIcon,
   Article as DefaultIcon
 } from '@mui/icons-material';
+import type { BaseArtifact as ImportedBaseArtifact } from '@/types/artifact';
 
 // Base artifact interface
 interface BaseArtifact {
@@ -44,7 +45,7 @@ interface BaseArtifact {
   type: string;
   content: any;
   timestamp: string;
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   initiator_contact_id?: string;
   recipient_contact_id?: string;
   initiator_user_id?: string;
@@ -53,7 +54,7 @@ interface BaseArtifact {
 
 interface POGArtifact extends BaseArtifact {
   type: 'pog';
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   metadata?: {
     description?: string;
     status?: string;
@@ -64,7 +65,7 @@ interface POGArtifact extends BaseArtifact {
 
 interface AskArtifact extends BaseArtifact {
   type: 'ask';
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   metadata?: {
     request_description?: string;
     status?: string;
@@ -75,7 +76,7 @@ interface AskArtifact extends BaseArtifact {
 
 interface MeetingArtifact extends BaseArtifact {
   type: 'meeting';
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   metadata?: {
     title?: string;
     summary?: string;
@@ -87,7 +88,7 @@ interface MeetingArtifact extends BaseArtifact {
 
 interface EmailArtifact extends BaseArtifact {
   type: 'email';
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   metadata?: {
     subject?: string;
     summary?: string;
@@ -98,7 +99,7 @@ interface EmailArtifact extends BaseArtifact {
 
 interface VoiceMemoArtifact extends BaseArtifact {
   type: 'voice_memo';
-  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   metadata?: {
     title?: string;
     summary?: string;
@@ -130,7 +131,7 @@ interface RelatedAction {
 interface ArtifactDetailModalProps {
   open: boolean;
   onClose: () => void;
-  artifact: ArtifactUnion | null;
+  artifact: ArtifactUnion | ImportedBaseArtifact | null;
   contactName: string;
   contactId: string;
   currentUserId: string;
@@ -335,7 +336,7 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
   
   // Parse meeting content if it's a string
   const parsedContent = useMemo(() => {
-    if (artifact.type === 'meeting') {
+    if (artifact && artifact.type === 'meeting') {
       try {
         let content = artifact.content;
         if (typeof content === 'string') {
@@ -346,7 +347,7 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
         return null;
       }
     }
-    return artifact.content;
+    return artifact?.content;
   }, [artifact]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCreateActionModalOpen, setIsCreateActionModalOpen] = useState(false);

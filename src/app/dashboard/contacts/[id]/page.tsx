@@ -139,7 +139,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   // EnhancedLoopModal state removed - loops deprecated
 
   // NEW state for unified ArtifactDetailModal
-  const [selectedArtifactForDetailModal, setSelectedArtifactForDetailModal] = useState<POGArtifact | AskArtifact | null>(null);
+  const [selectedArtifactForDetailModal, setSelectedArtifactForDetailModal] = useState<BaseArtifact | null>(null);
   const [isArtifactDetailModalOpen, setIsArtifactDetailModalOpen] = useState(false);
 
   // Action creation modals for ActionIntelligenceCenter
@@ -691,7 +691,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       queryClient.invalidateQueries({ queryKey: ['contact-profile', contactId] });
       if (selectedArtifactForDetailModal?.id === artifactId) {
         const { data: updatedArtifact } = await supabase.from('artifacts').select('*').eq('id', artifactId).single();
-        if (updatedArtifact) setSelectedArtifactForDetailModal(updatedArtifact as POGArtifact | AskArtifact);
+        if (updatedArtifact) setSelectedArtifactForDetailModal(updatedArtifact as BaseArtifact);
       }
     } catch (error: unknown) { 
       if (error instanceof Error) {

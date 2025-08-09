@@ -116,21 +116,6 @@ export default function DashboardPage(): React.JSX.Element {
 
       {/* Intelligence Insights - AI Powered Future State */}
       <IntelligenceInsights />
-<<<<<<< HEAD
-
-      {/* Quick Add Floating Action Button */}
-      <QuickAdd 
-        onArtifactCreated={(data) => {
-          console.log('Artifact created:', data);
-          // TODO: Handle artifact creation - refresh relevant queries
-        }}
-        onArtifactCreating={async (data) => {
-          console.log('Creating artifact:', data);
-          // TODO: Implement actual artifact creation API call
-        }}
-      />
-=======
->>>>>>> origin/main
     </Box>
   );
 } 

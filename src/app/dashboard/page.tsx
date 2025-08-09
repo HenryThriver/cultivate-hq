@@ -15,7 +15,6 @@ import {
   MomentumCelebration,
   RelationshipSessionCard
 } from '@/components/features/dashboard';
-import { QuickAdd } from '@/components/features/contacts/QuickAdd';
 
 export default function DashboardPage(): React.JSX.Element {
   const { user } = useAuth();
@@ -117,6 +116,7 @@ export default function DashboardPage(): React.JSX.Element {
 
       {/* Intelligence Insights - AI Powered Future State */}
       <IntelligenceInsights />
+<<<<<<< HEAD
 
       {/* Quick Add Floating Action Button */}
       <QuickAdd 
@@ -129,6 +129,8 @@ export default function DashboardPage(): React.JSX.Element {
           // TODO: Implement actual artifact creation API call
         }}
       />
+=======
+>>>>>>> origin/main
     </Box>
   );
 } 

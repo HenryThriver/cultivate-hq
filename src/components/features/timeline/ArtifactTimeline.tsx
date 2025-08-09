@@ -79,7 +79,13 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
   
   if (timelineData.allArtifacts.length > 0 && groupedArtifacts.length === 0) {
     return (
-      <Box sx={{ maxWidth: '900px', mx: 'auto', backgroundColor: '#f8f9fa', minHeight: 'auto', p: 3 }}>
+      <Box sx={{ 
+      maxWidth: '1200px', 
+      mx: 'auto', 
+      backgroundColor: 'var(--color-background-elevated)', 
+      minHeight: 'auto', 
+      p: { xs: 3, md: 5 }
+    }}>
         {stats && <EnhancedTimelineStats stats={stats} />}
         <EnhancedTimelineFilters 
           filterTypes={filterTypes}
@@ -97,9 +103,21 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
   }
 
   return (
-    <Box sx={{ maxWidth: '900px', mx: 'auto', backgroundColor: '#f8f9fa', minHeight: '100vh', p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3, color: '#333', fontWeight: 'bold' }}>
-        Artifact Timeline
+    <Box sx={{ 
+      maxWidth: '1200px', // Wider for executive screens
+      mx: 'auto', 
+      backgroundColor: 'var(--color-background-elevated)', 
+      minHeight: '100vh', 
+      p: { xs: 3, md: 5 } // Using sophisticated spacing
+    }}>
+      <Typography variant="h4" sx={{ 
+        mb: 4, // Following 8px grid 
+        color: 'text.primary', 
+        fontWeight: 600,
+        fontSize: { xs: '1.75rem', md: '2rem' },
+        letterSpacing: '-0.02em'
+      }}>
+        Relationship Timeline
       </Typography>
       
       {stats && <EnhancedTimelineStats stats={stats} />}
@@ -120,7 +138,14 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
           top: 0,
           bottom: 0,
           width: '3px',
-          background: 'linear-gradient(to bottom, #e3f2fd 0%, #2196f3 50%, #e3f2fd 100%)',
+          background: (theme) => `linear-gradient(
+            180deg,
+            transparent 0%,
+            ${theme.palette.primary.light} 20%,
+            ${theme.palette.primary.main} 50%,
+            ${theme.palette.primary.light} 80%,
+            transparent 100%
+          )`,
           transform: { xs: 'none', md: 'translateX(-50%)' },
           zIndex: 1
         }
@@ -132,20 +157,23 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
               variant="h6" 
               sx={{ 
                 textAlign: 'center', 
-                mb: 2,
-                backgroundColor: '#2196f3',
-                color: 'white',
-                py: 1,
-                px: 2,
-                borderRadius: '20px',
+                mb: 3, // Following 8px grid
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                py: 1.5, // 12px
+                px: 3,   // 24px
+                borderRadius: 'var(--radius-large)', // 24px for executive presence
                 display: 'inline-block',
                 position: 'relative',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 10,
-                fontSize: '0.9rem',
+                fontSize: { xs: '0.875rem', md: '1rem' },
                 fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+                boxShadow: 'var(--shadow-card)',
+                transition: 'var(--ease-confident)'
               }}
             >
               {group.dateLabel || formatDateGroupLabel(group.date)}

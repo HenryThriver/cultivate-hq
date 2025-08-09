@@ -6,6 +6,33 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Shadow System - From Design System */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 8px 32px rgba(33, 150, 243, 0.15);
+  
+  /* Border Radius System */
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-large: 24px;  /* For major sections like timeline */
+  
+  /* Sophisticated Spacing System */
+  --spacing-xs: 4px;     /* 0.5 unit */
+  --spacing-sm: 8px;     /* 1 unit */
+  --spacing-md: 16px;    /* 2 units */
+  --spacing-lg: 24px;    /* 3 units */
+  --spacing-xl: 32px;    /* 4 units */
+  --spacing-premium: 39px; /* Golden ratio */
+  --spacing-hero: 48px;  /* 6 units */
+  
+  /* Background Elevations */
+  --color-background-elevated: #f8faff;
+  --color-background-premium: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
 }
 
 @theme inline {

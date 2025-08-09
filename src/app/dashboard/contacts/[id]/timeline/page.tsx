@@ -192,8 +192,12 @@ export default function ContactTimelinePage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb" sx={{ mb: 3 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
+      <Breadcrumbs 
+        separator={<NavigateNextIcon fontSize="small" />} 
+        aria-label="breadcrumb" 
+        sx={{ mb: 4 }}
+      >
         <MuiLink component={NextLink} underline="hover" color="inherit" href="/dashboard">
           <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
           Dashboard
@@ -216,9 +220,19 @@ export default function ContactTimelinePage() {
         relationshipScore={contact.relationship_score}
       />
       
-      <Box mt={4}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold'}}>
-          Interaction Timeline
+      <Box sx={{ mt: 5 }}>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 600,
+            fontSize: { xs: '1.75rem', md: '2rem' },
+            letterSpacing: '-0.02em',
+            color: 'text.primary'
+          }}
+        >
+          Strategic Timeline Intelligence
         </Typography>
         
         <ArtifactTimeline

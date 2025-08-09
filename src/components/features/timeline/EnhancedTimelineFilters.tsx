@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Chip } from '@mui/material';
+import { Box, Typography, Chip, useTheme } from '@mui/material';
 import { 
   Mic as MicIcon,
   LinkedIn as LinkedInIcon,
@@ -11,12 +11,13 @@ import {
 } from '@mui/icons-material';
 import type { ArtifactType } from '@/types';
 
+// Using strategic labels instead of generic ones
 const FILTER_OPTIONS = [
-  { type: 'voice_memo' as ArtifactType, label: 'Voice Memos', icon: MicIcon, color: '#2196f3' },
-  { type: 'note' as ArtifactType, label: 'Notes', icon: NoteIcon, color: '#ff9800' },
-  { type: 'email' as ArtifactType, label: 'Emails', icon: EmailIcon, color: '#ea4335' },
-  { type: 'meeting' as ArtifactType, label: 'Meetings', icon: EventIcon, color: '#4caf50' },
-  { type: 'linkedin_profile' as ArtifactType, label: 'LinkedIn', icon: LinkedInIcon, color: '#0077b5' }
+  { type: 'voice_memo' as ArtifactType, label: 'Voice Intelligence', icon: MicIcon, colorKey: 'insight' },
+  { type: 'note' as ArtifactType, label: 'Strategic Notes', icon: NoteIcon, colorKey: 'action' },
+  { type: 'email' as ArtifactType, label: 'Correspondence', icon: EmailIcon, colorKey: 'communication' },
+  { type: 'meeting' as ArtifactType, label: 'Live Connections', icon: EventIcon, colorKey: 'meeting' },
+  { type: 'linkedin_profile' as ArtifactType, label: 'Professional Intel', icon: LinkedInIcon, colorKey: 'communication' }
 ];
 
 interface EnhancedTimelineFiltersProps {
@@ -28,6 +29,8 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
   filterTypes,
   onFilterChange
 }) => {
+  const theme = useTheme();
+  
   const toggleFilter = (type: ArtifactType) => {
     if (filterTypes.includes(type)) {
       onFilterChange(filterTypes.filter(t => t !== type));
@@ -39,25 +42,31 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
   return (
     <Box 
       sx={{
-        mb: 3,
-        p: 2,
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        border: '1px solid #e9ecef',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        mb: 4, // Following 8px grid
+        p: { xs: 2.5, md: 3 }, // Sophisticated spacing
+        backgroundColor: 'background.paper',
+        borderRadius: 'var(--radius-medium)', // 12px
+        border: 1,
+        borderColor: 'grey.300',
+        boxShadow: 'var(--shadow-card)',
+        transition: 'all 300ms var(--ease-confident)',
+        '&:hover': {
+          boxShadow: 'var(--shadow-card-hover)',
+        }
       }}
       role="group"
       aria-labelledby="filter-group-label"
     >
       <Typography 
         id="filter-group-label"
+        variant="subtitle2"
         sx={{
-          fontSize: '14px',
-          color: '#495057',
           fontWeight: 600,
-          mb: 1.5
+          color: 'text.primary',
+          mb: 2, // Following 8px grid
+          letterSpacing: '0.5px'
         }}>
-        Filter by type:
+        Strategic View Options
       </Typography>
       
       <Box sx={{
@@ -69,6 +78,7 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
         {FILTER_OPTIONS.map(option => {
           const isActive = filterTypes.includes(option.type);
           const Icon = option.icon;
+          const artifactColor = theme.palette.artifacts?.[option.colorKey]?.main || theme.palette.primary.main;
           
           return (
             <Chip
@@ -79,16 +89,17 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
               onClick={() => toggleFilter(option.type)}
               aria-pressed={isActive}
               sx={{
-                backgroundColor: isActive ? option.color : 'white',
-                color: isActive ? 'white' : option.color,
-                borderColor: option.color,
+                backgroundColor: isActive ? artifactColor : 'background.paper',
+                color: isActive ? 'white' : artifactColor,
+                borderColor: artifactColor,
                 fontWeight: 500,
                 fontSize: '13px',
+                transition: 'all 300ms var(--ease-confident)',
                 '&:hover': {
-                  backgroundColor: isActive ? option.color : `${option.color}10`,
-                  transform: 'translateY(-1px)'
-                },
-                transition: 'all 0.2s ease'
+                  backgroundColor: isActive ? artifactColor : `${artifactColor}10`,
+                  transform: 'translateY(-1px) scale(1.02)',
+                  boxShadow: 'var(--shadow-sm)'
+                }
               }}
             />
           );
@@ -101,12 +112,15 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
             onClick={() => onFilterChange([])}
             aria-label="Clear all active filters"
             sx={{
-              borderColor: '#6c757d',
-              color: '#6c757d',
+              borderColor: 'grey.500',
+              color: 'text.secondary',
               fontSize: '13px',
               fontWeight: 500,
+              transition: 'all 300ms var(--ease-confident)',
               '&:hover': {
-                backgroundColor: '#f8f9fa'
+                backgroundColor: 'grey.100',
+                transform: 'translateY(-1px)',
+                boxShadow: 'var(--shadow-sm)'
               }
             }}
           />

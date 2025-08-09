@@ -5,7 +5,8 @@ import {
   Box,
   Typography,
   Chip,
-  Paper
+  Paper,
+  useTheme
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -96,8 +97,12 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
             label={direction === 'sent' ? 'Sent' : 'Received'}
             size="small"
             sx={{
-              backgroundColor: direction === 'sent' ? '#e8f5e8' : '#e3f2fd',
-              color: direction === 'sent' ? '#2e7d32' : '#1976d2',
+              backgroundColor: direction === 'sent' 
+                ? theme.palette.success.light 
+                : theme.palette.info.light,
+              color: direction === 'sent' 
+                ? theme.palette.success.dark 
+                : theme.palette.info.dark,
               fontSize: '11px',
               height: '20px',
               fontWeight: 600
@@ -109,8 +114,8 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
               label="Important"
               size="small"
               sx={{
-                backgroundColor: '#fff3e0',
-                color: '#ef6c00',
+                backgroundColor: theme.palette.warning.light,
+                color: theme.palette.warning.dark,
                 fontSize: '11px',
                 height: '20px',
                 fontWeight: 600
@@ -125,10 +130,26 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
       const voiceMemoArtifact = artifact as VoiceMemoArtifact;
       const status = voiceMemoArtifact.transcription_status || 'processing';
       const statusConfig = {
-        completed: { color: '#d4edda', textColor: '#155724', label: 'Transcribed' },
-        processing: { color: '#fff3cd', textColor: '#856404', label: 'Processing' },
-        pending: { color: '#f8d7da', textColor: '#721c24', label: 'Pending' },
-        failed: { color: '#f8d7da', textColor: '#721c24', label: 'Failed' }
+        completed: { 
+          color: theme.palette.success.light, 
+          textColor: theme.palette.success.dark, 
+          label: 'Transcribed' 
+        },
+        processing: { 
+          color: theme.palette.warning.light, 
+          textColor: theme.palette.warning.dark, 
+          label: 'Processing' 
+        },
+        pending: { 
+          color: theme.palette.grey[200], 
+          textColor: theme.palette.grey[700], 
+          label: 'Pending' 
+        },
+        failed: { 
+          color: theme.palette.error.light, 
+          textColor: theme.palette.error.dark, 
+          label: 'Failed' 
+        }
       };
       const statusStyle = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
       
@@ -152,10 +173,26 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
       const meetingArtifact = artifact as MeetingArtifact;
       const status = meetingArtifact.ai_parsing_status || 'pending';
       const statusConfig = {
-        completed: { color: '#d4edda', textColor: '#155724', label: 'AI Processed' },
-        processing: { color: '#fff3cd', textColor: '#856404', label: 'AI Processing' },
-        pending: { color: '#e2e3e5', textColor: '#495057', label: 'Pending AI' },
-        failed: { color: '#f8d7da', textColor: '#721c24', label: 'AI Failed' }
+        completed: { 
+          color: theme.palette.success.light, 
+          textColor: theme.palette.success.dark, 
+          label: 'AI Processed' 
+        },
+        processing: { 
+          color: theme.palette.warning.light, 
+          textColor: theme.palette.warning.dark, 
+          label: 'AI Processing' 
+        },
+        pending: { 
+          color: theme.palette.grey[200], 
+          textColor: theme.palette.grey[700], 
+          label: 'Pending AI' 
+        },
+        failed: { 
+          color: theme.palette.error.light, 
+          textColor: theme.palette.error.dark, 
+          label: 'AI Failed' 
+        }
       };
       const statusStyle = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
       
@@ -195,25 +232,26 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
     return 'Artifact';
   };
 
-  // Convert config.color to hex if it's a theme color
-  const getColorValue = (color: string): string => {
-    const colorMap: Record<string, string> = {
-      'primary.main': '#2196f3',
-      'secondary.main': '#f50057',
-      'success.main': '#4caf50',
-      'info.main': '#2196f3',
-      'warning.dark': '#f57c00',
-      'error.main': '#f44336',
-      'grey.700': '#616161',
-      'info.light': '#81c784',
-      'warning.light': '#ffb74d',
-      'success.dark': '#388e3c',
-      'grey.500': '#9e9e9e'
+  // Use theme hook to get actual color values from MUI theme
+  const theme = useTheme();
+  
+  const getThemeColor = () => {
+    // Map artifact types to our theme artifact colors
+    const artifactColorMap: Record<string, string> = {
+      voice_memo: theme.palette.artifacts?.insight?.main || theme.palette.primary.main,
+      email: theme.palette.artifacts?.communication?.main || theme.palette.grey[600],
+      meeting: theme.palette.artifacts?.meeting?.main || theme.palette.info.main,
+      pog: theme.palette.artifacts?.pog?.main || theme.palette.success.main,
+      ask: theme.palette.artifacts?.ask?.main || theme.palette.warning.main,
+      loop: theme.palette.artifacts?.loop?.main || theme.palette.secondary.main,
+      note: theme.palette.artifacts?.action?.main || theme.palette.grey[700],
+      linkedin_profile: theme.palette.artifacts?.communication?.main || theme.palette.info.main,
     };
-    return colorMap[color] || color;
+    
+    return artifactColorMap[artifact.type] || theme.palette.primary.main;
   };
 
-  const colorValue = getColorValue(config.color);
+  const colorValue = getThemeColor(artifact.type);
 
   return (
     <Box sx={{
@@ -269,14 +307,14 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
         sx={{
           width: { xs: 'calc(100% - 80px)', md: '44%' },
           ml: { xs: '80px', md: 0 },
-          p: 2.5,
+          p: { xs: 2.5, md: 3 }, // Following spacing system
           cursor: 'pointer',
           border: `2px solid ${colorValue}20`,
-          borderRadius: '12px',
-          transition: 'all 0.3s ease',
+          borderRadius: 'var(--radius-medium)', // 12px
+          transition: 'all 400ms var(--ease-confident)', // Using design system timing
           '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            transform: 'translateY(-2px) scale(1.02)', // Confident, not eager
+            boxShadow: 'var(--shadow-card-hover)',
             borderColor: `${colorValue}40`
           }
         }}

@@ -106,48 +106,69 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
     <Box sx={{ 
       maxWidth: '1200px', // Wider for executive screens
       mx: 'auto', 
-      backgroundColor: 'var(--color-background-elevated)', 
+      background: 'var(--color-background-premium)', // Premium gradient
       minHeight: '100vh', 
-      p: { xs: 3, md: 5 } // Using sophisticated spacing
+      p: { xs: 3, md: 5 }, // Using sophisticated spacing
+      position: 'relative',
+      '&::before': {
+        // Subtle texture overlay for premium feel
+        content: '""',
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(33, 150, 243, 0.03) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.03) 0%, transparent 50%),
+                         radial-gradient(circle at 40% 80%, rgba(5, 150, 105, 0.02) 0%, transparent 50%)`,
+        opacity: 0.6,
+        pointerEvents: 'none',
+        borderRadius: 'var(--radius-large)'
+      }
     }}>
-      <Typography variant="h4" sx={{ 
-        mb: 4, // Following 8px grid 
-        color: 'text.primary', 
-        fontWeight: 600,
-        fontSize: { xs: '1.75rem', md: '2rem' },
-        letterSpacing: '-0.02em'
-      }}>
-        Relationship Timeline
-      </Typography>
-      
-      {stats && <EnhancedTimelineStats stats={stats} />}
-      
-      <EnhancedTimelineFilters 
-        filterTypes={filterTypes}
-        onFilterChange={setFilterTypes}
-      />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Typography variant="h4" sx={{ 
+          mb: 4, // Following 8px grid 
+          color: 'text.primary', 
+          fontWeight: 600,
+          fontSize: { xs: '1.75rem', md: '2rem' },
+          letterSpacing: '-0.02em',
+          textShadow: '0 1px 2px rgba(0,0,0,0.05)' // Subtle depth
+        }}>
+          Relationship Timeline
+        </Typography>
+        
+        {stats && <EnhancedTimelineStats stats={stats} />}
+        
+        <EnhancedTimelineFilters 
+          filterTypes={filterTypes}
+          onFilterChange={setFilterTypes}
+        />
 
-      {/* Enhanced Timeline Container with Central Line */}
-      <Box sx={{ 
-        position: 'relative',
-        pt: 4,
+        {/* Enhanced Timeline Container with Central Line */}
+        <Box sx={{ 
+          position: 'relative',
+          pt: 4,
         '&::before': {
           content: '""',
           position: 'absolute',
           left: { xs: '30px', md: '50%' },
           top: 0,
           bottom: 0,
-          width: '3px',
+          width: '4px', // Slightly thicker for premium feel
           background: (theme) => `linear-gradient(
             180deg,
             transparent 0%,
-            ${theme.palette.primary.light} 20%,
-            ${theme.palette.primary.main} 50%,
-            ${theme.palette.primary.light} 80%,
+            ${theme.palette.primary.light} 15%,
+            ${theme.palette.primary.main} 35%,
+            ${theme.palette.sage.main} 50%,
+            ${theme.palette.primary.main} 65%,
+            ${theme.palette.primary.light} 85%,
             transparent 100%
           )`,
           transform: { xs: 'none', md: 'translateX(-50%)' },
-          zIndex: 1
+          zIndex: 1,
+          borderRadius: '2px',
+          animation: 'timeline-pulse 3s ease-in-out infinite',
+          // Add subtle glow effect
+          boxShadow: (theme) => `0 0 8px ${theme.palette.primary.main}20`,
         }
       }}>
         {groupedArtifacts.map((group: GroupedArtifact, groupIndex: number) => (
@@ -157,11 +178,14 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
               variant="h6" 
               sx={{ 
                 textAlign: 'center', 
-                mb: 3, // Following 8px grid
-                backgroundColor: 'primary.main',
+                mb: 4, // Following 8px grid
+                background: (theme) => `linear-gradient(135deg, 
+                  ${theme.palette.primary.main} 0%, 
+                  ${theme.palette.primary.dark} 50%,
+                  ${theme.palette.sage.main} 100%)`,
                 color: 'primary.contrastText',
-                py: 1.5, // 12px
-                px: 3,   // 24px
+                py: 2, // 16px - more generous
+                px: 4, // 32px - executive presence
                 borderRadius: 'var(--radius-large)', // 24px for executive presence
                 display: 'inline-block',
                 position: 'relative',
@@ -170,10 +194,16 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
                 zIndex: 10,
                 fontSize: { xs: '0.875rem', md: '1rem' },
                 fontWeight: 600,
-                letterSpacing: '0.5px',
+                letterSpacing: '1px', // More sophisticated
                 textTransform: 'uppercase',
-                boxShadow: 'var(--shadow-card)',
-                transition: 'var(--ease-confident)'
+                boxShadow: 'var(--shadow-elevated)', // Premium shadow
+                transition: 'var(--ease-confident)',
+                textShadow: '0 1px 2px rgba(0,0,0,0.2)', // Text depth
+                // Subtle animation on hover
+                '&:hover': {
+                  transform: 'translateX(-50%) translateY(-1px) scale(1.02)',
+                  boxShadow: (theme) => `0 8px 32px ${theme.palette.primary.main}40`,
+                }
               }}
             >
               {group.dateLabel || formatDateGroupLabel(group.date)}
@@ -189,6 +219,7 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
             ))}
           </Box>
         ))}
+        </Box>
       </Box>
     </Box>
   );

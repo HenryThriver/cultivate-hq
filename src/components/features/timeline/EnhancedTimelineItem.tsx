@@ -235,6 +235,21 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
   // Use theme hook to get actual color values from MUI theme
   const theme = useTheme();
   
+  // Determine if this artifact is high-value (gets premium treatment)
+  const isHighValue = () => {
+    // POGs, AI insights, and meetings are considered high-value
+    const highValueTypes = ['pog', 'meeting', 'voice_memo'];
+    if (highValueTypes.includes(artifact.type)) return true;
+    
+    // Emails with important priority
+    if (artifact.type === 'email') {
+      const emailArtifact = artifact as EmailArtifact;
+      return getEmailImportance(emailArtifact) === 'high';
+    }
+    
+    return false;
+  };
+  
   const getThemeColor = () => {
     // Map artifact types to our theme artifact colors
     const artifactColorMap: Record<string, string> = {
@@ -251,7 +266,8 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
     return artifactColorMap[artifact.type] || theme.palette.primary.main;
   };
 
-  const colorValue = getThemeColor(artifact.type);
+  const colorValue = getThemeColor();
+  const isPremium = isHighValue();
 
   return (
     <Box sx={{
@@ -268,17 +284,23 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
         position: 'absolute',
         left: { xs: '30px', md: '50%' },
         top: '20px',
-        width: '20px',
-        height: '20px',
+        width: isPremium ? '24px' : '20px', // Larger for premium
+        height: isPremium ? '24px' : '20px',
         borderRadius: '50%',
-        backgroundColor: colorValue,
-        border: '4px solid white',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        background: isPremium 
+          ? `radial-gradient(circle, ${colorValue} 0%, ${colorValue}AA 100%)`
+          : colorValue,
+        border: `${isPremium ? '3px' : '4px'} solid white`,
+        boxShadow: isPremium 
+          ? `0 0 20px ${colorValue}40, 0 4px 12px rgba(0,0,0,0.15)`
+          : '0 2px 8px rgba(0,0,0,0.15)',
         transform: { xs: 'translateX(-50%)', md: 'translateX(-50%)' },
         zIndex: 10,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        transition: 'all 300ms var(--ease-confident)',
+        animation: isPremium ? 'timeline-pulse 2s ease-in-out infinite' : 'none',
       }}>
         <IconComponent style={{ fontSize: '10px', color: 'white' }} />
       </Box>
@@ -307,25 +329,52 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
         sx={{
           width: { xs: 'calc(100% - 80px)', md: '44%' },
           ml: { xs: '80px', md: 0 },
-          p: { xs: 2.5, md: 3 }, // Following spacing system
+          p: isPremium 
+            ? 4.875 // 39px golden ratio for premium (39/8 = 4.875)
+            : { xs: 2.5, md: 3 },
           cursor: 'pointer',
-          border: `2px solid ${colorValue}20`,
-          borderRadius: 'var(--radius-medium)', // 12px
-          transition: 'all 400ms var(--ease-confident)', // Using design system timing
+          border: isPremium 
+            ? `2px solid ${colorValue}40` 
+            : `2px solid ${colorValue}20`,
+          borderRadius: isPremium 
+            ? 'var(--radius-large)' // 24px for premium cards
+            : 'var(--radius-medium)', // 12px for standard
+          background: isPremium
+            ? `linear-gradient(135deg, #ffffff 0%, ${colorValue}05 100%)`
+            : 'background.paper',
+          transition: 'all 400ms var(--ease-confident)',
+          position: 'relative',
           '&:hover': {
-            transform: 'translateY(-2px) scale(1.02)', // Confident, not eager
-            boxShadow: 'var(--shadow-card-hover)',
-            borderColor: `${colorValue}40`
-          }
+            transform: isPremium 
+              ? 'translateY(-3px) scale(1.03)' 
+              : 'translateY(-2px) scale(1.02)',
+            boxShadow: isPremium 
+              ? 'var(--shadow-elevated)'
+              : 'var(--shadow-card-hover)',
+            borderColor: `${colorValue}60`
+          },
+          // Premium glow effect
+          ...(isPremium && {
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              background: `linear-gradient(135deg, ${colorValue}10 0%, transparent 50%)`,
+              borderRadius: 'inherit',
+              pointerEvents: 'none'
+            }
+          })
         }}
       >
-        {/* Card Header */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          mb: 1.5 
-        }}>
+        {/* Card Content - Above premium overlay */}
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          {/* Card Header */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            mb: 1.5 
+          }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box sx={{
               padding: '4px 8px',
@@ -339,7 +388,9 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
             <Typography sx={{
               fontWeight: 600,
               color: colorValue,
-              fontSize: '14px'
+              fontSize: isPremium ? '15px' : '14px',
+              letterSpacing: '0.5px',
+              textTransform: isPremium ? 'uppercase' : 'none'
             }}>
               {config.badgeLabel}
             </Typography>
@@ -358,14 +409,15 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
 
         {/* Content Preview */}
         <Typography sx={{
-          fontSize: '14px',
-          color: '#333',
-          lineHeight: 1.4,
-          mb: 1.5,
+          fontSize: isPremium ? '15px' : '14px',
+          color: 'text.primary',
+          lineHeight: isPremium ? 1.5 : 1.4,
+          mb: 2, // More spacing for premium
           overflow: 'hidden',
           display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical'
+          WebkitLineClamp: isPremium ? 4 : 3, // More lines for premium
+          WebkitBoxOrient: 'vertical',
+          fontWeight: isPremium ? 500 : 400
         }}>
           {previewText}
         </Typography>
@@ -406,6 +458,7 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
               Click to view →
             </Typography>
           )}
+        </Box>
         </Box>
       </Paper>
     </Box>

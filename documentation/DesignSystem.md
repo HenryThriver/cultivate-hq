@@ -202,6 +202,38 @@ Info:
 * **Modal spacing**: Generous breathing room that signals "your time is valuable"  
 * **Content hierarchy**: Dramatic spacing jumps between importance levels
 
+## **CSS Custom Properties & Theme Integration**
+
+### **Shadow System**
+```css
+:root {
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 8px 32px rgba(33, 150, 243, 0.15);
+}
+```
+
+### **MUI Theme Palette Extensions**
+```javascript
+theme.palette.artifacts = {
+  pog: { light: '#D1FAE5', main: '#10B981', dark: '#059669', contrastText: '#FFFFFF' },
+  ask: { light: '#FED7AA', main: '#F97316', dark: '#EA580C', contrastText: '#FFFFFF' },
+  loop: { light: '#E0E7FF', main: '#6366F1', dark: '#4F46E5', contrastText: '#FFFFFF' },
+  meeting: { light: '#E0F2FE', main: '#0EA5E9', dark: '#0284C7', contrastText: '#FFFFFF' },
+  communication: { light: '#F1F5F9', main: '#64748B', dark: '#475569', contrastText: '#FFFFFF' },
+  insight: { light: '#FDF4FF', main: '#A855F7', dark: '#9333EA', contrastText: '#FFFFFF' },
+  action: { light: '#EDE9FE', main: '#8B5CF6', dark: '#7C3AED', contrastText: '#FFFFFF' }
+};
+
+theme.palette.sage = { light: '#ECFDF5', main: '#059669', dark: '#047857' };
+theme.palette.amber = { light: '#FEF3C7', main: '#F59E0B', dark: '#D97706' };
+theme.palette.plum = { light: '#F3E8FF', main: '#7C3AED', dark: '#5B21B6' };
+```
+
 ## **Component Standards with Character**
 
 ### **Buttons**
@@ -242,14 +274,14 @@ Info:
 * Border: 1px solid \#E0E0E0  
 * Border radius: 12px  
 * Padding: 24px (mobile) / 32px (desktop)  
-* Shadow: 0 2px 8px rgba(0, 0, 0, 0.08)  
+* Shadow: var(--shadow-card)  
 * Hover: Gentle lift that suggests "there's more here"
 
 **Premium Card:**
 
 * Same as standard \+  
 * Padding: 39px (Golden ratio premium spacing)  
-* Shadow: 0 4px 20px rgba(0, 0, 0, 0.08)  
+* Shadow: var(--shadow-card-hover)  
 * Border: 1px solid \#E3F2FD  
 * Subtle texture: Very light noise texture (1% opacity)
 
@@ -259,6 +291,14 @@ Info:
 * Left border accent: 3px solid Sage Green  
 * Typography that signals "this might surprise you"  
 * Usage: Strategic insights and pattern-breaking content
+
+**Interactive Data Cards:**
+
+* Border radius: 24px (3 in MUI) for major dashboards  
+* Border radius: 12px for standard cards  
+* Border radius: 8px for compact components  
+* Gradient backgrounds for relationship pulse  
+* Hover: translateY(-1px) with shadow transition
 
 ### **Form Elements**
 
@@ -271,6 +311,41 @@ Info:
 * Focus: Sophisticated glow effect rather than harsh outline  
 * Error: 2px solid \#F44336  
 * Placeholder personality: "LinkedIn profile URL (we'll find the good stuff)"
+
+### **Data Visualization Components**
+
+**Progress Bars (Reciprocity Index):**
+
+* Height: 8px  
+* Border radius: 4px  
+* Background: \#E5E7EB  
+* Fill: Semantic color based on status  
+* Transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1)  
+* Marker indicator at 50% for balance point
+
+**Status Chips (Interactive):**
+
+* Size: small (MUI)  
+* Background: Artifact color light variant  
+* Color: Artifact color main variant  
+* Font weight: 500  
+* Click behavior: Toggle state with visual feedback  
+* Hover: Background shifts to main color, text to contrast
+
+**Action Lists (Three-Column Layout):**
+
+* Grid: 1fr 1fr 1fr on desktop, 1fr on mobile  
+* Gap: 16px between columns  
+* List items: Dense padding with hover states  
+* Priority indicators: Left border accent (3px) for urgent items  
+* Status icons: CheckCircle vs RadioButtonUnchecked
+
+**Timing Indicators:**
+
+* Emoji icons for visual hierarchy (🎂 🎉 🏆 💼 📰)  
+* Color coding by urgency  
+* Date formatting: "X days ago" vs "in X days"  
+* Actionable items get button treatment
 
 ## **Animation with Purpose**
 

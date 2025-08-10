@@ -22,12 +22,12 @@ import {
 } from '@mui/icons-material';
 
 import { getArtifactConfig } from '@/config/artifactConfig';
-import type { BaseArtifact, LinkedInArtifact, VoiceMemoArtifact, LoopArtifact, LoopStatus, LoopArtifactContent } from '@/types';
+import type { BaseArtifact, LinkedInArtifact, VoiceMemoArtifact } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { UpdateSuggestionRecord } from '@/types/suggestions';
 import { formatFieldPathForDisplay } from '@/lib/utils/formatting';
 import { LinkedInProfileModal, LinkedInPostModal } from '@/components/features/linkedin';
-import { EnhancedLoopModal } from '../loops/EnhancedLoopModal';
+// Removed deprecated EnhancedLoopModal import
 import { EmailDetailModal } from '@/components/features/emails/EmailDetailModal';
 import { EmailArtifact } from '@/types/email';
 import type { LinkedInPostArtifact } from '@/types/artifact';

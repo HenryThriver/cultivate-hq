@@ -25,11 +25,11 @@ import { TimelineControlsBar } from '@/components/features/timeline/TimelineCont
 import { ArtifactDetailModal as StandardizedArtifactModal } from '@/components/features/contacts/profile/ArtifactDetailModal';
 // import { EnhancedTimelineStats } from '@/components/features/timeline/EnhancedTimelineStats';
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
-import { useLoops } from '@/lib/hooks/useLoops';
+// Removed deprecated useLoops hook
 import { useGmailIntegration } from '@/lib/hooks/useGmailIntegration';
 // useArtifactTimeline is now handled within ArtifactTimeline component
 import { useArtifactModalData } from '@/lib/hooks/useArtifactModalData';
-import { BaseArtifact, LoopStatus, LinkedInArtifactContent, ArtifactType } from '@/types';
+import { BaseArtifact, LinkedInArtifactContent, ArtifactType } from '@/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -50,7 +50,7 @@ export default function ContactTimelinePage() {
   const [expandedFilters, setExpandedFilters] = useState<boolean>(false);
   
   const { contact, isLoading, error } = useContactProfile(contactId);
-  const { updateLoopStatus } = useLoops(contactId);
+  // Removed deprecated useLoops hook
   
   // Timeline data is now handled by the ArtifactTimeline component itself
   

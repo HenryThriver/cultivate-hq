@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { ActionTile } from './ActionTile';
 import { CreateActionModal } from './CreateActionModal';
+import { MeetingContentUpload } from '../../meetings/MeetingContentUpload';
 import type { ActionItem as DbActionItem } from '@/lib/hooks/useActions';
 import { 
   Close as CloseIcon,
@@ -35,7 +36,8 @@ import {
   MeetingRoom as MeetingIcon,
   Email as EmailIcon,
   Mic as VoiceMemoIcon,
-  Article as DefaultIcon
+  Article as DefaultIcon,
+  CloudUpload as UploadIcon
 } from '@mui/icons-material';
 import type { BaseArtifact as ImportedBaseArtifact } from '@/types/artifact';
 
@@ -146,6 +148,7 @@ interface ArtifactDetailModalProps {
   isReprocessing?: boolean;
   onActionRefresh?: () => void;
   artifacts?: any[]; // Add artifacts prop to pass to CreateActionModal
+  onMeetingContentSave?: (meetingId: string, contentType: 'notes' | 'transcript' | 'recording', content: string | File) => Promise<void>;
 }
 
 // Configuration for different artifact types
@@ -331,6 +334,7 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
   isReprocessing = false,
   onActionRefresh,
   artifacts = [], // Extract artifacts prop
+  onMeetingContentSave,
 }) => {
   const theme = useTheme();
   
@@ -352,6 +356,8 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCreateActionModalOpen, setIsCreateActionModalOpen] = useState(false);
   const [selectedActionForEdit, setSelectedActionForEdit] = useState<DbActionItem | null>(null);
+  const [isMeetingContentModalOpen, setIsMeetingContentModalOpen] = useState(false);
+  const [savingMeetingContent, setSavingMeetingContent] = useState(false);
 
   if (!artifact) return null;
 
@@ -434,6 +440,23 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
 
   const processingStatus = getProcessingStatus();
 
+  const handleMeetingContentSave = async (contentType: 'notes' | 'transcript' | 'recording', content: string | File) => {
+    if (!artifact || artifact.type !== 'meeting' || !onMeetingContentSave) return;
+    
+    try {
+      setSavingMeetingContent(true);
+      await onMeetingContentSave(artifact.id, contentType, content);
+      setIsMeetingContentModalOpen(false);
+      // Refresh data if available
+      onActionRefresh?.();
+    } catch (error) {
+      console.error('Failed to save meeting content:', error);
+      // Error is handled by parent component
+    } finally {
+      setSavingMeetingContent(false);
+    }
+  };
+
   return (
     <Dialog 
       open={open} 
@@ -478,7 +501,7 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
                 {directionText}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
               <Chip 
                 label={statusInfo.text}
                 size="small"
@@ -500,6 +523,28 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
                     fontSize: '0.75rem'
                   }}
                 />
+              )}
+              {artifact.type === 'meeting' && onMeetingContentSave && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<UploadIcon />}
+                  onClick={() => setIsMeetingContentModalOpen(true)}
+                  sx={{ 
+                    ml: 1,
+                    textTransform: 'none',
+                    fontSize: '0.75rem',
+                    height: '24px',
+                    borderColor: theme.palette.artifacts.communication.main,
+                    color: theme.palette.artifacts.communication.main,
+                    '&:hover': {
+                      borderColor: theme.palette.artifacts.communication.dark,
+                      backgroundColor: theme.palette.artifacts.communication.light
+                    }
+                  }}
+                >
+                  Add Content
+                </Button>
               )}
             </Box>
           </Box>
@@ -942,6 +987,18 @@ export const ArtifactDetailModal: React.FC<ArtifactDetailModalProps> = ({
             setSelectedActionForEdit(null);
             onActionRefresh?.();
           }}
+        />
+      )}
+
+      {/* Meeting Content Upload Modal */}
+      {artifact?.type === 'meeting' && (
+        <MeetingContentUpload
+          open={isMeetingContentModalOpen}
+          onClose={() => setIsMeetingContentModalOpen(false)}
+          meeting={artifact as unknown as any} // Type conversion for meeting artifact
+          onSave={handleMeetingContentSave}
+          processing={savingMeetingContent}
+          processingStatus={artifact.ai_parsing_status as 'pending' | 'processing' | 'completed' | 'failed' | undefined}
         />
       )}
     </Dialog>

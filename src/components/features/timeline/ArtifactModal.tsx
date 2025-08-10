@@ -331,7 +331,7 @@ export const ArtifactModal: React.FC<ArtifactModalProps> = ({
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                               <Typography variant="body2" sx={{fontWeight: 'medium'}}>
-                                {suggestion.field_paths.map(fp => formatFieldPathForDisplay(fp)).join(', ')}
+                                {(suggestion.field_paths || []).map(fp => formatFieldPathForDisplay(fp)).join(', ')}
                               </Typography>
                             </Box>
                           }
@@ -342,7 +342,7 @@ export const ArtifactModal: React.FC<ArtifactModalProps> = ({
                                 Created: {new Date(suggestion.created_at).toLocaleDateString()}
                                 {suggestion.status !== 'pending' && ` - Overall: ${suggestion.status}`}
                               </Typography>
-                              {suggestion.suggested_updates.suggestions.map((s_update, index) => {
+                              {(suggestion.suggested_updates?.suggestions || []).map((s_update, index) => {
                                 const individualStatus = getSubSuggestionStatus(suggestion.status, suggestion.user_selections, s_update.field_path);
                                 return (
                                   <Paper key={index} variant="outlined" sx={{p: 1, my: 0.5, bgcolor: 'grey.50'}}>

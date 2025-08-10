@@ -19,6 +19,13 @@ import { ALL_ARTIFACT_TYPES } from '@/config/artifactConfig';
 interface ArtifactTimelineProps {
   contactId: string;
   onArtifactClick?: (artifact: BaseArtifact) => void;
+  hideInternalControls?: boolean;
+  filterTypes?: ArtifactType[];
+  viewMode?: string;
+  searchQuery?: string;
+  showDashboard?: boolean;
+  timelineData?: any;
+  isLoading?: boolean;
 }
 
 const defaultStats: TimelineStatsData = {
@@ -34,15 +41,46 @@ const defaultStats: TimelineStatsData = {
 
 export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
   contactId,
-  onArtifactClick
+  onArtifactClick,
+  hideInternalControls = false,
+  filterTypes: externalFilterTypes,
+  viewMode: externalViewMode,
+  searchQuery: externalSearchQuery,
+  showDashboard = false,
+  timelineData: externalTimelineData,
+  isLoading: externalIsLoading
 }) => {
-  const [filterTypes, setFilterTypes] = useState<ArtifactType[]>([]);
+  const [internalFilterTypes, setInternalFilterTypes] = useState<ArtifactType[]>([]);
+  const [internalViewMode, setInternalViewMode] = useState<string>('chronological');
+  const [internalSearchQuery, setInternalSearchQuery] = useState<string>('');
+  
+  // Use external props if provided, otherwise use internal state
+  const filterTypes = externalFilterTypes ?? internalFilterTypes;
+  const viewMode = externalViewMode ?? internalViewMode;
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const setFilterTypes = hideInternalControls ? () => {} : setInternalFilterTypes;
+  const setViewMode = hideInternalControls ? () => {} : setInternalViewMode;
+  const setSearchQuery = hideInternalControls ? () => {} : setInternalSearchQuery;
 
+  // Only fetch data if external data is not provided
+  const shouldFetch = !externalTimelineData;
+  
   const {
-    data: timelineData,
-    isLoading,
+    data: internalTimelineData,
+    isLoading: internalIsLoading,
     isError,
-  } = useArtifactTimeline(contactId, { filterTypes });
+  } = useArtifactTimeline(
+    shouldFetch ? contactId : '', // Empty string prevents fetching
+    shouldFetch ? { 
+      filterTypes,
+      groupingMode: viewMode as 'chronological' | 'intensity' | 'reciprocity' | 'themes',
+      searchQuery
+    } : {}
+  );
+  
+  // Use external data if provided, otherwise use internal query
+  const timelineData = externalTimelineData ?? internalTimelineData;
+  const isLoading = externalIsLoading ?? internalIsLoading;
 
   const groupedArtifacts = timelineData?.groupedArtifacts || [];
   const stats = timelineData?.stats || defaultStats;
@@ -114,10 +152,14 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
       minHeight: 'auto', 
       p: { xs: 3, md: 5 }
     }}>
-        {stats && <EnhancedTimelineStats stats={stats} />}
+        {stats && <EnhancedTimelineStats stats={stats} artifacts={timelineData?.filteredArtifacts || []} />}
         <EnhancedTimelineFilters 
           filterTypes={filterTypes}
           onFilterChange={setFilterTypes}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
         <Box sx={{ 
           textAlign: 'center', 
@@ -159,9 +201,9 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
     <Box sx={{ 
       maxWidth: '1200px', // Wider for executive screens
       mx: 'auto', 
-      background: 'var(--color-background-premium)', // Premium gradient
-      minHeight: '100vh', 
-      p: { xs: 3, md: 5 }, // Using sophisticated spacing
+      background: hideInternalControls ? 'transparent' : 'var(--color-background-premium)', // Premium gradient only when standalone
+      minHeight: hideInternalControls ? 'auto' : '100vh', 
+      p: hideInternalControls ? 0 : { xs: 3, md: 5 }, // No padding when controlled externally
       position: 'relative',
       '&::before': {
         // Subtle texture overlay for premium feel
@@ -177,23 +219,200 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
       }
     }}>
       <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Typography variant="h4" sx={{ 
-          mb: 4, // Following 8px grid 
-          color: 'text.primary', 
-          fontWeight: 600,
-          fontSize: { xs: '1.75rem', md: '2rem' },
-          letterSpacing: '-0.02em',
-          textShadow: '0 1px 2px rgba(0,0,0,0.05)' // Subtle depth
-        }}>
-          Relationship Timeline
-        </Typography>
+        {/* Only show internal controls if not hidden */}
+        {!hideInternalControls && (
+          <>
+            <Typography variant="h4" sx={{ 
+              mb: 4, // Following 8px grid 
+              color: 'text.primary', 
+              fontWeight: 600,
+              fontSize: { xs: '1.75rem', md: '2rem' },
+              letterSpacing: '-0.02em',
+              textShadow: '0 1px 2px rgba(0,0,0,0.05)' // Subtle depth
+            }}>
+              Relationship Timeline
+            </Typography>
+            
+            {stats && <EnhancedTimelineStats stats={stats} artifacts={timelineData?.filteredArtifacts || []} />}
+            
+            <EnhancedTimelineFilters 
+              filterTypes={filterTypes}
+              onFilterChange={setFilterTypes}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          </>
+        )}
         
-        {stats && <EnhancedTimelineStats stats={stats} />}
-        
-        <EnhancedTimelineFilters 
-          filterTypes={filterTypes}
-          onFilterChange={setFilterTypes}
-        />
+        {/* Show dashboard when external controls are used */}
+        {hideInternalControls && showDashboard && stats && (
+          <Box sx={{ mb: 3 }}>
+            <EnhancedTimelineStats 
+              stats={stats} 
+              artifacts={timelineData?.filteredArtifacts || []} 
+            />
+          </Box>
+        )}
+
+        {/* Relationship Pulse Indicators - Only show if not externally controlled */}
+        {!hideInternalControls && viewMode === 'chronological' && groupedArtifacts.length > 0 && (
+          <Box sx={{
+            mb: 4,
+            p: 3,
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,255,0.95) 100%)',
+            borderRadius: 'var(--radius-medium)',
+            border: '1px solid',
+            borderColor: 'grey.200',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <Typography variant="subtitle1" sx={{ 
+              fontWeight: 600, 
+              mb: 2, 
+              color: 'text.primary',
+              fontSize: '14px',
+              letterSpacing: '0.5px'
+            }}>
+              Relationship Pulse
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              {(() => {
+                const momentum = stats.averageTimeBetweenDays < 7 ? 'accelerating' : 
+                               stats.averageTimeBetweenDays < 14 ? 'steady' : 'cooling';
+                const recentActivity = groupedArtifacts[0]?.artifacts.length > 2 ? 'high' : 
+                                     groupedArtifacts[0]?.artifacts.length > 1 ? 'active' : 'quiet';
+                
+                const pulseConfig = {
+                  accelerating: { color: 'success.main', icon: '🚀', label: 'Accelerating', description: 'Relationship gaining momentum' },
+                  steady: { color: 'info.main', icon: '🔄', label: 'Steady Pace', description: 'Consistent engagement pattern' },
+                  cooling: { color: 'warning.main', icon: '❄️', label: 'Cooling Off', description: 'May benefit from renewed engagement' }
+                };
+
+                const activityConfig = {
+                  high: { color: 'success.main', icon: '🔥', label: 'High Activity', description: 'Very engaged recently' },
+                  active: { color: 'info.main', icon: '📈', label: 'Active', description: 'Regular interaction level' },
+                  quiet: { color: 'grey.600', icon: '💭', label: 'Quiet Phase', description: 'Lower recent activity' }
+                };
+
+                const momentumInfo = pulseConfig[momentum];
+                const activityInfo = activityConfig[recentActivity];
+
+                return (
+                  <>
+                    {/* Momentum Indicator */}
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 2,
+                      py: 1,
+                      borderRadius: 'var(--radius-medium)',
+                      backgroundColor: `${momentumInfo.color}15`,
+                      border: '1px solid',
+                      borderColor: `${momentumInfo.color}30`,
+                      transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        backgroundColor: `${momentumInfo.color}20`,
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 4px 12px ${momentumInfo.color}20`
+                      }
+                    }}>
+                      <Typography sx={{ fontSize: '16px' }}>{momentumInfo.icon}</Typography>
+                      <Box>
+                        <Typography variant="caption" sx={{ 
+                          fontWeight: 600, 
+                          color: momentumInfo.color,
+                          fontSize: '12px'
+                        }}>
+                          {momentumInfo.label}
+                        </Typography>
+                        <Typography variant="caption" sx={{ 
+                          display: 'block',
+                          color: 'text.secondary',
+                          fontSize: '11px'
+                        }}>
+                          {momentumInfo.description}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Activity Level Indicator */}
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 2,
+                      py: 1,
+                      borderRadius: 'var(--radius-medium)',
+                      backgroundColor: `${activityInfo.color}15`,
+                      border: '1px solid',
+                      borderColor: `${activityInfo.color}30`,
+                      transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        backgroundColor: `${activityInfo.color}20`,
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 4px 12px ${activityInfo.color}20`
+                      }
+                    }}>
+                      <Typography sx={{ fontSize: '16px' }}>{activityInfo.icon}</Typography>
+                      <Box>
+                        <Typography variant="caption" sx={{ 
+                          fontWeight: 600, 
+                          color: activityInfo.color,
+                          fontSize: '12px'
+                        }}>
+                          {activityInfo.label}
+                        </Typography>
+                        <Typography variant="caption" sx={{ 
+                          display: 'block',
+                          color: 'text.secondary',
+                          fontSize: '11px'
+                        }}>
+                          {activityInfo.description}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Next Touch Suggestion */}
+                    {momentum === 'cooling' && (
+                      <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        px: 2,
+                        py: 1,
+                        borderRadius: 'var(--radius-medium)',
+                        backgroundColor: 'primary.50',
+                        border: '1px solid',
+                        borderColor: 'primary.200',
+                        animation: 'sophisticatedEntrance 800ms cubic-bezier(0.0, 0, 0.2, 1) both'
+                      }}>
+                        <Typography sx={{ fontSize: '16px' }}>⏰</Typography>
+                        <Box>
+                          <Typography variant="caption" sx={{ 
+                            fontWeight: 600, 
+                            color: 'primary.main',
+                            fontSize: '12px'
+                          }}>
+                            Strategic Moment
+                          </Typography>
+                          <Typography variant="caption" sx={{ 
+                            display: 'block',
+                            color: 'text.secondary',
+                            fontSize: '11px'
+                          }}>
+                            Consider reaching out soon
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                  </>
+                );
+              })()}
+            </Box>
+          </Box>
+        )}
 
         {/* Enhanced Timeline Container with Central Line */}
         <Box sx={{ 

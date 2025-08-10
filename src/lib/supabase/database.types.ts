@@ -1913,7 +1913,6 @@ export interface Database {
         Relationships: []
       }
     }
->>>>>>> origin/main
     Functions: {
       [key: string]: {
         Args: Record<string, any>;

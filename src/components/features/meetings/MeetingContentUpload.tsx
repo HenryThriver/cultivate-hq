@@ -26,9 +26,11 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   HourglassEmpty as HourglassEmptyIcon,
+  Mic as MicIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import type { MeetingArtifact, MeetingArtifactContent } from '@/types/artifact';
+import { VoiceRecorder } from '@/components/features/voice-memos/VoiceRecorder';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,7 +56,7 @@ interface MeetingContentUploadProps {
   open: boolean;
   onClose: () => void;
   meeting: MeetingArtifact;
-  onSave: (contentType: 'notes' | 'transcript' | 'recording', content: string | File) => Promise<void>;
+  onSave: (contentType: 'notes' | 'transcript' | 'recording' | 'voice_memo', content: string | File) => Promise<void>;
   processing?: boolean;
   processingStatus?: 'pending' | 'processing' | 'completed' | 'failed';
 }
@@ -71,6 +73,7 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
   const [notes, setNotes] = useState('');
   const [transcript, setTranscript] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [voiceRecording, setVoiceRecording] = useState<Blob | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +87,7 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
       setNotes(meetingContent.notes || '');
       setTranscript(meetingContent.transcript || '');
       setSelectedFile(null);
+      setVoiceRecording(null);
       setError(null);
     }
   }, [open, meetingContent]);
@@ -119,12 +123,17 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
     }
   };
 
+  const handleVoiceRecordingComplete = (audioBlob: Blob): void => {
+    setVoiceRecording(audioBlob);
+    setError(null);
+  };
+
   const handleSave = async (): Promise<void> => {
     try {
       setSaving(true);
       setError(null);
 
-      let contentType: 'notes' | 'transcript' | 'recording';
+      let contentType: 'notes' | 'transcript' | 'recording' | 'voice_memo';
       let content: string | File;
 
       switch (activeTab) {
@@ -151,6 +160,15 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
           }
           contentType = 'recording';
           content = selectedFile;
+          break;
+        case 3: // Voice Memo
+          if (!voiceRecording) {
+            setError('Please record a voice memo');
+            return;
+          }
+          contentType = 'voice_memo';
+          // Convert Blob to File for upload
+          content = new File([voiceRecording], `meeting-voice-memo-${Date.now()}.webm`, { type: voiceRecording.type });
           break;
         default:
           return;
@@ -246,6 +264,12 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
             label="Recording" 
             id="meeting-content-tab-2"
             aria-controls="meeting-content-tabpanel-2"
+          />
+          <Tab 
+            icon={<MicIcon />} 
+            label="Voice Memo" 
+            id="meeting-content-tab-3"
+            aria-controls="meeting-content-tabpanel-3"
           />
         </Tabs>
 
@@ -362,6 +386,32 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
           <Typography variant="caption" color="text.secondary">
             Supported formats: MP3, WAV, M4A, MP4, MOV, AVI, WebM (max 100MB)
           </Typography>
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={3}>
+          <Typography variant="subtitle2" gutterBottom>
+            Voice Memo
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Record a voice memo directly in your browser. This will be transcribed and analyzed automatically.
+          </Typography>
+          
+          <VoiceRecorder
+            onRecordingComplete={handleVoiceRecordingComplete}
+            contactId={meeting.recipient_contact_id || meeting.initiator_contact_id || ''}
+            size="large"
+          />
+
+          {voiceRecording && (
+            <Paper sx={{ p: 2, mt: 2 }}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <CheckCircleIcon color="success" fontSize="small" />
+                <Typography variant="body2">
+                  Voice memo recorded ({(voiceRecording.size / (1024 * 1024)).toFixed(2)} MB)
+                </Typography>
+              </Box>
+            </Paper>
+          )}
         </TabPanel>
       </DialogContent>
 

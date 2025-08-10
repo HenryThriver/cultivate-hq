@@ -15,7 +15,7 @@ import { ContactHeader } from '@/components/features/contacts/ContactHeader';
 import { NextConnection } from '@/components/features/contacts/NextConnection';
 import { ActionItemStatus as ActionQueuesActionItemStatus } from '@/components/features/contacts/ActionQueues';
 import { ContextSections } from '@/components/features/contacts/ContextSections';
-import { ArtifactModal } from '@/components/features/timeline/ArtifactModal';
+import { StandardizedArtifactModal } from '@/components/features/artifacts/StandardizedArtifactModal';
 
 // Import LoopDashboard
 // import { LoopDashboard } from '@/components/features/loops/LoopDashboard'; // Deprecated - functionality moved to artifacts and actions
@@ -1368,7 +1368,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       </Box>
 
       {isClient && artifactDetails && (
-        <ArtifactModal
+        <StandardizedArtifactModal
           artifact={artifactDetails}
           open={isArtifactModalOpen}
           onClose={() => {
@@ -1376,6 +1376,10 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           }}
           contactId={contactId}
           contactName={artifactModalContactName}
+          variant="profile"
+          showActions={false} // Profile page uses separate ArtifactDetailModal for POGs/Asks with actions
+          showSuggestions={true}
+          showFieldSources={true}
           relatedSuggestions={relatedSuggestions}
           contactFieldSources={displayedContactProfileUpdates}
           onDelete={async (artifactId: string) => {

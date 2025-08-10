@@ -1,0 +1,657 @@
+'use client';
+
+import React, { useState } from 'react';
+import {
+  Modal, Box, Typography, IconButton, Paper, Divider, Chip,
+  Table, TableBody, TableCell, TableContainer, TableRow,
+  Button, Alert, CircularProgress, List, ListItem, ListItemText,
+  Tooltip, Dialog, DialogTitle, DialogContent, useTheme, Card, CardContent
+} from '@mui/material';
+import {
+  Close as CloseIcon,
+  PlayArrow as PlayIcon,
+  Delete as DeleteIcon,
+  Refresh as RefreshIcon,
+  Psychology as PsychologyIcon,
+  Source as SourceIcon,
+  Help as HandIcon,
+  Favorite as HeartIcon,
+  TrendingUp as OfferIcon,
+  TrendingDown as ReceiveIcon,
+  Add as AddIcon,
+  Assignment as ActionIcon
+} from '@mui/icons-material';
+
+import { getArtifactConfig } from '@/config/artifactConfig';
+import type { 
+  BaseArtifact, 
+  LinkedInArtifact, 
+  VoiceMemoArtifact, 
+  LoopArtifact, 
+  LoopStatus, 
+  LoopArtifactContent,
+  POGArtifact,
+  AskArtifact
+} from '@/types';
+import { format, parseISO } from 'date-fns';
+import { UpdateSuggestionRecord } from '@/types/suggestions';
+import { formatFieldPathForDisplay } from '@/lib/utils/formatting';
+
+// Import specialized modals
+import { LinkedInProfileModal, LinkedInPostModal } from '@/components/features/linkedin';
+import { EnhancedLoopModal } from '../loops/EnhancedLoopModal';
+import { EmailDetailModal } from '@/components/features/emails/EmailDetailModal';
+import { VoiceMemoDetailModal } from '@/components/features/voice/VoiceMemoDetailModal';
+import { ArtifactSuggestions } from '@/components/features/suggestions/ArtifactSuggestions';
+import { ActionTile } from '@/components/features/contacts/profile/ActionTile';
+import type { ActionItem as DbActionItem } from '@/lib/hooks/useActions';
+import { EmailArtifact } from '@/types/email';
+import type { LinkedInPostArtifact } from '@/types/artifact';
+
+interface StandardizedArtifactModalProps {
+  artifact: BaseArtifact | null;
+  open: boolean;
+  onClose: () => void;
+  
+  // Context
+  contactId?: string;
+  contactName?: string;
+  contactLinkedInUrl?: string;
+  
+  // Data
+  relatedSuggestions?: UpdateSuggestionRecord[];
+  contactFieldSources?: Record<string, string>;
+  relatedActions?: DbActionItem[];
+  
+  // Actions - General
+  onDelete?: (artifactId: string) => Promise<void>;
+  onReprocess?: (artifactId: string) => Promise<void>;
+  onPlayAudio?: (audioPath: string) => Promise<string>;
+  
+  // Actions - Loop specific  
+  onLoopStatusUpdate?: (loopId: string, newStatus: LoopStatus) => Promise<void>;
+  onLoopEdit?: (loopId: string, updates: Partial<LoopArtifactContent>) => Promise<void>;
+  onLoopDelete?: (loopId: string) => Promise<void>;
+  onLoopShare?: (loopId: string) => Promise<void>;
+  onLoopComplete?: (loopId: string, outcome: Record<string, unknown>) => Promise<void>;
+  
+  // Actions - POG/Ask specific
+  onActionCreate?: (artifactId: string, type: 'pog' | 'ask' | 'general') => Promise<void>;
+  onActionUpdate?: (actionId: string, updates: Partial<DbActionItem>) => Promise<void>;
+  onActionDelete?: (actionId: string) => Promise<void>;
+  onActionComplete?: (actionId: string) => Promise<void>;
+  
+  // Loading states
+  isLoading?: boolean;
+  isDeleting?: boolean;
+  isReprocessing?: boolean;
+  error?: string | null;
+  
+  // UI customization
+  variant?: 'timeline' | 'profile' | 'standalone';
+  showActions?: boolean;
+  showSuggestions?: boolean;
+  showFieldSources?: boolean;
+}
+
+const modalStyle = {
+  position: 'absolute' as const,
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: { xs: '90%', sm: '80%', md: '70%', lg: '60%' },
+  maxWidth: '900px', // Wider for enhanced content
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  borderRadius: '12px', // More modern rounded corners
+  maxHeight: '85vh',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden'
+};
+
+const dialogStyle = {
+  '& .MuiDialog-paper': {
+    maxWidth: '900px',
+    width: '90%',
+    maxHeight: '85vh',
+    borderRadius: '12px'
+  }
+};
+
+const contentStyle = {
+  overflowY: 'auto',
+  pr: 1,
+  mr: -1,
+  flexGrow: 1,
+};
+
+const renderContent = (content: unknown, level = 0): React.ReactNode => {
+  if (typeof content === 'string' || typeof content === 'number' || typeof content === 'boolean') {
+    return <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{String(content)}</Typography>;
+  }
+  if (Array.isArray(content)) {
+    return (
+      <Box component="ul" sx={{ pl: level > 0 ? 2 : 0, listStyleType: 'disc', my: 0.5 }}>
+        {content.map((item, index) => (
+          <li key={index}>{renderContent(item, level + 1)}</li>
+        ))}
+      </Box>
+    );
+  }
+  if (typeof content === 'object' && content !== null) {
+    return (
+      <TableContainer component={Paper} elevation={0} sx={{ my: 1, border: '1px solid', borderColor: 'divider'}}>
+        <Table size="small">
+          <TableBody>
+            {Object.entries(content).map(([key, value]) => (
+              <TableRow key={key} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                <TableCell component="th" scope="row" sx={{ fontWeight: 'medium', width: '30%', verticalAlign: 'top' }}>
+                  {key.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                </TableCell>
+                <TableCell sx={{ verticalAlign: 'top' }}>{renderContent(value, level + 1)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+  return <Typography variant="body2" color="text.secondary">N/A</Typography>;
+};
+
+const getArtifactIcon = (type: string) => {
+  switch (type) {
+    case 'pog': return OfferIcon;
+    case 'ask': return HandIcon; 
+    case 'meeting': return ActionIcon;
+    case 'email': return ActionIcon;
+    case 'voice_memo': return ActionIcon;
+    default: return ActionIcon;
+  }
+};
+
+const getArtifactDescription = (artifact: POGArtifact | AskArtifact): string => {
+  if (artifact.type === 'pog') {
+    return artifact.metadata?.description || artifact.content?.description || 'No description available';
+  } else if (artifact.type === 'ask') {
+    return artifact.metadata?.request_description || artifact.content?.request_description || 'No description available';
+  }
+  return 'No description available';
+};
+
+export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps> = ({
+  artifact,
+  open,
+  onClose,
+  contactId,
+  contactName,
+  contactLinkedInUrl,
+  relatedSuggestions,
+  contactFieldSources,
+  relatedActions,
+  onDelete,
+  onReprocess,
+  onPlayAudio,
+  onLoopStatusUpdate,
+  onLoopEdit,
+  onLoopDelete,
+  onLoopShare,
+  onLoopComplete,
+  onActionCreate,
+  onActionUpdate,
+  onActionDelete,
+  onActionComplete,
+  isLoading,
+  isDeleting,
+  isReprocessing,
+  error,
+  variant = 'timeline',
+  showActions = true,
+  showSuggestions = true,
+  showFieldSources = true
+}) => {
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [showCreateActionModal, setShowCreateActionModal] = useState(false);
+  const theme = useTheme();
+
+  if (!artifact) return null;
+
+  const handlePlayAudioInternal = async () => {
+    if (!artifact || artifact.type !== 'voice_memo' || !onPlayAudio) return;
+    const voiceMemo = artifact as VoiceMemoArtifact;
+    if (!voiceMemo.audio_file_path) return;
+    setAudioError(null);
+    try {
+      const url = await onPlayAudio(voiceMemo.audio_file_path);
+      setAudioUrl(url);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to play audio';
+      setAudioError(errorMessage);
+    }
+  };
+
+  const handleDeleteInternal = () => {
+    if (!onDelete || !artifact) return;
+    if (window.confirm('Are you sure you want to delete this artifact? This action cannot be undone.')) {
+      onDelete(artifact.id).catch(err => console.error("Delete failed from modal", err));
+    }
+  };
+
+  const handleReprocessInternal = () => {
+    if (!onReprocess || !artifact) return;
+    if (window.confirm('This will re-run AI analysis on this artifact. Continue?')) {
+      onReprocess(artifact.id).catch(err => console.error("Reprocess failed from modal", err));
+    }
+  };
+
+  const config = getArtifactConfig(artifact.type);
+  const { icon: Icon, badgeLabel, color } = config;
+  const detailContentToRender = artifact.metadata ? artifact.metadata : (artifact.content || "No details available");
+
+  // Route to specialized modals for specific artifact types
+  if (artifact.type === 'linkedin_profile') {
+    return (
+      <LinkedInProfileModal 
+        open={open} 
+        onClose={onClose} 
+        artifact={artifact as LinkedInArtifact} 
+        contactId={contactId}
+        contactName={contactName}
+        contactLinkedInUrl={contactLinkedInUrl}
+      />
+    );
+  }
+
+  if (artifact.type === 'linkedin_post') {
+    return (
+      <LinkedInPostModal 
+        open={open} 
+        onClose={onClose} 
+        artifact={artifact as unknown as LinkedInPostArtifact} 
+        contactId={contactId}
+      />
+    );
+  }
+
+  if (artifact.type === 'loop') {
+    return (
+      <EnhancedLoopModal
+        open={open}
+        onClose={onClose}
+        artifact={artifact as unknown as LoopArtifact}
+        contactName={contactName || 'Contact'}
+        contactId={contactId}
+        onStatusUpdate={onLoopStatusUpdate || (async () => console.warn('onLoopStatusUpdate not provided'))}
+        onEdit={onLoopEdit || (async () => console.warn('onLoopEdit not provided'))}
+        onDelete={onLoopDelete || (async () => console.warn('onLoopDelete not provided'))}
+        onShare={onLoopShare || (async () => console.warn('onLoopShare not provided'))}
+        onComplete={onLoopComplete || (async () => console.warn('onLoopComplete not provided'))}
+      />
+    );
+  }
+
+  if (artifact.type === 'email') {
+    return (
+      <EmailDetailModal
+        open={open}
+        onClose={onClose}
+        email={artifact as EmailArtifact}
+        onDelete={onDelete ? (email: EmailArtifact) => onDelete(email.id) : undefined}
+      />
+    );
+  }
+
+  // Use Dialog for POG/Ask types for better UX (following profile page pattern)
+  const useDialog = variant === 'profile' || artifact.type === 'pog' || artifact.type === 'ask';
+
+  // Modal props handled directly in the return statement
+
+  const isPogOrAsk = artifact.type === 'pog' || artifact.type === 'ask';
+  const artifactActions = relatedActions?.filter(action => action.source_artifact_id === artifact.id) || [];
+
+  const content = (
+    <>
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        mb: 2, 
+        flexShrink: 0,
+        p: useDialog ? 0 : 3,
+        pb: useDialog ? 2 : 3
+      }}>
+        {Icon && <Icon sx={{ mr: 1.5, color: color || 'inherit', fontSize: '2rem' }} />}
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography 
+            id="artifact-detail-title" 
+            variant="h6" 
+            component="h2"
+            sx={{ mb: 0.5 }}
+          >
+            {badgeLabel || artifact.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+          </Typography>
+          {isPogOrAsk && (
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '400px' }}>
+              {getArtifactDescription(artifact as POGArtifact | AskArtifact)}
+            </Typography>
+          )}
+        </Box>
+        <IconButton onClick={onClose} aria-label="close artifact detail">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      {useDialog ? null : <Divider sx={{ mb: 2, flexShrink: 0 }} />}
+
+      {/* Main Content */}
+      <Box sx={{ 
+        ...(useDialog ? {} : contentStyle),
+        p: useDialog ? 0 : 0,
+        px: useDialog ? 0 : 3,
+        pb: useDialog ? 0 : 3
+      }}>
+        {error && !isDeleting && !isReprocessing && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Metadata and Controls */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          {artifact.type !== 'voice_memo' && (
+            <Chip 
+              label={artifact.type} 
+              size="small" 
+              sx={{ backgroundColor: color, color: color ? 'white' : 'inherit' }} 
+            />
+          )}
+          {artifact.type === 'voice_memo' && (artifact as VoiceMemoArtifact).audio_file_path && onPlayAudio && (
+            <Button
+              variant="outlined"
+              startIcon={<PlayIcon />}
+              onClick={handlePlayAudioInternal}
+              disabled={isLoading}
+              size="small"
+            >
+              Play Audio
+            </Button>
+          )}
+          <Typography variant="caption" color="text.secondary">
+            {artifact.timestamp ? format(parseISO(artifact.timestamp), 'PPP p') : 'Date/Time unknown'}
+          </Typography>
+        </Box>
+
+        {/* AI Processing Status and Suggestions */}
+        {showSuggestions && (
+          <Box sx={{ mb: 2 }}>
+            <ArtifactSuggestions
+              artifactId={artifact.id}
+              artifactType={artifact.type}
+              aiParsingStatus={artifact.ai_parsing_status as 'pending' | 'processing' | 'completed' | 'failed'}
+              contactId={contactId}
+              compact={false}
+            />
+          </Box>
+        )}
+
+        {/* Related Actions for POGs/Asks */}
+        {showActions && isPogOrAsk && (
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ActionIcon fontSize="small" /> Related Actions
+              </Typography>
+              {onActionCreate && (
+                <Button
+                  startIcon={<AddIcon />}
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setShowCreateActionModal(true)}
+                >
+                  Add Action
+                </Button>
+              )}
+            </Box>
+
+            {artifactActions.length > 0 ? (
+              <Box sx={{ display: 'grid', gap: 1 }}>
+                {artifactActions.map((action) => (
+                  <ActionTile
+                    key={action.id}
+                    action={action}
+                    onUpdate={onActionUpdate}
+                    onDelete={onActionDelete}
+                    onComplete={onActionComplete}
+                    compact
+                  />
+                ))}
+              </Box>
+            ) : (
+              <Card variant="outlined" sx={{ backgroundColor: 'grey.50' }}>
+                <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No actions created yet. Actions help track follow-ups and commitments.
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+        )}
+
+        {/* Artifact Content */}
+        {artifact.type !== 'voice_memo' && renderContent(detailContentToRender)}
+
+        {/* Voice Memo Special Handling */}
+        {artifact.type === 'voice_memo' && (
+          <Box sx={{ mt: 2 }}>
+            {(artifact as VoiceMemoArtifact).audio_file_path && onPlayAudio && (
+              <Box sx={{ mb: 2, mt: 1 }}>
+                {audioUrl && (
+                  <audio controls src={audioUrl} style={{ width: '100%', marginTop: '8px' }}>
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
+                {audioError && <Alert severity="error" sx={{ mt: 1 }}>{audioError}</Alert>}
+              </Box>
+            )}
+            {(artifact as VoiceMemoArtifact).transcription && (
+              <Paper variant="outlined" sx={{ p: 2, mt: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="caption" color="text.secondary" gutterBottom>
+                  Transcription
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                  {(artifact as VoiceMemoArtifact).transcription}
+                </Typography>
+              </Paper>
+            )}
+          </Box>
+        )}
+
+        {/* AI-Generated Suggestions */}
+        {showSuggestions && relatedSuggestions && relatedSuggestions.length > 0 && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Box>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PsychologyIcon fontSize="small" /> AI-Generated Suggestions
+              </Typography>
+              <List dense>
+                {relatedSuggestions.map((suggestion) => {
+                  const getSubSuggestionStatus = (
+                    overallStatus: UpdateSuggestionRecord['status'],
+                    userSelections: UpdateSuggestionRecord['user_selections'],
+                    subFieldPath: string
+                  ): 'approved' | 'rejected' | 'pending' | 'skipped' | 'not-selected' | 'mixed' => {
+                    if (overallStatus === 'approved') return 'approved';
+                    if (overallStatus === 'rejected') return 'rejected';
+                    if (overallStatus === 'pending') return 'pending';
+                    if (overallStatus === 'skipped') return 'skipped';
+                    if (overallStatus === 'partial') {
+                      if (userSelections && userSelections.hasOwnProperty(subFieldPath)) {
+                        return userSelections[subFieldPath] ? 'approved' : 'rejected';
+                      }
+                      return 'not-selected'; 
+                    }
+                    return 'pending';
+                  };
+                  return (
+                    <ListItem key={suggestion.id} divider sx={{ alignItems: 'flex-start' }}>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              {suggestion.field_paths.map(fp => formatFieldPathForDisplay(fp)).join(', ')}
+                            </Typography>
+                          </Box>
+                        }
+                        secondaryTypographyProps={{ component: 'div' }} 
+                        secondary={
+                          <Box>
+                            <Typography variant="caption" color="text.secondary" gutterBottom>
+                              Created: {new Date(suggestion.created_at).toLocaleDateString()}
+                              {suggestion.status !== 'pending' && ` - Overall: ${suggestion.status}`}
+                            </Typography>
+                            {suggestion.suggested_updates.suggestions.map((s_update, index) => {
+                              const individualStatus = getSubSuggestionStatus(suggestion.status, suggestion.user_selections, s_update.field_path);
+                              return (
+                                <Paper key={index} variant="outlined" sx={{ p: 1, my: 0.5, bgcolor: 'grey.50' }}>
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                    <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
+                                      Field: {formatFieldPathForDisplay(s_update.field_path)}
+                                    </Typography>
+                                    <Chip 
+                                      label={individualStatus} 
+                                      size="small" 
+                                      color={
+                                        individualStatus === 'approved' ? 'success' :
+                                        individualStatus === 'rejected' ? 'error' :
+                                        individualStatus === 'not-selected' ? 'warning' : 'default'
+                                      }
+                                    />
+                                  </Box>
+                                  <Typography variant="caption" display="block">Action: {s_update.action}</Typography>
+                                  {s_update.action !== 'add' && s_update.current_value !== undefined && (
+                                    <Typography variant="caption" display="block">Current: {String(s_update.current_value)}</Typography>
+                                  )}
+                                  <Typography variant="caption" display="block">
+                                    Suggested: {typeof s_update.suggested_value === 'object' ? renderContent(s_update.suggested_value) : String(s_update.suggested_value)}
+                                  </Typography>
+                                  <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>
+                                    Confidence: {s_update.confidence.toFixed(2)} - {s_update.reasoning}
+                                  </Typography>
+                                </Paper>
+                              );
+                            })}
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </Box>
+          </>
+        )}
+
+        {/* Contact Field Sources */}
+        {showFieldSources && contactFieldSources && Object.keys(contactFieldSources).length > 0 && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Box>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SourceIcon fontSize="small" /> Contact Profile Updates
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                This artifact is the source for the following contact profile fields:
+              </Typography>
+              <List dense>
+                {Object.entries(contactFieldSources).map(([fieldPath, value]) => (
+                  <ListItem key={fieldPath} sx={{ py: 0.5, alignItems: 'flex-start' }}>
+                    <ListItemText 
+                      primary={<Typography variant="caption" sx={{ fontWeight: 'medium' }}>{formatFieldPathForDisplay(fieldPath)}:</Typography>}
+                      secondaryTypographyProps={{ component: 'div' }} 
+                      secondary={value === 'Value not directly found' || value === 'Suggested value not found in matched suggestion' || (typeof value === 'string' && value.startsWith('Value for sub-path')) ? <Typography variant="body2" color="text.secondary"><em>{value}</em></Typography> : renderContent(value)}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </>
+        )}
+      </Box>
+
+      {/* Footer Actions */}
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 1, 
+        justifyContent: 'flex-end', 
+        mt: 2, 
+        pt: 2, 
+        borderTop: 1, 
+        borderColor: 'divider', 
+        flexShrink: 0,
+        p: useDialog ? 0 : 3,
+        pt: 2
+      }}>
+        {onReprocess && artifact?.type === 'voice_memo' && (artifact as VoiceMemoArtifact).transcription_status === 'completed' && (
+          <Tooltip title="Re-run AI analysis">
+            <Button
+              startIcon={isReprocessing ? <CircularProgress size={16} /> : <RefreshIcon />}
+              onClick={handleReprocessInternal}
+              disabled={isLoading || isDeleting || isReprocessing}
+              color="secondary"
+              size="small"
+            >
+              {isReprocessing ? 'Reprocessing...' : 'Reprocess'}
+            </Button>
+          </Tooltip>
+        )}
+        {onDelete && (
+          <Tooltip title="Delete artifact">
+            <Button
+              startIcon={isDeleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+              onClick={handleDeleteInternal}
+              disabled={isLoading || isDeleting || isReprocessing}
+              color="error"
+              size="small"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </Tooltip>
+        )}
+        <Button onClick={onClose} disabled={isDeleting || isReprocessing}>
+          Close
+        </Button>
+      </Box>
+    </>
+  );
+
+  if (useDialog) {
+    return (
+      <Dialog 
+        open={open} 
+        onClose={onClose} 
+        maxWidth="md" 
+        fullWidth 
+        sx={dialogStyle}
+      >
+        <DialogTitle sx={{ p: 3, pb: 0 }}>
+          {/* Title content is in the main content */}
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, pt: 0 }}>
+          {content}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} aria-labelledby="artifact-detail-title">
+      <Box sx={modalStyle}>
+        {content}
+      </Box>
+    </Modal>
+  );
+};

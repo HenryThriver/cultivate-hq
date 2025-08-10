@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Container,
@@ -10,31 +10,65 @@ import {
   Alert,
   Breadcrumbs,
   Link as MuiLink,
+  Chip,
+  Avatar,
 } from '@mui/material';
 import NextLink from 'next/link';
-import { Home as HomeIcon, NavigateNext as NavigateNextIcon } from '@mui/icons-material';
+import { 
+  Home as HomeIcon, 
+  NavigateNext as NavigateNextIcon,
+  Business as BusinessIcon,
+  LocationOn as LocationIcon 
+} from '@mui/icons-material';
 import { ArtifactTimeline } from '@/components/features/timeline/ArtifactTimeline';
-import { ContactHeader } from '@/components/features/contacts/ContactHeader';
-import { ArtifactModal } from '@/components/features/timeline/ArtifactModal';
+import { TimelineControlsBar } from '@/components/features/timeline/TimelineControlsBar';
+import { ArtifactDetailModal as StandardizedArtifactModal } from '@/components/features/contacts/profile/ArtifactDetailModal';
+// import { EnhancedTimelineStats } from '@/components/features/timeline/EnhancedTimelineStats';
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
 import { useLoops } from '@/lib/hooks/useLoops';
 import { useGmailIntegration } from '@/lib/hooks/useGmailIntegration';
-import { BaseArtifact, LoopStatus, LinkedInArtifactContent } from '@/types';
-import { PersonalContext as PersonalContextType } from '@/types/contact';
+// useArtifactTimeline is now handled within ArtifactTimeline component
+import { useArtifactModalData } from '@/lib/hooks/useArtifactModalData';
+import { BaseArtifact, LoopStatus, LinkedInArtifactContent, ArtifactType } from '@/types';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function ContactTimelinePage() {
   const params = useParams();
   const contactId = params.id as string;
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const [selectedArtifact, setSelectedArtifact] = useState<BaseArtifact | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // Timeline controls state
+  const [filterTypes, setFilterTypes] = useState<ArtifactType[]>([]);
+  const [viewMode, setViewMode] = useState<string>('chronological');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showDashboard, setShowDashboard] = useState<boolean>(false);
+  const [expandedFilters, setExpandedFilters] = useState<boolean>(false);
+  
   const { contact, isLoading, error } = useContactProfile(contactId);
+  const { updateLoopStatus } = useLoops(contactId);
+  
+  // Timeline data is now handled by the ArtifactTimeline component itself
+  
+  // Enhanced artifact modal data
   const {
-    updateLoopStatus,
-  } = useLoops(contactId);
+    artifactDetails,
+    // relatedSuggestions,
+    // displayedContactProfileUpdates,
+    contactName: artifactModalContactName,
+    // isLoading: isLoadingArtifactModalData,
+    // error: artifactModalDataError,
+    fetchArtifactData,
+    reprocessVoiceMemo,
+    isReprocessing: isReprocessingArtifactModal,
+    deleteArtifact: deleteArtifactModalFromHook,
+    isDeleting,
+    // playAudio,
+  } = useArtifactModalData();
   
   // Gmail integration for automatic email sync
   const {
@@ -42,65 +76,43 @@ export default function ContactTimelinePage() {
     isSyncing: emailSyncing,
   } = useGmailIntegration();
 
-  const personalContextForHeader = useMemo(() => {
-    if (!contact?.personal_context) return undefined;
-    return contact.personal_context as PersonalContextType;
-  }, [contact?.personal_context]);
-
-  const connectCadenceText = useMemo(() => {
-    return contact?.connection_cadence_days 
-      ? `Connect every ${contact.connection_cadence_days} days` 
-      : undefined;
-  }, [contact?.connection_cadence_days]);
-
   // Automatic email sync when contact loads
   useEffect(() => {
     if (!contact || !gmailConnected || emailSyncing || !contactId) return;
 
-    // Get contact email addresses for sync
     const emailAddresses = [];
     
-    // Add primary email if exists
     if (contact.email) {
       emailAddresses.push(contact.email);
     }
     
-    // Add additional emails from contact_emails if available
     if (contact.contact_emails && Array.isArray(contact.contact_emails)) {
       const additionalEmails = contact.contact_emails.map((ce: { email: string }) => ce.email);
       emailAddresses.push(...additionalEmails);
     }
 
-    // Only sync if we have email addresses
     if (emailAddresses.length === 0) {
       console.log(`📧 No email addresses found for contact ${contact.name || contactId}`);
       return;
     }
 
-    // Check if we've already synced recently (prevent duplicate syncs)
     const lastSyncKey = `gmail_sync_${contactId}`;
     const lastSyncTime = localStorage.getItem(lastSyncKey);
     const now = Date.now();
-    const fiveMinutesAgo = now - (5 * 60 * 1000); // 5 minutes
+    const fiveMinutesAgo = now - (5 * 60 * 1000);
 
     if (lastSyncTime && parseInt(lastSyncTime) > fiveMinutesAgo) {
       console.log(`📧 Skipping sync for ${contact.name || contactId} - synced recently`);
       return;
     }
 
-    console.log(`📧 Auto-syncing emails for contact ${contact.name || contactId} with emails:`, emailAddresses);
-
-    // Store sync time to prevent duplicates
+    console.log(`📧 Auto-syncing emails for contact ${contact.name || contactId}`);
     localStorage.setItem(lastSyncKey, now.toString());
 
-    // Trigger email sync (7 days back similar to calendar)
     const today = new Date();
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 7);
 
-    console.log(`📧 Auto-syncing emails for date range: ${sevenDaysAgo.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
-
-    // Use direct API call to avoid function reference issues
     fetch('/api/gmail/sync', {
       method: 'POST',
       headers: {
@@ -108,7 +120,7 @@ export default function ContactTimelinePage() {
       },
       body: JSON.stringify({
         contact_id: contactId,
-        email_addresses: [...new Set(emailAddresses)], // Remove duplicates
+        email_addresses: [...new Set(emailAddresses)],
         date_range: {
           start: sevenDaysAgo.toISOString(),
           end: today.toISOString(),
@@ -120,7 +132,6 @@ export default function ContactTimelinePage() {
       const data = await response.json();
       if (response.ok) {
         console.log('📧 Email sync completed:', data);
-        // Invalidate timeline to refresh with new emails
         queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
       } else {
         throw new Error(data.error || 'Sync failed');
@@ -128,13 +139,13 @@ export default function ContactTimelinePage() {
     })
     .catch((error) => {
       console.error('📧 Auto email sync failed:', error);
-      // Remove the sync time if it failed so it can retry
       localStorage.removeItem(lastSyncKey);
     });
-
-  }, [contact, gmailConnected, contactId, emailSyncing, queryClient]); // Removed syncContactEmails from dependencies
+  }, [contact, gmailConnected, contactId, emailSyncing, queryClient]);
 
   const handleArtifactClick = (artifact: BaseArtifact) => {
+    // Fetch enhanced data for the modal
+    fetchArtifactData(artifact.id, contactId);
     setSelectedArtifact(artifact);
     setIsModalOpen(true);
   };
@@ -144,40 +155,63 @@ export default function ContactTimelinePage() {
     setSelectedArtifact(null);
   };
 
-  const handleLoopStatusUpdate = async (loopId: string, newStatus: LoopStatus) => {
+  // Loop handlers (currently unused but may be needed for loop artifacts)
+  // const handleLoopStatusUpdate = async (loopId: string, newStatus: LoopStatus) => {
+  //   try {
+  //     if (!updateLoopStatus) { 
+  //       console.warn('updateLoopStatus not available'); 
+  //       return; 
+  //     }
+  //     await updateLoopStatus({ loopId, newStatus });
+  //     await queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
+  //     handleCloseModal();
+  //   } catch (error) {
+  //     console.error('Failed to update loop status:', error);
+  //   }
+  // };
+
+  const handleMeetingContentSave = async (meetingId: string, contentType: 'notes' | 'transcript' | 'recording' | 'voice_memo', content: string | File) => {
     try {
-      if (!updateLoopStatus) { console.warn('updateLoopStatus not available'); return; }
-      await updateLoopStatus({ loopId, newStatus });
+      const formData = new FormData();
+      formData.append('artifact_id', meetingId);
+      formData.append('contact_id', contactId);
+      formData.append('content_type', contentType);
+      
+      if (typeof content === 'string') {
+        formData.append('content', content);
+      } else {
+        formData.append('file', content);
+      }
+
+      const response = await fetch('/api/meetings/content', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save meeting content');
+      }
+
+      // Refresh timeline data
       await queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
-      handleCloseModal();
+      
     } catch (error) {
-      console.error('Failed to update loop status:', error);
+      console.error('Failed to save meeting content:', error);
+      throw error;
     }
-  };
-
-  const handleLoopEdit = async () => {
-    console.warn('updateLoopDetails function is not available or its name needs verification in useLoops.');
-  };
-
-  const handleLoopDelete = async () => {
-    console.warn('deleteLoop function is not available or its name needs verification in useLoops.');
-  };
-
-  const handleLoopShare = async (loopId: string) => {
-    console.log('Share loop triggered in timeline page:', loopId);
-  };
-
-  const handleLoopComplete = async () => {
-    console.warn('completeLoop function is not available or its name needs verification in useLoops.');
   };
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="center">
-          <CircularProgress />
-        </Box>
-      </Container>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh' 
+      }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -191,85 +225,162 @@ export default function ContactTimelinePage() {
     );
   }
 
-  return (
-    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
-      <Breadcrumbs 
-        separator={<NavigateNextIcon fontSize="small" />} 
-        aria-label="breadcrumb" 
-        sx={{ mb: 4 }}
-      >
-        <MuiLink component={NextLink} underline="hover" color="inherit" href="/dashboard">
-          <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-          Dashboard
-        </MuiLink>
-        <MuiLink component={NextLink} underline="hover" color="inherit" href={`/dashboard/contacts/${contactId}`}>
-          {contact.name || 'Contact'}
-        </MuiLink>
-        <Typography color="text.primary">Timeline</Typography>
-      </Breadcrumbs>
+  const profilePhotoUrl = (contact.linkedin_data as unknown as LinkedInArtifactContent)?.profilePicture;
 
-      <ContactHeader 
-        name={contact.name || 'Unnamed Contact'}
-        title={contact.title}
-        company={contact.company}
-        connectCadence={connectCadenceText}
-        connectDate={contact.last_interaction_date ? new Date(contact.last_interaction_date) : undefined}
-        personalContext={personalContextForHeader}
-        profilePhotoUrl={(contact.linkedin_data as unknown as LinkedInArtifactContent)?.profilePicture || undefined}
-        location={contact.location}
-        relationshipScore={contact.relationship_score}
+  return (
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+      {/* Compact Header Bar */}
+      <Box sx={{ 
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
+        px: 3,
+        py: 2
+      }}>
+        <Container maxWidth="lg" disableGutters>
+          {/* Breadcrumbs with integrated contact info */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 2
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Breadcrumbs 
+                separator={<NavigateNextIcon fontSize="small" />} 
+                aria-label="breadcrumb"
+                sx={{ 
+                  '& .MuiBreadcrumbs-separator': { mx: 0.5 },
+                  '& .MuiLink-root': { fontSize: '14px' }
+                }}
+              >
+                <MuiLink component={NextLink} underline="hover" color="inherit" href="/dashboard">
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <HomeIcon sx={{ mr: 0.5, fontSize: '18px' }} />
+                    Dashboard
+                  </Box>
+                </MuiLink>
+                <MuiLink 
+                  component={NextLink} 
+                  underline="hover" 
+                  color="inherit" 
+                  href={`/dashboard/contacts/${contactId}`}
+                >
+                  Contacts
+                </MuiLink>
+                <Typography color="text.primary" fontSize="14px">Timeline</Typography>
+              </Breadcrumbs>
+            </Box>
+            
+            {/* Contact Quick Info */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              ml: { xs: 0, md: 'auto' }
+            }}>
+              <Avatar 
+                src={profilePhotoUrl || undefined} 
+                alt={contact.name || undefined}
+                sx={{ width: 32, height: 32 }}
+              >
+                {contact.name?.charAt(0)}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle1" sx={{ 
+                  fontWeight: 600, 
+                  lineHeight: 1.2,
+                  fontSize: '15px'
+                }}>
+                  {contact.name || 'Unnamed Contact'}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {contact.company && (
+                    <Chip 
+                      icon={<BusinessIcon sx={{ fontSize: '14px' }} />}
+                      label={contact.company} 
+                      size="small" 
+                      variant="outlined"
+                      sx={{ 
+                        height: '20px', 
+                        fontSize: '11px',
+                        '& .MuiChip-icon': { ml: 0.5 }
+                      }}
+                    />
+                  )}
+                  {contact.location && (
+                    <Chip 
+                      icon={<LocationIcon sx={{ fontSize: '14px' }} />}
+                      label={contact.location} 
+                      size="small" 
+                      variant="outlined"
+                      sx={{ 
+                        height: '20px', 
+                        fontSize: '11px',
+                        '& .MuiChip-icon': { ml: 0.5 }
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Sticky Controls Bar */}
+      <TimelineControlsBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        filterTypes={filterTypes}
+        onFilterChange={setFilterTypes}
+        showDashboard={showDashboard}
+        onDashboardToggle={() => setShowDashboard(!showDashboard)}
+        expandedFilters={expandedFilters}
+        onExpandFilters={() => setExpandedFilters(!expandedFilters)}
       />
-      
-      <Box sx={{ mt: 5 }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
-          sx={{ 
-            fontWeight: 600,
-            fontSize: { xs: '1.75rem', md: '2rem' },
-            letterSpacing: '-0.02em',
-            color: 'text.primary',
-            textShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            animation: 'sophisticatedEntrance 800ms cubic-bezier(0.0, 0, 0.2, 1) both',
-            mb: 1
-          }}
-        >
-          Relationship Intelligence Timeline
-        </Typography>
-        
-        <Typography 
-          variant="body1" 
-          sx={{ 
-            color: 'text.secondary',
-            fontStyle: 'italic',
-            mb: 4,
-            animation: 'sophisticatedEntrance 800ms cubic-bezier(0.0, 0, 0.2, 1) both',
-            animationDelay: '200ms',
-            opacity: 0.9
-          }}
-        >
-          Every strategic connection tells a story of mutual value creation.
-        </Typography>
-        
+
+      {/* Main Content */}
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        {/* Intelligence Dashboard is now handled within ArtifactTimeline component */}
+
+        {/* Timeline Content - Now Immediately Visible */}
         <ArtifactTimeline
           contactId={contactId}
           onArtifactClick={handleArtifactClick}
+          hideInternalControls // New prop to hide internal controls
+          filterTypes={filterTypes}
+          viewMode={viewMode}
+          searchQuery={searchQuery}
+          showDashboard={showDashboard} // Pass dashboard state
+          // Don't pass timelineData/isLoading - let component handle its own data fetching
         />
-      </Box>
+      </Container>
 
-      <ArtifactModal
+      {/* Standardized Artifact Modal - Rich Contact Profile Style */}
+      <StandardizedArtifactModal
         open={isModalOpen}
         onClose={handleCloseModal}
-        artifact={selectedArtifact}
-        contactName={contact.name || 'Contact'}
-        onLoopStatusUpdate={handleLoopStatusUpdate}
-        onLoopEdit={handleLoopEdit}
-        onLoopDelete={handleLoopDelete}
-        onLoopShare={handleLoopShare}
-        onLoopComplete={handleLoopComplete}
+        artifact={artifactDetails || selectedArtifact}
+        contactName={artifactModalContactName || contact.name || 'Contact'}
         contactId={contactId}
+        currentUserId={user?.id || ''}
+        onDelete={async (artifactId: string) => {
+          await deleteArtifactModalFromHook(artifactId, contactId);
+          setIsModalOpen(false);
+          queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
+        }}
+        onReprocess={async (artifactId: string) => {
+          await reprocessVoiceMemo(artifactId);
+          queryClient.invalidateQueries({ queryKey: ['artifactTimeline', contactId] });
+        }}
+        isDeleting={isDeleting}
+        isReprocessing={isReprocessingArtifactModal}
+        onMeetingContentSave={handleMeetingContentSave}
       />
-    </Container>
+    </Box>
   );
-} 
+}

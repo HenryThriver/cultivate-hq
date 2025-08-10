@@ -27,9 +27,6 @@ import type {
   BaseArtifact, 
   LinkedInArtifact, 
   VoiceMemoArtifact, 
-  LoopArtifact, 
-  LoopStatus, 
-  LoopArtifactContent,
   POGArtifact,
   AskArtifact
 } from '@/types';
@@ -39,9 +36,7 @@ import { formatFieldPathForDisplay } from '@/lib/utils/formatting';
 
 // Import specialized modals
 import { LinkedInProfileModal, LinkedInPostModal } from '@/components/features/linkedin';
-import { EnhancedLoopModal } from '../loops/EnhancedLoopModal';
 import { EmailDetailModal } from '@/components/features/emails/EmailDetailModal';
-import { VoiceMemoDetailModal } from '@/components/features/voice/VoiceMemoDetailModal';
 import { ArtifactSuggestions } from '@/components/features/suggestions/ArtifactSuggestions';
 import { ActionTile } from '@/components/features/contacts/profile/ActionTile';
 import type { ActionItem as DbActionItem } from '@/lib/hooks/useActions';
@@ -68,12 +63,7 @@ interface StandardizedArtifactModalProps {
   onReprocess?: (artifactId: string) => Promise<void>;
   onPlayAudio?: (audioPath: string) => Promise<string>;
   
-  // Actions - Loop specific  
-  onLoopStatusUpdate?: (loopId: string, newStatus: LoopStatus) => Promise<void>;
-  onLoopEdit?: (loopId: string, updates: Partial<LoopArtifactContent>) => Promise<void>;
-  onLoopDelete?: (loopId: string) => Promise<void>;
-  onLoopShare?: (loopId: string) => Promise<void>;
-  onLoopComplete?: (loopId: string, outcome: Record<string, unknown>) => Promise<void>;
+  // Removed deprecated loop-specific actions
   
   // Actions - POG/Ask specific
   onActionCreate?: (artifactId: string, type: 'pog' | 'ask' | 'general') => Promise<void>;
@@ -193,11 +183,6 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
   onDelete,
   onReprocess,
   onPlayAudio,
-  onLoopStatusUpdate,
-  onLoopEdit,
-  onLoopDelete,
-  onLoopShare,
-  onLoopComplete,
   onActionCreate,
   onActionUpdate,
   onActionDelete,
@@ -275,22 +260,7 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
     );
   }
 
-  if (artifact.type === 'loop') {
-    return (
-      <EnhancedLoopModal
-        open={open}
-        onClose={onClose}
-        artifact={artifact as unknown as LoopArtifact}
-        contactName={contactName || 'Contact'}
-        contactId={contactId}
-        onStatusUpdate={onLoopStatusUpdate || (async () => console.warn('onLoopStatusUpdate not provided'))}
-        onEdit={onLoopEdit || (async () => console.warn('onLoopEdit not provided'))}
-        onDelete={onLoopDelete || (async () => console.warn('onLoopDelete not provided'))}
-        onShare={onLoopShare || (async () => console.warn('onLoopShare not provided'))}
-        onComplete={onLoopComplete || (async () => console.warn('onLoopComplete not provided'))}
-      />
-    );
-  }
+  // Loop artifacts are deprecated and no longer supported
 
   if (artifact.type === 'email') {
     return (
@@ -309,7 +279,7 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
   // Modal props handled directly in the return statement
 
   const isPogOrAsk = artifact.type === 'pog' || artifact.type === 'ask';
-  const artifactActions = relatedActions?.filter(action => action.source_artifact_id === artifact.id) || [];
+  const artifactActions = relatedActions?.filter(action => action.artifact_id === artifact.id) || [];
 
   const content = (
     <>
@@ -421,9 +391,6 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
                   <ActionTile
                     key={action.id}
                     action={action}
-                    onUpdate={onActionUpdate}
-                    onDelete={onActionDelete}
-                    onComplete={onActionComplete}
                     compact
                   />
                 ))}
@@ -502,7 +469,7 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
                         primary={
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                              {suggestion.field_paths.map(fp => formatFieldPathForDisplay(fp)).join(', ')}
+                              {(suggestion.field_paths || []).map(fp => formatFieldPathForDisplay(fp)).join(', ')}
                             </Typography>
                           </Box>
                         }
@@ -513,7 +480,7 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
                               Created: {new Date(suggestion.created_at).toLocaleDateString()}
                               {suggestion.status !== 'pending' && ` - Overall: ${suggestion.status}`}
                             </Typography>
-                            {suggestion.suggested_updates.suggestions.map((s_update, index) => {
+                            {(suggestion.suggested_updates?.suggestions || []).map((s_update, index) => {
                               const individualStatus = getSubSuggestionStatus(suggestion.status, suggestion.user_selections, s_update.field_path);
                               return (
                                 <Paper key={index} variant="outlined" sx={{ p: 1, my: 0.5, bgcolor: 'grey.50' }}>
@@ -588,7 +555,6 @@ export const StandardizedArtifactModal: React.FC<StandardizedArtifactModalProps>
         gap: 1, 
         justifyContent: 'flex-end', 
         mt: 2, 
-        pt: 2, 
         borderTop: 1, 
         borderColor: 'divider', 
         flexShrink: 0,

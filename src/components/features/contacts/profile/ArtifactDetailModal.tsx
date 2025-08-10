@@ -148,7 +148,7 @@ interface ArtifactDetailModalProps {
   isReprocessing?: boolean;
   onActionRefresh?: () => void;
   artifacts?: any[]; // Add artifacts prop to pass to CreateActionModal
-  onMeetingContentSave?: (meetingId: string, contentType: 'notes' | 'transcript' | 'recording', content: string | File) => Promise<void>;
+  onMeetingContentSave?: (meetingId: string, contentType: 'notes' | 'transcript' | 'recording' | 'voice_memo', content: string | File) => Promise<void>;
 }
 
 // Configuration for different artifact types

@@ -1,9 +1,37 @@
-// Temporary database types file
-// This will be replaced with generated types from Supabase
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
-
-export interface Database {
+export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       actions: {
@@ -247,7 +275,15 @@ export interface Database {
           created_at: string
           duration_seconds: number | null
           id: string
+          impact_score: number | null
+          initiator_contact_id: string | null
+          initiator_user_id: string | null
+          loop_status: string | null
           metadata: Json | null
+          recipient_contact_id: string | null
+          recipient_user_id: string | null
+          reciprocity_weight: number | null
+          resolution_notes: string | null
           timestamp: string
           transcription: string | null
           transcription_status: string | null
@@ -264,7 +300,15 @@ export interface Database {
           created_at?: string
           duration_seconds?: number | null
           id?: string
+          impact_score?: number | null
+          initiator_contact_id?: string | null
+          initiator_user_id?: string | null
+          loop_status?: string | null
           metadata?: Json | null
+          recipient_contact_id?: string | null
+          recipient_user_id?: string | null
+          reciprocity_weight?: number | null
+          resolution_notes?: string | null
           timestamp?: string
           transcription?: string | null
           transcription_status?: string | null
@@ -281,7 +325,15 @@ export interface Database {
           created_at?: string
           duration_seconds?: number | null
           id?: string
+          impact_score?: number | null
+          initiator_contact_id?: string | null
+          initiator_user_id?: string | null
+          loop_status?: string | null
           metadata?: Json | null
+          recipient_contact_id?: string | null
+          recipient_user_id?: string | null
+          reciprocity_weight?: number | null
+          resolution_notes?: string | null
           timestamp?: string
           transcription?: string | null
           transcription_status?: string | null
@@ -295,6 +347,48 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_initiator_contact_id_fkey"
+            columns: ["initiator_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_initiator_user_id_fkey"
+            columns: ["initiator_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_initiator_user_id_fkey"
+            columns: ["initiator_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "artifacts_recipient_contact_id_fkey"
+            columns: ["recipient_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifacts_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "artifacts_user_id_fkey"
@@ -404,6 +498,77 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_relationships: {
+        Row: {
+          contact_a_id: string
+          contact_b_id: string
+          context: string | null
+          created_at: string
+          id: string
+          introduction_date: string | null
+          introduction_successful: boolean | null
+          relationship_type: string
+          strength: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_a_id: string
+          contact_b_id: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          introduction_date?: string | null
+          introduction_successful?: boolean | null
+          relationship_type: string
+          strength?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_a_id?: string
+          contact_b_id?: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          introduction_date?: string | null
+          introduction_successful?: boolean | null
+          relationship_type?: string
+          strength?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_relationships_contact_a_id_fkey"
+            columns: ["contact_a_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_relationships_contact_b_id_fkey"
+            columns: ["contact_b_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_relationships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_relationships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -808,6 +973,86 @@ export interface Database {
           },
         ]
       }
+      goal_contact_targets: {
+        Row: {
+          achieved_at: string | null
+          achievement_notes: string | null
+          contact_id: string
+          created_at: string
+          goal_id: string
+          id: string
+          last_progress_update: string | null
+          notes: string | null
+          priority: string
+          status: string
+          target_description: string
+          target_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          achievement_notes?: string | null
+          contact_id: string
+          created_at?: string
+          goal_id: string
+          id?: string
+          last_progress_update?: string | null
+          notes?: string | null
+          priority?: string
+          status?: string
+          target_description: string
+          target_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string | null
+          achievement_notes?: string | null
+          contact_id?: string
+          created_at?: string
+          goal_id?: string
+          id?: string
+          last_progress_update?: string | null
+          notes?: string | null
+          priority?: string
+          status?: string
+          target_description?: string
+          target_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_contact_targets_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_contact_targets_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_contact_targets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_contact_targets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       goal_contacts: {
         Row: {
           contact_id: string
@@ -1043,205 +1288,63 @@ export interface Database {
           },
         ]
       }
-      loop_analytics: {
-        Row: {
-          completion_time_days: number | null
-          contact_id: string
-          created_at: string | null
-          id: string
-          loop_artifact_id: string
-          loop_type: string
-          reciprocity_impact: number | null
-          status_transitions: Json
-          success_score: number | null
-          user_id: string
-        }
-        Insert: {
-          completion_time_days?: number | null
-          contact_id: string
-          created_at?: string | null
-          id?: string
-          loop_artifact_id: string
-          loop_type: string
-          reciprocity_impact?: number | null
-          status_transitions?: Json
-          success_score?: number | null
-          user_id: string
-        }
-        Update: {
-          completion_time_days?: number | null
-          contact_id?: string
-          created_at?: string | null
-          id?: string
-          loop_artifact_id?: string
-          loop_type?: string
-          reciprocity_impact?: number | null
-          status_transitions?: Json
-          success_score?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "loop_analytics_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loop_analytics_loop_artifact_id_fkey"
-            columns: ["loop_artifact_id"]
-            isOneToOne: false
-            referencedRelation: "artifacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loop_analytics_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loop_analytics_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      loop_suggestions: {
+      linkedin_sync_schedules: {
         Row: {
           contact_id: string
           created_at: string | null
-          created_loop_id: string | null
           id: string
-          source_artifact_id: string
-          status: string
-          suggestion_data: Json
+          is_active: boolean | null
+          last_sync_at: string | null
+          next_sync_at: string | null
+          sync_day_of_week: number | null
+          sync_frequency: string | null
+          sync_time: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           contact_id: string
           created_at?: string | null
-          created_loop_id?: string | null
           id?: string
-          source_artifact_id: string
-          status?: string
-          suggestion_data: Json
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          sync_day_of_week?: number | null
+          sync_frequency?: string | null
+          sync_time?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           contact_id?: string
           created_at?: string | null
-          created_loop_id?: string | null
           id?: string
-          source_artifact_id?: string
-          status?: string
-          suggestion_data?: Json
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          sync_day_of_week?: number | null
+          sync_frequency?: string | null
+          sync_time?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "loop_suggestions_contact_id_fkey"
+            foreignKeyName: "linkedin_sync_schedules_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "loop_suggestions_created_loop_id_fkey"
-            columns: ["created_loop_id"]
-            isOneToOne: false
-            referencedRelation: "artifacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loop_suggestions_source_artifact_id_fkey"
-            columns: ["source_artifact_id"]
-            isOneToOne: false
-            referencedRelation: "artifacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loop_suggestions_user_id_fkey"
+            foreignKeyName: "linkedin_sync_schedules_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "loop_suggestions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      loop_templates: {
-        Row: {
-          completion_criteria: string[] | null
-          created_at: string | null
-          default_actions: Json
-          default_status: string
-          default_title_template: string | null
-          description: string | null
-          follow_up_schedule: number[] | null
-          id: string
-          loop_type: string
-          name: string
-          reciprocity_direction: string
-          typical_duration: number | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          completion_criteria?: string[] | null
-          created_at?: string | null
-          default_actions?: Json
-          default_status?: string
-          default_title_template?: string | null
-          description?: string | null
-          follow_up_schedule?: number[] | null
-          id?: string
-          loop_type: string
-          name: string
-          reciprocity_direction?: string
-          typical_duration?: number | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          completion_criteria?: string[] | null
-          created_at?: string | null
-          default_actions?: Json
-          default_status?: string
-          default_title_template?: string | null
-          description?: string | null
-          follow_up_schedule?: number[] | null
-          id?: string
-          loop_type?: string
-          name?: string
-          reciprocity_direction?: string
-          typical_duration?: number | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "loop_templates_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loop_templates_user_id_fkey"
+            foreignKeyName: "linkedin_sync_schedules_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_profiles"
@@ -1914,11 +2017,97 @@ export interface Database {
       }
     }
     Functions: {
-      [key: string]: {
-        Args: Record<string, any>;
-        Returns: any;
-      };
-    };
+      calculate_next_sync_time: {
+        Args: {
+          sync_time: string
+          last_sync: string
+          day_of_week: number
+          frequency: string
+        }
+        Returns: string
+      }
+      create_goal_from_voice_memo: {
+        Args: {
+          p_is_primary?: boolean
+          p_title: string
+          p_voice_memo_id: string
+          p_user_id: string
+          p_success_criteria?: string
+          p_category?: string
+          p_timeline?: string
+          p_description?: string
+        }
+        Returns: string
+      }
+      get_decrypted_secret: {
+        Args: { secret_name: string }
+        Returns: string
+      }
+      get_or_create_self_contact: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
+      get_primary_goal: {
+        Args: { p_user_id: string }
+        Returns: {
+          success_criteria: string
+          timeline: string
+          category: string
+          description: string
+          title: string
+          id: string
+          progress_percentage: number
+          created_at: string
+        }[]
+      }
+      get_self_contact_id: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
+      get_user_integration: {
+        Args: { p_integration_type: string; p_user_id: string }
+        Returns: {
+          metadata: Json
+          scopes: string[]
+          refresh_token: string
+          access_token: string
+          token_expires_at: string
+          id: string
+        }[]
+      }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_feature_enabled_for_current_user: {
+        Args: { flag_name: string }
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          p_details?: string
+          p_resource_id?: string
+          p_resource_type: string
+          p_action: string
+          p_admin_user_id: string
+          p_ip_address?: string
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
+      upsert_user_integration: {
+        Args: {
+          p_integration_type: string
+          p_user_id: string
+          p_metadata?: Json
+          p_scopes?: string[]
+          p_token_expires_at?: string
+          p_refresh_token?: string
+          p_access_token: string
+        }
+        Returns: string
+      }
+    }
     Enums: {
       artifact_type_enum:
         | "note"
@@ -2302,7 +2491,7 @@ export interface Database {
         Returns: undefined
       }
       can_insert_object: {
-        Args: { bucketid: string; name: string; owner: string; metadata: Json }
+        Args: { bucketid: string; metadata: Json; owner: string; name: string }
         Returns: undefined
       }
       delete_prefix: {
@@ -2336,39 +2525,39 @@ export interface Database {
       get_size_by_bucket: {
         Args: Record<PropertyKey, never>
         Returns: {
-          size: number
           bucket_id: string
+          size: number
         }[]
       }
       list_multipart_uploads_with_delimiter: {
         Args: {
-          bucket_id: string
-          prefix_param: string
           delimiter_param: string
+          prefix_param: string
+          bucket_id: string
           max_keys?: number
           next_key_token?: string
           next_upload_token?: string
         }
         Returns: {
+          created_at: string
           key: string
           id: string
-          created_at: string
         }[]
       }
       list_objects_with_delimiter: {
         Args: {
+          next_token?: string
           bucket_id: string
           prefix_param: string
           delimiter_param: string
           max_keys?: number
           start_after?: string
-          next_token?: string
         }
         Returns: {
+          updated_at: string
           name: string
           id: string
           metadata: Json
-          updated_at: string
         }[]
       }
       operation: {
@@ -2378,21 +2567,21 @@ export interface Database {
       search: {
         Args: {
           prefix: string
-          bucketname: string
-          limits?: number
-          levels?: number
-          offsets?: number
-          search?: string
-          sortcolumn?: string
           sortorder?: string
+          sortcolumn?: string
+          search?: string
+          offsets?: number
+          levels?: number
+          limits?: number
+          bucketname: string
         }
         Returns: {
-          name: string
-          id: string
-          updated_at: string
           created_at: string
           last_accessed_at: string
           metadata: Json
+          id: string
+          updated_at: string
+          name: string
         }[]
       }
       search_legacy_v1: {
@@ -2407,24 +2596,24 @@ export interface Database {
           sortorder?: string
         }
         Returns: {
+          last_accessed_at: string
           name: string
           id: string
           updated_at: string
           created_at: string
-          last_accessed_at: string
           metadata: Json
         }[]
       }
       search_v1_optimised: {
         Args: {
-          prefix: string
-          bucketname: string
+          sortcolumn?: string
+          sortorder?: string
           limits?: number
+          bucketname: string
+          prefix: string
           levels?: number
           offsets?: number
           search?: string
-          sortcolumn?: string
-          sortorder?: string
         }
         Returns: {
           name: string
@@ -2437,19 +2626,19 @@ export interface Database {
       }
       search_v2: {
         Args: {
-          prefix: string
           bucket_name: string
-          limits?: number
-          levels?: number
           start_after?: string
+          levels?: number
+          prefix: string
+          limits?: number
         }
         Returns: {
-          key: string
-          name: string
           id: string
           updated_at: string
           created_at: string
           metadata: Json
+          key: string
+          name: string
         }[]
       }
     }
@@ -2609,3 +2798,4 @@ export const Constants = {
     },
   },
 } as const
+

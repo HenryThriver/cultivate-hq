@@ -397,9 +397,9 @@ export const MeetingContentUpload: React.FC<MeetingContentUploadProps> = ({
           </Typography>
           
           <VoiceRecorder
-            onRecordingComplete={handleVoiceRecordingComplete}
-            contactId={meeting.recipient_contact_id || meeting.initiator_contact_id || ''}
-            size="large"
+            onRecordingBlob={handleVoiceRecordingComplete}
+            contactId={meeting.contact_id || ''}
+            mode="blob"
           />
 
           {voiceRecording && (

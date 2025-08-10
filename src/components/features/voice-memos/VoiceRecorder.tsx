@@ -21,14 +21,19 @@ import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos'; // Added for real-tim
 
 interface VoiceRecorderProps {
   contactId: string;
-  onRecordingComplete?: (artifact: Record<string, unknown>) => void; // Consider using a specific Artifact type
+  onRecordingComplete?: (artifact: Record<string, unknown>) => void;
+  onRecordingBlob?: (audioBlob: Blob) => void;
   onError?: (error: string) => void;
+  size?: 'small' | 'medium' | 'large';
+  mode?: 'artifact' | 'blob';
 }
 
 export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   contactId,
   onRecordingComplete,
-  onError
+  onRecordingBlob,
+  onError,
+  mode = 'artifact'
 }) => {
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -196,6 +201,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const handleRecordingComplete = async (blob: Blob) => {
+    // For blob mode, just return the blob without creating an artifact
+    if (mode === 'blob') {
+      onRecordingBlob?.(blob);
+      setIsUploading(false);
+      setUploadStatus('');
+      return;
+    }
+
+    // Artifact mode - create full voice memo artifact
     setIsUploading(true);
     setUploadStatus('Uploading voice memo...');
     

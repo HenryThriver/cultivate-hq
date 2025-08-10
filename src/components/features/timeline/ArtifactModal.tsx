@@ -49,11 +49,7 @@ interface ArtifactModalProps {
   isDeleting?: boolean;
   isReprocessing?: boolean;
   error?: string | null;
-  onLoopStatusUpdate?: (loopId: string, newStatus: LoopStatus) => Promise<void>;
-  onLoopEdit?: (loopId: string, updates: Partial<LoopArtifactContent>) => Promise<void>;
-  onLoopDelete?: (loopId: string) => Promise<void>;
-  onLoopShare?: (loopId: string) => Promise<void>;
-  onLoopComplete?: (loopId: string, outcome: Record<string, unknown>) => Promise<void>;
+  // Loop functionality deprecated
 }
 
 const modalStyle = {
@@ -196,22 +192,7 @@ export const ArtifactModal: React.FC<ArtifactModalProps> = ({
     );
   }
 
-  if (artifact.type === 'loop') {
-    return (
-      <EnhancedLoopModal
-        open={open}
-        onClose={onClose}
-        artifact={artifact as unknown as LoopArtifact}
-        contactName={contactName || 'Contact'}
-        contactId={contactId}
-        onStatusUpdate={onLoopStatusUpdate || (async () => console.warn('onLoopStatusUpdate not provided'))}
-        onEdit={onLoopEdit || (async () => console.warn('onLoopEdit not provided'))}
-        onDelete={onLoopDelete || (async () => console.warn('onLoopDelete not provided'))}
-        onShare={onLoopShare || (async () => console.warn('onLoopShare not provided'))}
-        onComplete={onLoopComplete || (async () => console.warn('onLoopComplete not provided'))}
-      />
-    );
-  }
+  // Loop artifacts are deprecated and no longer supported
 
   if (artifact.type === 'email') {
     return (

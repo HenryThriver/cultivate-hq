@@ -13,6 +13,39 @@ Our repository follows a structured Git flow for continuous deployment with zero
 local feature → feature/* (push) → develop (PR) → staging (PR) → main (PR)
 ```
 
+**⚠️ CRITICAL: NEVER CREATE PRS TO MAIN DIRECTLY**
+- Feature branches MUST target `develop` branch
+- Only `staging` branch creates PRs to `main`
+- This is enforced by GitHub branch protection rules
+- Violating this flow breaks CI/CD and deployment strategy
+
+### AI Assistant Git Flow Rules
+**For Claude Code and other AI assistants:**
+
+1. **ALWAYS check current branch before creating PRs**:
+   ```bash
+   git branch --show-current
+   ```
+
+2. **PR creation commands MUST specify base branch**:
+   ```bash
+   # ✅ CORRECT: Feature branch to develop
+   gh pr create --base develop --title "..." --body "..."
+   
+   # ❌ WRONG: Never target main directly
+   gh pr create --base main --title "..." --body "..."
+   ```
+
+3. **When user says "pr to dev", translate to**:
+   ```bash
+   gh pr create --base develop --title "..." --body "..."
+   ```
+
+4. **REFUSE to create PRs to main from feature branches**:
+   - If user requests "pr to main" from a feature branch, explain the git flow
+   - Suggest they first merge to develop, then staging, then main
+   - Only create main PRs when current branch is `staging`
+
 ### Development Server Note
 **IMPORTANT**: The user typically has a development server running on port 3000 in a separate terminal. DO NOT run `npm run dev` automatically. Instead, when changes need testing, simply remind: "Please ensure your dev server is running on port 3000 to test these changes."
 
@@ -343,3 +376,42 @@ export const ComponentName = ({ prop1, prop2 }: ComponentProps) => {
 
 ### Vendor Documentation Reference
 **IMPORTANT**: After 2+ failed attempts with vendor CLI commands or APIs, consult `documentation/VENDOR-DOCS.md` for correct syntax and documentation links. This prevents repeated API/CLI misuse (e.g., incorrect Vercel logs syntax, Vitest command patterns, etc.).
+
+## Git Flow Enforcement Tools
+
+### Safe PR Creation Script
+Use the automated script to prevent git flow violations:
+```bash
+./scripts/safe-pr.sh "Your PR title" "Optional PR body"
+```
+
+This script automatically:
+- Detects your current branch type
+- Selects the correct target branch per git flow
+- Creates the PR with proper base branch
+- Prevents accidental PRs to main
+
+### Manual PR Creation (AI Assistants)
+**MANDATORY checks before creating any PR:**
+```bash
+# 1. Check current branch
+git branch --show-current
+
+# 2. Use correct command based on branch:
+# If on feature/* branch:
+gh pr create --base develop --title "..." --body "..."
+
+# If on develop branch:
+gh pr create --base staging --title "..." --body "..."
+
+# If on staging branch:
+gh pr create --base main --title "..." --body "..."
+```
+
+# important-instruction-reminders
+**CRITICAL GIT FLOW RULES - READ EVERY TIME:**
+- Feature branches MUST target develop, NEVER main
+- Only staging branch targets main
+- When user says "pr to dev" they mean --base develop
+- REFUSE to create feature → main PRs
+- Use ./scripts/safe-pr.sh when in doubt

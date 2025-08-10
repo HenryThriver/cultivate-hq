@@ -142,7 +142,7 @@ export default function AddActionModal({
 
   // Mutation for creating/updating action
   const actionMutation = useMutation({
-    mutationFn: async (actionData: any) => {
+    mutationFn: async (actionData: Record<string, unknown>) => {
       if (!user?.id) throw new Error('User not authenticated');
 
       const payload = {
@@ -237,7 +237,7 @@ export default function AddActionModal({
     }
   };
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | number | boolean | Date | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {

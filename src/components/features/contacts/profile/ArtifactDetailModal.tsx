@@ -45,7 +45,7 @@ import type { BaseArtifact as ImportedBaseArtifact } from '@/types/artifact';
 interface BaseArtifact {
   id: string;
   type: string;
-  content: any;
+  content: string | Record<string, unknown>;
   timestamp: string;
   ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   initiator_contact_id?: string;
@@ -147,12 +147,12 @@ interface ArtifactDetailModalProps {
   isDeleting?: boolean;
   isReprocessing?: boolean;
   onActionRefresh?: () => void;
-  artifacts?: any[]; // Add artifacts prop to pass to CreateActionModal
+  artifacts?: Record<string, unknown>[]; // Add artifacts prop to pass to CreateActionModal
   onMeetingContentSave?: (meetingId: string, contentType: 'notes' | 'transcript' | 'recording' | 'voice_memo', content: string | File) => Promise<void>;
 }
 
 // Configuration for different artifact types
-const getArtifactConfig = (artifactType: string, theme: any) => {
+const getArtifactConfig = (artifactType: string, theme: Theme) => {
   const configs = {
     pog: {
       icon: HeartIcon,

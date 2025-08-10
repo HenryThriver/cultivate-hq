@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useToast } from '@/lib/contexts/ToastContext';
+import type { DbAction } from '@/types/database';
 
 export interface ActionItem {
   id: string;
@@ -20,11 +21,11 @@ export interface ActionItem {
   session_id?: string;
   notes?: string;
   estimated_duration_minutes?: number;
-  action_data?: Record<string, any>;
+  action_data?: Record<string, unknown>;
 }
 
 // Transform database action to component format
-const transformAction = (dbAction: any): ActionItem => ({
+const transformAction = (dbAction: DbAction): ActionItem => ({
   id: dbAction.id,
   title: dbAction.title,
   description: dbAction.description,

@@ -83,6 +83,7 @@ import type {
 import { useToast } from '@/lib/contexts/ToastContext';
 import { ProcessingStatusBar } from '@/components/features/voice/ProcessingStatusBar'; // Revert to alias import
 import { useAuth } from '@/lib/contexts/AuthContext';
+import type { DbAction, DbArtifact, DbContact } from '@/types/database';
 
 interface ContactProfilePageProps {
   // Props interface for Next.js 14 App Router
@@ -186,7 +187,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
   const { data: artifactActions = [] } = useActionsByArtifact(selectedArtifactForDetailModal?.id);
 
   // Transform database actions to modal format
-  const transformDbActionToModalAction = useCallback((dbAction: any) => ({
+  const transformDbActionToModalAction = useCallback((dbAction: DbAction) => ({
     id: dbAction.id,
     title: dbAction.title,
     description: dbAction.description,

@@ -28,7 +28,7 @@ interface ArtifactTimelineProps {
   searchQuery?: string;
   selectedGoalIds?: string[];
   showDashboard?: boolean;
-  timelineData?: any;
+  timelineData?: Record<string, unknown>;
   isLoading?: boolean;
 }
 

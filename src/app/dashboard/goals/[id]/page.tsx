@@ -121,8 +121,8 @@ interface ArtifactWithContent {
   goal_id?: string | null;
   type: string;
   content: string;
-  metadata: any;
-  ai_insights: any;
+  metadata: Record<string, unknown>;
+  ai_insights: Record<string, unknown>;
   ai_parsing_status: string | null;
   ai_processing_started_at: string | null;
   ai_processing_completed_at: string | null;

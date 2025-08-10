@@ -45,7 +45,7 @@ export const useReciprocityIntelligence = (contactId: string) => {
 
       // Convert artifacts to reciprocity items based on directionality
       const items: ReciprocityItem[] = (artifacts || []).map(artifact => {
-        const metadata = artifact.metadata as any;
+        const metadata = artifact.metadata as Record<string, unknown>;
         
         // Determine if this represents value given or received based on contact direction
         // For POGs: user giving = recipient_contact_id is the contact (user → contact)

@@ -9,8 +9,8 @@ interface Contact {
   company?: string;
   email?: string;
   last_interaction?: Date;
-  professional_context?: any;
-  personal_context?: any;
+  professional_context?: Record<string, unknown>;
+  personal_context?: Record<string, unknown>;
 }
 
 interface NetworkRelationship {
@@ -65,7 +65,7 @@ export interface BulkSuggestion {
   contacts: string[]; // Contact IDs involved
   suggestedAction: {
     type: string;
-    data: any;
+    data: Record<string, unknown>;
   };
   reasoning: string;
   timingOpportunity?: {
@@ -472,7 +472,7 @@ function calculateReactivationScore(contact: Contact, daysSinceLastInteraction: 
   return Math.max(0, Math.min(score, 100));
 }
 
-function calculateProfessionalContextOverlap(contextA: any, contextB: any): number {
+function calculateProfessionalContextOverlap(contextA: Record<string, unknown>, contextB: Record<string, unknown>): number {
   if (!contextA || !contextB) return 0;
   
   // Simplified overlap calculation

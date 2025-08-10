@@ -47,7 +47,7 @@ interface ExecutiveInsights {
 // Interface for the props expects TimelineStatsData from our types
 interface EnhancedTimelineStatsProps {
   stats: TimelineStatsData | null; // Allow null if stats might not be ready
-  artifacts?: any[]; // Raw artifacts for advanced analysis
+  artifacts?: Record<string, unknown>[]; // Raw artifacts for advanced analysis
 }
 
 export const EnhancedTimelineStats: React.FC<EnhancedTimelineStatsProps> = ({ stats, artifacts = [] }) => {

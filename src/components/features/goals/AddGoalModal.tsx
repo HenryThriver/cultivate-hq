@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -56,6 +56,7 @@ export default function AddGoalModal({ open, onClose, onSuccess }: AddGoalModalP
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Form data
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -67,6 +68,15 @@ export default function AddGoalModal({ open, onClose, onSuccess }: AddGoalModalP
   const [priority, setPriority] = useState<number>(3);
 
   const steps = ['Choose Category', 'Define Goal', 'Set Targets'];
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleNext = () => {
     setError(null);
@@ -159,9 +169,10 @@ export default function AddGoalModal({ open, onClose, onSuccess }: AddGoalModalP
     if (!loading) {
       onClose();
       // Reset form after close animation
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setActiveStep(0);
         setError(null);
+        timeoutRef.current = null;
       }, 300);
     }
   };

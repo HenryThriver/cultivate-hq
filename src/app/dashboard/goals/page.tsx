@@ -37,6 +37,46 @@ import { supabase } from '@/lib/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import AddGoalModal from '@/components/features/goals/AddGoalModal';
 
+// Helper function to convert technical errors into user-friendly messages
+const getUserFriendlyErrorMessage = (error: unknown): string => {
+  if (!error) return 'An unexpected error occurred. Please try again.';
+  
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  // Database connection errors
+  if (errorMessage.includes('connection') || errorMessage.includes('network')) {
+    return 'Unable to connect to the server. Please check your internet connection and try again.';
+  }
+  
+  // Authentication errors
+  if (errorMessage.includes('JWT') || errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+    return 'Your session has expired. Please refresh the page and sign in again.';
+  }
+  
+  // Permission errors
+  if (errorMessage.includes('permission') || errorMessage.includes('access denied')) {
+    return 'You don\'t have permission to access this information. Please contact support if this seems incorrect.';
+  }
+  
+  // Database constraint errors
+  if (errorMessage.includes('constraint') || errorMessage.includes('duplicate')) {
+    return 'This action conflicts with existing data. Please check your input and try again.';
+  }
+  
+  // Column/table errors (during migration periods)
+  if (errorMessage.includes('column') || errorMessage.includes('table') || errorMessage.includes('relation')) {
+    return 'We\'re updating the system. Please refresh the page in a moment and try again.';
+  }
+  
+  // Rate limiting
+  if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
+    return 'Too many requests. Please wait a moment and try again.';
+  }
+  
+  // Generic fallback for unknown errors
+  return 'Something went wrong while loading your goals. Please refresh the page and try again.';
+};
+
 interface Goal {
   id: string;
   title: string;
@@ -101,7 +141,6 @@ export default function GoalsPage() {
       if (!user?.id) throw new Error('User not authenticated');
 
       // Fetch goals
-      console.log('Fetching goals for user:', user.id);
       const { data: goals, error: goalsError } = await supabase
         .from('goals')
         .select('*')
@@ -113,8 +152,6 @@ export default function GoalsPage() {
         console.error('Error fetching goals:', goalsError);
         throw goalsError;
       }
-      
-      console.log('Found goals:', goals?.length || 0);
 
       // Fetch goal contacts (step 1: basic query without joins)
       const { data: goalContactsRaw, error: goalContactsError } = await supabase
@@ -136,7 +173,6 @@ export default function GoalsPage() {
       let contactsError = null;
       
       if (contactIds.length > 0) {
-        console.log('Fetching contacts for IDs:', contactIds);
         const { data, error } = await supabase
           .from('contacts')
           .select('id, name, email, title, company')
@@ -328,9 +364,16 @@ export default function GoalsPage() {
   if (error) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">
-          Error loading goals: {error instanceof Error ? error.message : 'Unknown error'}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {getUserFriendlyErrorMessage(error)}
         </Alert>
+        <Button 
+          variant="outlined" 
+          onClick={() => window.location.reload()}
+          sx={{ mt: 2 }}
+        >
+          Refresh Page
+        </Button>
       </Container>
     );
   }

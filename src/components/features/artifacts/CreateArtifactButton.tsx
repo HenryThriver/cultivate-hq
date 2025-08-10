@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, useTheme } from '@mui/material';
+import { Button, useTheme, type Theme, type SxProps } from '@mui/material';
+import type { DbArtifact } from '@/types/database';
 import { 
   Favorite as HeartIcon,
   Help as HandIcon,
@@ -27,15 +28,15 @@ interface CreateArtifactButtonProps {
   preSelectedContactId?: string;
   preSelectedContactName?: string;
   contacts?: Contact[];
-  onArtifactCreated?: (artifactData: any) => void;
-  onArtifactCreating?: (artifactData: any) => Promise<void>;
+  onArtifactCreated?: (artifactData: DbArtifact) => void;
+  onArtifactCreating?: (artifactData: DbArtifact) => Promise<void>;
   children?: React.ReactNode;
   startIcon?: React.ReactNode;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 // Configuration for button appearance
-const getButtonConfig = (artifactType: string, theme: any) => {
+const getButtonConfig = (artifactType: string, theme: Theme) => {
   const configs = {
     pog: {
       icon: HeartIcon,

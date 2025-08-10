@@ -71,7 +71,7 @@ async function fetchUpcomingMeeting(contactId: string): Promise<UpcomingMeeting 
 
     // Prioritize conversation starters from contact's personal and professional context
     if (contact?.personal_context) {
-      const personalContext = contact.personal_context as any;
+      const personalContext = contact.personal_context as Record<string, unknown>;
       if (personalContext.conversation_starters?.personal) {
         conversationStarters.push(...personalContext.conversation_starters.personal);
       }
@@ -81,7 +81,7 @@ async function fetchUpcomingMeeting(contactId: string): Promise<UpcomingMeeting 
     }
 
     if (contact?.professional_context) {
-      const professionalContext = contact.professional_context as any;
+      const professionalContext = contact.professional_context as Record<string, unknown>;
       // Add opportunities as conversation topics
       if (professionalContext.opportunities) {
         professionalContext.opportunities.forEach((opp: string) => {

@@ -15,7 +15,8 @@ import {
   Typography,
   Tooltip,
   useTheme,
-  alpha
+  alpha,
+  Autocomplete
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -28,9 +29,22 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Analytics as AnalyticsIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Flag as GoalIcon,
+  Star as PrimaryIcon
 } from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import type { ArtifactType } from '@/types';
+
+interface Goal {
+  id: string;
+  title: string;
+  status: string;
+  category?: string;
+  is_primary?: boolean;
+}
 
 interface TimelineControlsBarProps {
   // Search
@@ -45,6 +59,10 @@ interface TimelineControlsBarProps {
   filterTypes: ArtifactType[];
   onFilterChange: (types: ArtifactType[]) => void;
   availableTypes?: ArtifactType[];
+  
+  // Goal Filters (optional - managed internally if not provided)
+  selectedGoalIds?: string[];
+  onGoalFilterChange?: (goalIds: string[]) => void;
   
   // Intelligence Dashboard Toggle
   showDashboard: boolean;
@@ -80,14 +98,47 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
   filterTypes,
   onFilterChange,
   availableTypes = [],
+  selectedGoalIds = [],
+  onGoalFilterChange,
   showDashboard,
   onDashboardToggle,
   expandedFilters = false,
   onExpandFilters
 }) => {
+  const { user } = useAuth();
   const theme = useTheme();
   const [localExpandedFilters, setLocalExpandedFilters] = useState(false);
+  const [localSelectedGoalIds, setLocalSelectedGoalIds] = useState<string[]>([]);
   const isFiltersExpanded = onExpandFilters ? expandedFilters : localExpandedFilters;
+  
+  // Use external goal filter state if provided, otherwise use internal state
+  const currentSelectedGoalIds = onGoalFilterChange ? selectedGoalIds : localSelectedGoalIds;
+  const setSelectedGoalIds = onGoalFilterChange ? onGoalFilterChange : setLocalSelectedGoalIds;
+
+
+  // Fetch user's goals for filtering
+  const { data: goals = [] } = useQuery({
+    queryKey: ['timeline-controls-goals', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('goals')
+        .select('id, title, status, category, is_primary')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching goals for timeline controls:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
   
   const handleExpandFilters = () => {
     if (onExpandFilters) {
@@ -103,6 +154,7 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
   
   const clearAllFilters = () => {
     onFilterChange([]);
+    setSelectedGoalIds([]);
   };
 
   return (
@@ -224,8 +276,9 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
           gap: 1,
           flex: { xs: '1 1 auto', md: '0 0 auto' }
         }}>
-          {filterTypes.length > 0 && !isFiltersExpanded && (
+          {(filterTypes.length > 0) && !isFiltersExpanded && (
             <>
+              {/* Artifact Type Filters */}
               {filterTypes.slice(0, 2).map(type => (
                 <Chip
                   key={type}
@@ -247,18 +300,6 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
                   }}
                 />
               ))}
-              {filterTypes.length > 2 && (
-                <Chip
-                  label={`+${filterTypes.length - 2}`}
-                  size="small"
-                  sx={{
-                    height: '28px',
-                    fontSize: '12px',
-                    backgroundColor: alpha(theme.palette.primary.main, 0.15),
-                    color: 'primary.main'
-                  }}
-                />
-              )}
             </>
           )}
           
@@ -271,8 +312,8 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
             sx={{
               textTransform: 'none',
               fontSize: '13px',
-              color: filterTypes.length > 0 ? 'primary.main' : 'text.secondary',
-              backgroundColor: filterTypes.length > 0 
+              color: (filterTypes.length > 0 || currentSelectedGoalIds.length > 0) ? 'primary.main' : 'text.secondary',
+              backgroundColor: (filterTypes.length > 0 || currentSelectedGoalIds.length > 0)
                 ? alpha(theme.palette.primary.main, 0.08)
                 : 'transparent',
               '&:hover': {
@@ -280,7 +321,7 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
               }
             }}
           >
-            Filters {filterTypes.length > 0 && `(${filterTypes.length})`}
+            Filters {(filterTypes.length + currentSelectedGoalIds.length) > 0 && `(${filterTypes.length + currentSelectedGoalIds.length})`}
           </Button>
         </Box>
 
@@ -341,7 +382,7 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
             }}>
               Filter by Type
             </Typography>
-            {filterTypes.length > 0 && (
+            {(filterTypes.length > 0 || currentSelectedGoalIds.length > 0) && (
               <Button
                 size="small"
                 onClick={clearAllFilters}
@@ -392,6 +433,166 @@ export const TimelineControlsBar: React.FC<TimelineControlsBarProps> = ({
               );
             })}
           </Box>
+
+          {/* Goal Filtering Section */}
+          {goals.length > 0 && (
+            <>
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ 
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  color: 'text.secondary',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Filter by Goals
+                </Typography>
+              </Box>
+
+              {/* Selected Goal Chips */}
+              {currentSelectedGoalIds.length > 0 && (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  {currentSelectedGoalIds.map(goalId => {
+                    const goal = goals.find(g => g.id === goalId);
+                    return goal ? (
+                      <Chip
+                        key={goalId}
+                        label={goal.title}
+                        size="small"
+                        icon={<GoalIcon fontSize="small" />}
+                        onDelete={() => setSelectedGoalIds(currentSelectedGoalIds.filter(id => id !== goalId))}
+                        sx={{
+                          height: '28px',
+                          fontSize: '12px',
+                          backgroundColor: alpha(theme.palette.success.main, 0.1),
+                          color: 'success.main',
+                          '& .MuiChip-icon': {
+                            color: 'success.main'
+                          },
+                          '& .MuiChip-deleteIcon': {
+                            fontSize: '16px',
+                            color: 'success.main',
+                            '&:hover': {
+                              color: 'success.dark'
+                            }
+                          }
+                        }}
+                      />
+                    ) : null;
+                  })}
+                </Box>
+              )}
+              
+              <Autocomplete
+                multiple
+                size="small"
+                options={goals}
+                value={goals.filter(goal => currentSelectedGoalIds.includes(goal.id))}
+                onChange={(_, newValue) => {
+                  setSelectedGoalIds(newValue.map(goal => goal.id));
+                }}
+                getOptionLabel={(option) => option.title}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderOption={(props, option) => (
+                  <Box
+                    component="li"
+                    {...props}
+                    key={option.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      py: 1
+                    }}
+                  >
+                    <GoalIcon 
+                      sx={{ 
+                        color: option.status === 'active' ? 'primary.main' : 'text.secondary',
+                        fontSize: '16px' 
+                      }} 
+                    />
+                    {option.is_primary && (
+                      <PrimaryIcon 
+                        sx={{ 
+                          color: 'warning.main',
+                          fontSize: '14px' 
+                        }} 
+                      />
+                    )}
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '14px' }}>
+                        {option.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '12px' }}>
+                        {option.category?.replace('_', ' ') || 'other'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      key={option.id}
+                      variant="filled"
+                      label={option.title}
+                      icon={option.is_primary ? <PrimaryIcon fontSize="small" /> : <GoalIcon fontSize="small" />}
+                      {...getTagProps({ index })}
+                      size="small"
+                      sx={{
+                        backgroundColor: 'primary.main',
+                        color: 'primary.contrastText',
+                        '& .MuiChip-icon': {
+                          color: 'primary.contrastText'
+                        },
+                        '& .MuiChip-deleteIcon': {
+                          color: 'primary.contrastText',
+                          '&:hover': {
+                            color: 'primary.contrastText'
+                          }
+                        }
+                      }}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder={currentSelectedGoalIds.length === 0 ? "Filter by goals..." : ""}
+                    size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--radius-medium)',
+                        backgroundColor: 'background.paper',
+                        fontSize: '14px',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                        },
+                        '&.Mui-focused': {
+                          boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`
+                        }
+                      }
+                    }}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <GoalIcon sx={{ color: 'text.secondary', fontSize: '18px' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                )}
+                sx={{
+                  '& .MuiAutocomplete-popupIndicator': {
+                    color: 'text.secondary'
+                  },
+                  '& .MuiAutocomplete-clearIndicator': {
+                    color: 'text.secondary'
+                  }
+                }}
+              />
+            </>
+          )}
         </Box>
       </Collapse>
     </Paper>

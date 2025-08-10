@@ -12,24 +12,37 @@ import {
   Send as SendIcon,
   Inbox as InboxIcon,
   PriorityHigh as PriorityIcon,
+  Flag as GoalIcon,
 } from '@mui/icons-material';
 import { BaseArtifact, VoiceMemoArtifact, MeetingArtifact } from '@/types/artifact';
 import { EmailArtifact } from '@/types/email';
 import { getArtifactConfig } from '@/config/artifactConfig';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+interface GoalAssociation {
+  id: string;
+  title: string;
+  status: string;
+  category?: string;
+  is_primary?: boolean;
+}
+
 interface EnhancedTimelineItemProps {
   artifact: BaseArtifact<unknown>;
   position: 'left' | 'right';
   onClick: () => void;
   index?: number; // For staggered animations
+  goalAssociations?: GoalAssociation[]; // Goals this artifact is associated with
+  onGoalClick?: (goalId: string) => void;
 }
 
 export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
   artifact,
   position,
   onClick,
-  index = 0
+  index = 0,
+  goalAssociations = [],
+  onGoalClick
 }) => {
   const { user } = useAuth();
   
@@ -442,7 +455,7 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
           fontSize: isPremium ? '15px' : '14px',
           color: 'text.primary',
           lineHeight: isPremium ? 1.5 : 1.4,
-          mb: 2, // More spacing for premium
+          mb: goalAssociations.length > 0 ? 1.5 : 2, // Less spacing if goals below
           overflow: 'hidden',
           display: '-webkit-box',
           WebkitLineClamp: isPremium ? 4 : 3, // More lines for premium
@@ -451,6 +464,70 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
         }}>
           {previewText}
         </Typography>
+
+        {/* Goal Associations */}
+        {goalAssociations.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+              <GoalIcon sx={{ fontSize: '14px', color: 'primary.main' }} />
+              <Typography sx={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'primary.main',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Goal{goalAssociations.length > 1 ? 's' : ''}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              {goalAssociations.slice(0, 2).map((goal) => (
+                <Chip
+                  key={goal.id}
+                  label={goal.title}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onGoalClick?.(goal.id);
+                  }}
+                  size="small"
+                  icon={<GoalIcon fontSize="small" />}
+                  sx={{
+                    fontSize: '11px',
+                    height: '22px',
+                    maxWidth: '140px',
+                    backgroundColor: 'primary.50',
+                    color: 'primary.main',
+                    borderColor: 'primary.main',
+                    cursor: onGoalClick ? 'pointer' : 'default',
+                    transition: 'all 200ms ease',
+                    '&:hover': onGoalClick ? {
+                      backgroundColor: 'primary.100',
+                      transform: 'scale(1.05)',
+                    } : {},
+                    '& .MuiChip-label': {
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }
+                  }}
+                />
+              ))}
+              {goalAssociations.length > 2 && (
+                <Chip
+                  label={`+${goalAssociations.length - 2} more`}
+                  size="small"
+                  sx={{
+                    fontSize: '11px',
+                    height: '22px',
+                    backgroundColor: 'grey.100',
+                    color: 'text.secondary',
+                    cursor: 'default'
+                  }}
+                />
+              )}
+            </Box>
+          </Box>
+        )}
 
         {/* Footer */}
         <Box sx={{

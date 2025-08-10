@@ -18,6 +18,7 @@ import {
   Divider,
   Chip,
   Autocomplete,
+  type Theme,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -44,7 +45,7 @@ interface ArtifactCreationData {
   type: 'pog' | 'ask' | 'meeting' | 'email' | 'voice_memo' | 'task';
   content: string;
   contactId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface CreateArtifactModalProps {
@@ -58,8 +59,33 @@ interface CreateArtifactModalProps {
   onArtifactCreating?: (data: ArtifactCreationData) => Promise<void>;
 }
 
+// Configuration interfaces
+interface ConfigOption {
+  value: string;
+  label: string;
+}
+
+interface ArtifactConfig {
+  icon: React.ComponentType;
+  title: string;
+  shortTitle: string;
+  colorKey: string;
+  contentLabel: string;
+  contentPlaceholder: string;
+  submitText: string;
+  submittingText: string;
+  typeOptions?: ConfigOption[];
+  statusOptions?: ConfigOption[];
+  urgencyOptions?: ConfigOption[];
+  priorityOptions?: ConfigOption[];
+  defaultStatus?: string;
+  defaultUrgency?: string;
+  defaultPriority?: string;
+  fields: string[];
+}
+
 // Configuration for different artifact types
-const getArtifactConfig = (artifactType: string, theme: any) => {
+const getArtifactConfig = (artifactType: string, theme: Theme): ArtifactConfig | null => {
   const configs = {
     pog: {
       icon: HeartIcon,
@@ -283,8 +309,8 @@ export const CreateArtifactModal: React.FC<CreateArtifactModalProps> = ({
       setSelectedContactName(preSelectedContactName || '');
       setArtifactSubType(config.typeOptions?.[0]?.value || '');
       setStatus(config.defaultStatus || '');
-      setUrgency((config as any).defaultUrgency || '');
-      setPriority((config as any).defaultPriority || '');
+      setUrgency(config.defaultUrgency || '');
+      setPriority(config.defaultPriority || '');
       setError('');
     }
   }, [open, artifactType, preSelectedContactId, preSelectedContactName]);
@@ -595,7 +621,7 @@ export const CreateArtifactModal: React.FC<CreateArtifactModalProps> = ({
                       disablePortal: true
                     }}
                   >
-                    {(config as any).urgencyOptions?.map((option: any) => (
+                    {config.urgencyOptions?.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
                       </MenuItem>
@@ -616,7 +642,7 @@ export const CreateArtifactModal: React.FC<CreateArtifactModalProps> = ({
                       disablePortal: true
                     }}
                   >
-                    {(config as any).priorityOptions?.map((option: any) => (
+                    {config.priorityOptions?.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
                       </MenuItem>

@@ -13,6 +13,7 @@ interface UseArtifactTimelineOptions {
   filterTypes?: ArtifactType[];
   groupingMode?: GroupingMode;
   searchQuery?: string;
+  selectedGoalIds?: string[];
   // Add other options like date range, sort order etc. later
 }
 
@@ -256,12 +257,13 @@ const calculateTimelineStats = (artifacts: BaseArtifact[]): TimelineStatsData =>
 
 
 export const useArtifactTimeline = (contactId: string, options?: UseArtifactTimelineOptions) => {
-  const queryKey: [string, string, string, string, string] = [
+  const queryKey: [string, string, string, string, string, string] = [
     'artifactTimeline', 
     contactId, 
     options?.filterTypes?.sort().join('-') || 'allTypes',
     options?.groupingMode || 'chronological',
-    options?.searchQuery || ''
+    options?.searchQuery || '',
+    options?.selectedGoalIds?.sort().join('-') || 'noGoals'
   ];
 
   // PERFORMANCE: Memoize expensive operations with comprehensive dependencies
@@ -316,11 +318,17 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
   );
 
   const queryFn = async (): Promise<BaseArtifact[]> => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('artifacts')
       .select('*')
-      .eq('contact_id', contactId)
-      .order('timestamp', { ascending: false });
+      .eq('contact_id', contactId);
+
+    // If we're filtering by goals, add goal_id filter
+    if (options?.selectedGoalIds && options.selectedGoalIds.length > 0) {
+      query = query.in('goal_id', options.selectedGoalIds);
+    }
+
+    const { data, error } = await query.order('timestamp', { ascending: false });
 
     if (error) throw new Error(error.message);
     return (data || []).map(item => ({
@@ -338,7 +346,7 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
       groupedArtifacts: GroupedArtifact[]; 
       stats: TimelineStatsData 
     },
-    [string, string, string, string, string] // TQueryKey
+    [string, string, string, string, string, string] // TQueryKey
   >({
     queryKey: queryKey,
     queryFn: queryFn,

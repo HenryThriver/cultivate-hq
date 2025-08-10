@@ -250,10 +250,48 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
--- Insert strategic artifacts
-INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata)
+-- Set up goals for relationship sessions (MOVED BEFORE ARTIFACTS)
+INSERT INTO public.goals (id, user_id, title, description, target_date, status, progress_percentage, created_at, updated_at)
 VALUES
-  -- Voice memo about Sarah Chen
+  (
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'Expand Strategic Network in AI/ML',
+    'Build meaningful connections with 15 AI/ML leaders to support product strategy initiatives',
+    (NOW() + INTERVAL '3 months')::date,
+    'active',
+    80,
+    NOW() - INTERVAL '1 month',
+    NOW() - INTERVAL '2 days'
+  ),
+  (
+    'e2222222-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'Secure 2 Board Advisory Positions',
+    'Leverage network to identify and secure board advisory roles at high-growth startups',
+    (NOW() + INTERVAL '6 months')::date,
+    'active',
+    40,
+    NOW() - INTERVAL '2 months',
+    NOW() - INTERVAL '1 week'
+  ),
+  (
+    'e3333333-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'Build AI Ethics Advisory Network',
+    'Connect with 10 AI ethics experts and researchers to support consultancy launch',
+    (NOW() + INTERVAL '4 months')::date,
+    'active',
+    60,
+    NOW() - INTERVAL '6 weeks',
+    NOW() - INTERVAL '3 days'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert strategic artifacts
+INSERT INTO public.artifacts (id, contact_id, user_id, type, content, timestamp, ai_parsing_status, created_at, metadata, goal_id)
+VALUES
+  -- Voice memo about Sarah Chen (linked to AI/ML goal)
   (
     'b1111111-89ab-cdef-0123-456789abcdef'::uuid,
     'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
@@ -267,9 +305,10 @@ VALUES
       "duration_seconds": 120,
       "location": "Blue Bottle Coffee, Palo Alto",
       "key_topics": ["AI ethics", "Co-founder search", "Technical partnerships"]
-    }'::jsonb
+    }'::jsonb,
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid  -- AI/ML goal
   ),
-  -- Meeting with Jennifer Walsh
+  -- Meeting with Jennifer Walsh (linked to Board positions goal)
   (
     'b2222222-89ab-cdef-0123-456789abcdef'::uuid,
     'a3333333-89ab-cdef-0123-456789abcdef'::uuid,
@@ -284,9 +323,10 @@ VALUES
       "location": "Four Seasons Hotel, SF",
       "attendees": ["Jennifer Walsh", "Demo User"],
       "follow_up_required": true
-    }'::jsonb
+    }'::jsonb,
+    'e2222222-89ab-cdef-0123-456789abcdef'::uuid  -- Board positions goal
   ),
-  -- Completed POG Loop
+  -- Completed POG Loop (linked to AI/ML goal)
   (
     'b3333333-89ab-cdef-0123-456789abcdef'::uuid,
     'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
@@ -331,9 +371,10 @@ VALUES
         "relationship_strengthened": true,
         "follow_on_opportunities": 3
       }
-    }'::jsonb
+    }'::jsonb,
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid  -- AI/ML goal
   ),
-  -- LinkedIn intelligence for Marcus
+  -- LinkedIn intelligence for Marcus (linked to AI/ML goal)
   (
     'b4444444-89ab-cdef-0123-456789abcdef'::uuid,
     'a2222222-89ab-cdef-0123-456789abcdef'::uuid,
@@ -360,7 +401,41 @@ VALUES
         "hiring_posts": 5,
         "partnership_mentions": 2
       }
-    }'::jsonb
+    }'::jsonb,
+    'e1111111-89ab-cdef-0123-456789abcdef'::uuid  -- AI/ML goal
+  ),
+  -- Additional artifact for AI Ethics goal
+  (
+    'b5555555-89ab-cdef-0123-456789abcdef'::uuid,
+    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'voice_memo',
+    'Sarah shared insights about her AI ethics framework work at Stanford. She mentioned the need for industry practitioners to collaborate on ethical AI guidelines.',
+    NOW() - INTERVAL '1 day',
+    'completed',
+    NOW() - INTERVAL '1 day',
+    '{
+      "duration_seconds": 180,
+      "location": "Stanford University",
+      "key_topics": ["AI ethics", "Industry standards", "Academic collaboration"]
+    }'::jsonb,
+    'e3333333-89ab-cdef-0123-456789abcdef'::uuid  -- AI Ethics goal
+  ),
+  -- Meeting artifact not linked to any goal (to show mixed results)
+  (
+    'b6666666-89ab-cdef-0123-456789abcdef'::uuid,
+    'a4444444-89ab-cdef-0123-456789abcdef'::uuid,
+    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
+    'meeting',
+    '{"title": "General Network Catch-up", "duration_minutes": 30, "summary": "Casual coffee to maintain relationship and discuss industry trends."}'::text,
+    NOW() - INTERVAL '4 days',
+    'completed',
+    NOW() - INTERVAL '4 days',
+    '{
+      "meeting_type": "casual",
+      "location": "Local Coffee Shop"
+    }'::jsonb,
+    NULL  -- No goal association
   )
 ON CONFLICT (id) DO NOTHING;
 
@@ -382,43 +457,6 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
--- Set up goals for relationship sessions
-INSERT INTO public.goals (id, user_id, title, description, target_date, status, progress_percentage, created_at, updated_at)
-VALUES
-  (
-    'e1111111-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'Expand Strategic Network in AI/ML',
-    'Build meaningful connections with 15 AI/ML leaders to support product strategy initiatives',
-    (NOW() + INTERVAL '3 months')::date,
-    'active',
-    80,
-    NOW() - INTERVAL '1 month',
-    NOW() - INTERVAL '2 days'
-  ),
-  (
-    'e2222222-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'Secure 2 Board Advisory Positions',
-    'Leverage network to identify and secure board advisory roles at high-growth startups',
-    (NOW() + INTERVAL '6 months')::date,
-    'active',
-    40,
-    NOW() - INTERVAL '2 months',
-    NOW() - INTERVAL '1 week'
-  ),
-  (
-    'e3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'Build AI Ethics Advisory Network',
-    'Connect with 10 AI ethics experts and researchers to support consultancy launch',
-    (NOW() + INTERVAL '4 months')::date,
-    'active',
-    60,
-    NOW() - INTERVAL '6 weeks',
-    NOW() - INTERVAL '3 days'
-  )
-ON CONFLICT (id) DO NOTHING;
 
 -- Skip onboarding for the development user
 INSERT INTO public.onboarding_state (

@@ -6,6 +6,9 @@ import {
   Typography,
   Alert
 } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 import { EnhancedTimelineItem } from './EnhancedTimelineItem';
 import { EnhancedTimelineFilters } from './EnhancedTimelineFilters';
@@ -23,8 +26,9 @@ interface ArtifactTimelineProps {
   filterTypes?: ArtifactType[];
   viewMode?: string;
   searchQuery?: string;
+  selectedGoalIds?: string[];
   showDashboard?: boolean;
-  timelineData?: any;
+  timelineData?: Record<string, unknown>;
   isLoading?: boolean;
 }
 
@@ -46,21 +50,50 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
   filterTypes: externalFilterTypes,
   viewMode: externalViewMode,
   searchQuery: externalSearchQuery,
+  selectedGoalIds: externalSelectedGoalIds,
   showDashboard = false,
   timelineData: externalTimelineData,
   isLoading: externalIsLoading
 }) => {
+  const { user } = useAuth();
   const [internalFilterTypes, setInternalFilterTypes] = useState<ArtifactType[]>([]);
   const [internalViewMode, setInternalViewMode] = useState<string>('chronological');
   const [internalSearchQuery, setInternalSearchQuery] = useState<string>('');
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([]);
   
   // Use external props if provided, otherwise use internal state
   const filterTypes = externalFilterTypes ?? internalFilterTypes;
   const viewMode = externalViewMode ?? internalViewMode;
   const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const currentSelectedGoalIds = externalSelectedGoalIds ?? selectedGoalIds;
+
   const setFilterTypes = hideInternalControls ? () => {} : setInternalFilterTypes;
   const setViewMode = hideInternalControls ? () => {} : setInternalViewMode;
   const setSearchQuery = hideInternalControls ? () => {} : setInternalSearchQuery;
+
+  // Fetch user's goals for filtering
+  const { data: goals = [] } = useQuery({
+    queryKey: ['timeline-goals', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('goals')
+        .select('id, title, status, category, is_primary')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching goals for timeline:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: !!user?.id && !hideInternalControls,
+  });
 
   // Only fetch data if external data is not provided
   const shouldFetch = !externalTimelineData;
@@ -74,7 +107,8 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
     shouldFetch ? { 
       filterTypes,
       groupingMode: viewMode as 'chronological' | 'intensity' | 'reciprocity' | 'themes',
-      searchQuery
+      searchQuery,
+      selectedGoalIds: currentSelectedGoalIds
     } : {}
   );
   
@@ -160,6 +194,9 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
           onViewModeChange={setViewMode}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          goals={goals}
+          selectedGoalIds={selectedGoalIds}
+          onGoalFilterChange={setSelectedGoalIds}
         />
         <Box sx={{ 
           textAlign: 'center', 
@@ -242,6 +279,9 @@ export const ArtifactTimeline: React.FC<ArtifactTimelineProps> = ({
               onViewModeChange={setViewMode}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
+              goals={goals}
+              selectedGoalIds={selectedGoalIds}
+              onGoalFilterChange={setSelectedGoalIds}
             />
           </>
         )}

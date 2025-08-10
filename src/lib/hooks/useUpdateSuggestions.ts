@@ -14,8 +14,12 @@ export interface UseUpdateSuggestionsProps {
 const CONTACT_UPDATE_SUGGESTIONS_TABLE = 'contact_update_suggestions' as const;
 
 // Helper function to get nested values from objects using dot notation
-const getNestedValue = (obj: any, path: string): any => {
-  return path.split('.').reduce((current, key) => current?.[key], obj);
+const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+  return path.split('.').reduce((current: unknown, key: string) => 
+    current && typeof current === 'object' && key in current 
+      ? (current as Record<string, unknown>)[key] 
+      : undefined
+  , obj);
 };
 
 export const useUpdateSuggestions = ({ contactId }: UseUpdateSuggestionsProps) => {

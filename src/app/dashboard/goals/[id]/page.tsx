@@ -63,6 +63,64 @@ interface TabPanelProps {
   value: number;
 }
 
+interface GoalContactWithDetails {
+  id: string;
+  goal_id: string;
+  contact_id: string;
+  relationship_type: string | null;
+  relevance_score: number | null;
+  notes?: string | null;
+  how_they_help?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  user_id: string;
+  interaction_frequency?: string | null;
+  last_interaction_date?: string | null;
+  contacts: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    title: string | null;
+    company: string | null;
+  };
+}
+
+interface Action {
+  id: string;
+  goal_id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  due_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Milestone {
+  id: string;
+  goal_id: string;
+  title: string;
+  description?: string;
+  target_date?: string;
+  status: string;
+  order_index?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ArtifactWithContent {
+  id: string;
+  goal_id: string;
+  type: string;
+  title?: string;
+  description?: string;
+  tags?: string;
+  loop_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
@@ -86,12 +144,12 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
   const [currentTab, setCurrentTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [editingAction, setEditingAction] = useState<any>(null);
+  const [editingAction, setEditingAction] = useState<Action | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showPOGModal, setShowPOGModal] = useState(false);
   const [showAskModal, setShowAskModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-  const [editingMilestone, setEditingMilestone] = useState<any>(null);
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [showEditGoalModal, setShowEditGoalModal] = useState(false);
 
   const { data, isLoading, error } = useQuery({
@@ -119,7 +177,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
       if (contactsError) throw contactsError;
 
       // Fetch contact details separately if there are goal contacts
-      let goalContacts: any[] = [];
+      let goalContacts: GoalContactWithDetails[] = [];
       if (goalContactsRaw && goalContactsRaw.length > 0) {
         const contactIds = goalContactsRaw.map(gc => gc.contact_id).filter(Boolean);
         
@@ -360,7 +418,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
               
               {/* Quick Stats */}
               <Grid container spacing={3}>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 600, color: '#212121' }}>
                       {stats.contactsCount}
@@ -370,7 +428,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>
                       {stats.actionsOpen}
@@ -380,7 +438,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 600, color: '#10B981' }}>
                       {stats.asksCompleted}
@@ -390,7 +448,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 600, color: '#2196F3' }}>
                       {getProgressPercentage()}%
@@ -505,7 +563,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Stack spacing={2}>
             {/* Actions Statistics */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#FEF3C7' }}>
                   <Typography variant="h6" sx={{ color: '#D97706' }}>
                     {stats.actionsOpen}
@@ -515,7 +573,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#D1FAE5' }}>
                   <Typography variant="h6" sx={{ color: '#059669' }}>
                     {stats.actionsCompleted}
@@ -525,7 +583,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#EDE9FE' }}>
                   <Typography variant="h6" sx={{ color: '#7C3AED' }}>
                     {actions.filter(a => a.priority === '1' || a.priority === 1).length}
@@ -535,7 +593,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#FEE2E2' }}>
                   <Typography variant="h6" sx={{ color: '#DC2626' }}>
                     {actions.filter(a => a.due_date && new Date(a.due_date) < new Date()).length}
@@ -710,7 +768,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Stack spacing={2}>
             {/* Contact Statistics */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#E3F2FD' }}>
                   <Typography variant="h6" sx={{ color: '#1976D2' }}>
                     {contacts.length}
@@ -720,7 +778,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#F3E5F5' }}>
                   <Typography variant="h6" sx={{ color: '#7B1FA2' }}>
                     {contacts.filter(c => c.relationship_type === 'key_influencer').length}
@@ -730,7 +788,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#E8F5E8' }}>
                   <Typography variant="h6" sx={{ color: '#2E7D32' }}>
                     {contacts.filter(c => (c.relevance_score ?? 0) >= 8).length}
@@ -740,7 +798,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#FFF3E0' }}>
                   <Typography variant="h6" sx={{ color: '#F57C00' }}>
                     {Math.round(contacts.reduce((sum, c) => sum + (c.relevance_score ?? 0), 0) / contacts.length) || 0}
@@ -988,7 +1046,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Stack spacing={2}>
             {/* POGs & Asks Statistics */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#F0FDF4' }}>
                   <Typography variant="h6" sx={{ color: '#059669' }}>
                     {stats.pogsDelivered}
@@ -998,7 +1056,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#FFFBEB' }}>
                   <Typography variant="h6" sx={{ color: '#D97706' }}>
                     {stats.asksOpen}
@@ -1008,7 +1066,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#EBF8FF' }}>
                   <Typography variant="h6" sx={{ color: '#2563EB' }}>
                     {stats.asksCompleted}
@@ -1018,7 +1076,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#F5F3FF' }}>
                   <Typography variant="h6" sx={{ color: '#7C3AED' }}>
                     {stats.pogsDelivered > 0 && stats.asksCompleted > 0 ? 
@@ -1130,12 +1188,12 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                         </Box>
                         
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                          {(artifact as any).title || `${isPOG ? 'POG' : 'Ask'} - ${new Date(artifact.created_at).toLocaleDateString()}`}
+                          {(artifact as ArtifactWithContent).title || `${isPOG ? 'POG' : 'Ask'} - ${new Date(artifact.created_at).toLocaleDateString()}`}
                         </Typography>
                         
-                        {(artifact as any).description && (
+                        {(artifact as ArtifactWithContent).description && (
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
-                            {(artifact as any).description}
+                            {(artifact as ArtifactWithContent).description}
                           </Typography>
                         )}
                         
@@ -1147,9 +1205,9 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                             </Typography>
                           </Box>
                           
-                          {(artifact as any).tags && (
+                          {(artifact as ArtifactWithContent).tags && (
                             <Chip 
-                              label={(artifact as any).tags}
+                              label={(artifact as ArtifactWithContent).tags}
                               size="small"
                               variant="outlined"
                               sx={{ fontSize: '0.75rem', height: 20 }}
@@ -1249,7 +1307,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Stack spacing={2}>
             {/* Milestones Statistics */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#E3F2FD' }}>
                   <Typography variant="h6" sx={{ color: '#1976D2' }}>
                     {stats.milestonesTotal}
@@ -1259,7 +1317,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#E8F5E8' }}>
                   <Typography variant="h6" sx={{ color: '#2E7D32' }}>
                     {stats.milestonesCompleted}
@@ -1269,7 +1327,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#FFF3E0' }}>
                   <Typography variant="h6" sx={{ color: '#F57C00' }}>
                     {stats.milestonesTotal - stats.milestonesCompleted}
@@ -1279,7 +1337,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                   </Typography>
                 </Card>
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#F3E5F5' }}>
                   <Typography variant="h6" sx={{ color: '#7B1FA2' }}>
                     {stats.milestonesTotal > 0 ? 

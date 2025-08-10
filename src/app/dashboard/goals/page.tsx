@@ -122,6 +122,12 @@ interface GoalStats {
   milestonesCompleted: number;
 }
 
+interface ArtifactStats {
+  goal_id: string;
+  type: 'pog' | 'ask';
+  loop_status: string;
+}
+
 interface GoalsPageData {
   goals: Goal[];
   goalContacts: Record<string, GoalContact[]>;
@@ -245,7 +251,7 @@ export default function GoalsPage() {
         }
         
         // Batch query 2: All artifacts for all goals (with error handling)
-        let allArtifactsData: any[] = [];
+        let allArtifactsData: ArtifactStats[] = [];
         try {
           const { data: artifactsData, error: artifactsError } = await supabase
             .from('artifacts')
@@ -348,7 +354,7 @@ export default function GoalsPage() {
     return Math.max(goal.progress_percentage || 0, Math.round(calculatedProgress * 100));
   };
 
-  const getStatusColor = (status: Goal['status']) => {
+  const getStatusColor = (status: Goal['status']): 'primary' | 'success' | 'warning' | 'default' => {
     switch (status) {
       case 'active': return 'primary';
       case 'completed': return 'success';
@@ -538,7 +544,7 @@ export default function GoalsPage() {
                       <Chip
                         label={goal.status}
                         size="small"
-                        color={getStatusColor(goal.status) as any}
+                        color={getStatusColor(goal.status)}
                         sx={{ textTransform: 'capitalize', fontWeight: 500 }}
                       />
                       {goal.is_primary && (

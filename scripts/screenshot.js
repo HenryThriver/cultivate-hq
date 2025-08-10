@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { chromium } = require('@playwright/test');
+const { TEST_CONFIG, authenticateTestUser, createTestBrowser, createTestPage } = require('./test-config');
 const path = require('path');
 const fs = require('fs');
 
@@ -46,7 +47,7 @@ async function takeScreenshot(url, options = {}) {
       console.log(`   Using dev authentication...`);
       
       // First go to the login page
-      await page.goto('http://localhost:3000/auth/login', { 
+      await page.goto(`${TEST_CONFIG.urls.base}${TEST_CONFIG.urls.loginPath}`, { 
         waitUntil: 'domcontentloaded',
         timeout: 30000 
       });
@@ -68,8 +69,8 @@ async function takeScreenshot(url, options = {}) {
         await page.waitForSelector('input[label="Email"], input[type="email"]', { timeout: 10000 });
         
         // Fill in credentials - use the default dev credentials from login page
-        await page.fill('input[type="email"]', 'henry@cultivatehq.com');
-        await page.fill('input[type="password"]', 'password123');
+        await page.fill('input[type="email"]', `${TEST_CONFIG.auth.email}`);
+        await page.fill('input[type="password"]', `${TEST_CONFIG.auth.password}`);
         
         console.log('   Filled in credentials');
         

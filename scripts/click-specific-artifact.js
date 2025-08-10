@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 
 const { chromium } = require('@playwright/test');
+const { TEST_CONFIG, authenticateTestUser, createTestBrowser, createTestPage } = require('./test-config');
 
 async function clickSpecificArtifact() {
-  const browser = await chromium.launch({ 
-    headless: false,
-    slowMo: 1000 // Slow down actions for visibility
-  });
+    const browser = await createTestBrowser(chromium, { headless: false });
   
   try {
     const context = await browser.newContext({
@@ -22,25 +20,10 @@ async function clickSpecificArtifact() {
       }
     });
     
-    console.log('🔐 Authenticating...');
-    await page.goto('http://localhost:3000/auth/login');
-    
-    await page.waitForTimeout(2000);
-    
-    try {
-      await page.click('button:has-text("Show Dev Login")', { timeout: 5000 });
-      await page.waitForTimeout(1000);
-    } catch (e) {
-      console.log('Dev login already visible');
-    }
-    
-    await page.fill('input[type="email"]', 'henry@cultivatehq.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button:has-text("Dev Sign In")');
-    await page.waitForURL('**/dashboard**', { timeout: 15000 });
+    await authenticateTestUser(page);
     
     console.log('✅ Authenticated, navigating to timeline...');
-    await page.goto('http://localhost:3000/dashboard/contacts/a1111111-89ab-cdef-0123-456789abcdef/timeline');
+    await page.goto(`${TEST_CONFIG.urls.base}${TEST_CONFIG.urls.timelinePath}`);
     
     // Wait for timeline to load
     await page.waitForTimeout(5000);

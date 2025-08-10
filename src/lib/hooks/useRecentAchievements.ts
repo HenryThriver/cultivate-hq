@@ -53,18 +53,7 @@ export function useRecentAchievements() {
         .order('completed_at', { ascending: false })
         .limit(10);
 
-      // Fetch successful loop completions
-      const { data: loopAnalytics } = await supabase
-        .from('loop_analytics')
-        .select(`
-          *,
-          contact:contacts(id, name)
-        `)
-        .eq('user_id', user.id)
-        .gte('created_at', thirtyDaysAgo.toISOString())
-        .gte('success_score', 4.0)
-        .order('created_at', { ascending: false })
-        .limit(5);
+      // Loop analytics was deprecated - no longer fetching loop completion data
 
       // Fetch milestone artifacts
       const { data: milestoneArtifacts } = await supabase

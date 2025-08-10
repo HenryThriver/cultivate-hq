@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { chromium } = require('@playwright/test');
+const { TEST_CONFIG, authenticateTestUser, createTestBrowser, createTestPage } = require('./test-config');
 const path = require('path');
 const fs = require('fs');
 
@@ -10,7 +11,7 @@ async function testModalWithConsole() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const browser = await chromium.launch({ headless: false }); // Visible browser
+    const browser = await createTestBrowser(chromium, { headless: false }); // Visible browser
   
   try {
     const context = await browser.newContext({
@@ -45,32 +46,13 @@ async function testModalWithConsole() {
       }
     });
     
-    console.log('🔐 Authenticating...');
-    await page.goto('http://localhost:3000/auth/login', { 
-      waitUntil: 'domcontentloaded',
-      timeout: 30000 
-    });
-    
-    await page.waitForTimeout(2000);
-    
-    try {
-      await page.click('button:has-text("Show Dev Login")', { timeout: 5000 });
-      await page.waitForTimeout(1500);
-    } catch (e) {
-      console.log('Dev login already visible');
-    }
-    
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
-    await page.fill('input[type="email"]', 'henry@cultivatehq.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button:has-text("Dev Sign In")', { timeout: 5000 });
-    await page.waitForURL('**/dashboard**', { timeout: 15000 });
+    await authenticateTestUser(page);
     
     console.log('✅ Authentication successful');
     
     // Navigate to timeline
     console.log('📍 Navigating to timeline...');
-    await page.goto('http://localhost:3000/dashboard/contacts/a1111111-89ab-cdef-0123-456789abcdef/timeline', {
+    await page.goto(`${TEST_CONFIG.urls.base}${TEST_CONFIG.urls.timelinePath}`, {
       waitUntil: 'networkidle',
       timeout: 30000
     });

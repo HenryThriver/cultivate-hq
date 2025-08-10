@@ -56,6 +56,7 @@ import { ActionIntelligenceCenter } from '@/components/features/contacts/profile
 import { ArtifactDetailModal } from '@/components/features/contacts/profile/ArtifactDetailModal';
 import { CreateArtifactModal } from '@/components/features/artifacts/CreateArtifactModal';
 import { CreateActionModal } from '@/components/features/contacts/profile/CreateActionModal';
+import { AssociatedGoalsCard } from '@/components/features/contacts/AssociatedGoalsCard';
 
 // Import hooks and types
 import { useContactProfile } from '@/lib/hooks/useContactProfile';
@@ -259,7 +260,7 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
       const goalIds = goalContactsRaw.map(gc => gc.goal_id);
       const { data: goalsData, error: goalsError } = await supabase
         .from('goals')
-        .select('id, title, status, target_contact_count, progress_percentage')
+        .select('id, title, status, category, target_contact_count, progress_percentage, is_primary')
         .in('id', goalIds);
 
       if (goalsError) {
@@ -274,6 +275,10 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
           id: goal?.id || gc.goal_id,
           title: goal?.title || 'Unknown Goal',
           isActive: goal?.status === 'active',
+          status: goal?.status || 'active',
+          category: goal?.category,
+          progress_percentage: goal?.progress_percentage,
+          is_primary: goal?.is_primary,
           relationship_type: gc.relationship_type,
           relevance_score: gc.relevance_score,
           how_they_help: gc.how_they_help
@@ -1284,6 +1289,26 @@ const ContactProfilePage: React.FC<ContactProfilePageProps> = () => {
                     }
                   : undefined
               }
+            />
+
+            {/* Associated Goals Section */}
+            <AssociatedGoalsCard
+              contactId={contactId}
+              contactName={contact.name || 'Contact'}
+              goals={contactGoals.map(goal => ({
+                id: goal.id,
+                title: goal.title,
+                isActive: goal.isActive,
+                status: goal.status,
+                category: goal.category,
+                progress_percentage: goal.progress_percentage,
+                relationship_type: goal.relationship_type,
+                relevance_score: goal.relevance_score,
+                how_they_help: goal.how_they_help,
+              }))}
+              onGoalClick={(goalId) => {
+                router.push(`/dashboard/goals/${goalId}`);
+              }}
             />
 
             {/* Meeting Intelligence - Unified Section */}

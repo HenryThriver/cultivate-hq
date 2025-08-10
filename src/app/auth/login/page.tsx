@@ -384,33 +384,33 @@ export default function LoginPage(): React.JSX.Element {
                     }}
                   >
                     By continuing, you agree to our{' '}
-                    <Link href="/terms" passHref>
-                      <MuiLink
-                        color="primary"
-                        sx={{
-                          textDecoration: 'none',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                        }}
-                      >
-                        Terms of Service
-                      </MuiLink>
-                    </Link>
+                    <MuiLink
+                      component={Link}
+                      href="/terms"
+                      color="primary"
+                      sx={{
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      Terms of Service
+                    </MuiLink>
                     {' '}and{' '}
-                    <Link href="/privacy" passHref>
-                      <MuiLink
-                        color="primary"
-                        sx={{
-                          textDecoration: 'none',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                        }}
-                      >
-                        Privacy Policy
-                      </MuiLink>
-                    </Link>
+                    <MuiLink
+                      component={Link}
+                      href="/privacy"
+                      color="primary"
+                      sx={{
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      Privacy Policy
+                    </MuiLink>
                   </Typography>
                 </Stack>
               </CardContent>

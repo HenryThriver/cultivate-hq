@@ -13,7 +13,9 @@ import {
   RelationshipPortfolioStats,
   IntelligenceInsights,
   MomentumCelebration,
-  RelationshipSessionCard
+  RelationshipSessionCard,
+  GoalProgressOverview,
+  GoalActionsSummary
 } from '@/components/features/dashboard';
 
 export default function DashboardPage(): React.JSX.Element {
@@ -110,6 +112,17 @@ export default function DashboardPage(): React.JSX.Element {
 
       {/* Strategic Overview - Portfolio Stats */}
       <RelationshipPortfolioStats />
+
+      {/* Goals Overview Section */}
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, 
+        gap: 4, 
+        mb: 6 
+      }}>
+        <GoalProgressOverview />
+        <GoalActionsSummary />
+      </Box>
 
       {/* Momentum & Celebration Section - Recent Wins */}
       <MomentumCelebration />

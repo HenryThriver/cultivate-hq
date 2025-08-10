@@ -227,72 +227,87 @@ export default function GoalsPage() {
         return acc;
       }, {} as Record<string, GoalContact[]>);
 
-      // Fetch stats for each goal
+      // Fetch stats for all goals in batch queries (fixing N+1 query issue)
       const goalStats: Record<string, GoalStats> = {};
+      const goalIds = (goals || []).map(g => g.id);
       
-      for (const goal of goals || []) {
-        // Fetch actions stats
-        const { data: actionsData, error: actionsError } = await supabase
+      if (goalIds.length > 0) {
+        // Batch query 1: All actions for all goals
+        const { data: allActionsData, error: actionsError } = await supabase
           .from('actions')
-          .select('status', { count: 'exact' })
+          .select('goal_id, status')
           .eq('user_id', user.id)
-          .eq('goal_id', goal.id);
+          .in('goal_id', goalIds);
         
-        if (actionsError) console.error('Error fetching actions:', actionsError);
+        if (actionsError) {
+          console.error('Error fetching actions:', actionsError);
+          // Continue with empty data - don't fail entire page
+        }
         
-        const actionsOpen = (actionsData || []).filter(a => a.status === 'pending' || a.status === 'in_progress').length;
-        const actionsCompleted = (actionsData || []).filter(a => a.status === 'completed').length;
-        
-        // Fetch artifacts stats (POGs and Asks) - handle missing goal_id gracefully
-        let asksOpen = 0, asksCompleted = 0, pogsDelivered = 0;
-        
+        // Batch query 2: All artifacts for all goals (with error handling)
+        let allArtifactsData: any[] = [];
         try {
           const { data: artifactsData, error: artifactsError } = await supabase
             .from('artifacts')
-            .select('type, loop_status, goal_id')
+            .select('goal_id, type, loop_status')
             .eq('user_id', user.id)
-            .eq('goal_id', goal.id)
+            .in('goal_id', goalIds)
             .in('type', ['pog', 'ask']);
           
           if (artifactsError) {
-            // Check if this is a missing column error
             if (artifactsError.message.includes('goal_id') || artifactsError.code === '42703') {
               console.warn('goal_id column not found in artifacts table - using default values');
             } else {
               console.error('Error fetching artifacts:', artifactsError);
             }
           } else {
-            const artifactsList = artifactsData || [];
-            asksOpen = artifactsList.filter(a => a.type === 'ask' && a.loop_status !== 'closed').length;
-            asksCompleted = artifactsList.filter(a => a.type === 'ask' && a.loop_status === 'closed').length;
-            pogsDelivered = artifactsList.filter(a => a.type === 'pog' && (a.loop_status === 'delivered' || a.loop_status === 'closed')).length;
+            allArtifactsData = artifactsData || [];
           }
         } catch (error) {
           console.warn('Artifacts query failed, using default values:', error);
         }
         
-        // Fetch milestones stats
-        const { data: milestonesData, error: milestonesError } = await supabase
+        // Batch query 3: All milestones for all goals
+        const { data: allMilestonesData, error: milestonesError } = await supabase
           .from('goal_milestones')
-          .select('status', { count: 'exact' })
+          .select('goal_id, status')
           .eq('user_id', user.id)
-          .eq('goal_id', goal.id);
+          .in('goal_id', goalIds);
         
-        if (milestonesError) console.error('Error fetching milestones:', milestonesError);
+        if (milestonesError) {
+          console.error('Error fetching milestones:', milestonesError);
+          // Continue with empty data - don't fail entire page
+        }
         
-        const milestonesTotal = (milestonesData || []).length;
-        const milestonesCompleted = (milestonesData || []).filter(m => m.status === 'completed').length;
-        
-        goalStats[goal.id] = {
-          contactsCount: (goalContactsGrouped[goal.id] || []).length,
-          actionsOpen,
-          actionsCompleted,
-          asksOpen,
-          asksCompleted,
-          pogsDelivered,
-          milestonesTotal,
-          milestonesCompleted,
-        };
+        // Process batched data for each goal
+        for (const goal of goals || []) {
+          // Process actions for this goal
+          const goalActions = (allActionsData || []).filter(a => a.goal_id === goal.id);
+          const actionsOpen = goalActions.filter(a => a.status === 'pending' || a.status === 'in_progress').length;
+          const actionsCompleted = goalActions.filter(a => a.status === 'completed').length;
+          
+          // Process artifacts for this goal
+          const goalArtifacts = allArtifactsData.filter(a => a.goal_id === goal.id);
+          const asksOpen = goalArtifacts.filter(a => a.type === 'ask' && a.loop_status !== 'closed').length;
+          const asksCompleted = goalArtifacts.filter(a => a.type === 'ask' && a.loop_status === 'closed').length;
+          const pogsDelivered = goalArtifacts.filter(a => a.type === 'pog' && (a.loop_status === 'delivered' || a.loop_status === 'closed')).length;
+          
+          // Process milestones for this goal
+          const goalMilestones = (allMilestonesData || []).filter(m => m.goal_id === goal.id);
+          const milestonesTotal = goalMilestones.length;
+          const milestonesCompleted = goalMilestones.filter(m => m.status === 'completed').length;
+          
+          goalStats[goal.id] = {
+            contactsCount: (goalContactsGrouped[goal.id] || []).length,
+            actionsOpen,
+            actionsCompleted,
+            asksOpen,
+            asksCompleted,
+            pogsDelivered,
+            milestonesTotal,
+            milestonesCompleted,
+          };
+        }
       }
 
       return {

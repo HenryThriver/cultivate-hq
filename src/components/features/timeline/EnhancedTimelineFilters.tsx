@@ -14,7 +14,8 @@ import {
   ToggleButton,
   TextField,
   InputAdornment,
-  IconButton
+  IconButton,
+  Autocomplete
 } from '@mui/material';
 import { 
   Mic as MicIcon,
@@ -31,7 +32,9 @@ import {
   Timeline as TimelineIcon,
   Category as CategoryIcon,
   Search as SearchIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  Flag as GoalIcon,
+  Star as PrimaryIcon
 } from '@mui/icons-material';
 import type { ArtifactType } from '@/types';
 
@@ -89,6 +92,14 @@ const INTELLIGENCE_PRESETS = [
   }
 ];
 
+interface Goal {
+  id: string;
+  title: string;
+  status: string;
+  category?: string;
+  is_primary?: boolean;
+}
+
 interface EnhancedTimelineFiltersProps {
   filterTypes: ArtifactType[];
   onFilterChange: (types: ArtifactType[]) => void;
@@ -96,6 +107,10 @@ interface EnhancedTimelineFiltersProps {
   onViewModeChange?: (mode: string) => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  // Goal filtering props
+  goals?: Goal[];
+  selectedGoalIds?: string[];
+  onGoalFilterChange?: (goalIds: string[]) => void;
 }
 
 export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = ({
@@ -104,7 +119,10 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
   viewMode = 'chronological',
   onViewModeChange,
   searchQuery = '',
-  onSearchChange
+  onSearchChange,
+  goals = [],
+  selectedGoalIds = [],
+  onGoalFilterChange
 }) => {
   const theme = useTheme();
   const [activePreset, setActivePreset] = useState<string | null>(null);
@@ -128,6 +146,7 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
 
   const clearAllFilters = () => {
     onFilterChange([]);
+    onGoalFilterChange?.([]);
     setActivePreset(null);
   };
 
@@ -346,6 +365,146 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
           </Box>
         )}
 
+        {/* Goal Filtering */}
+        {goals.length > 0 && onGoalFilterChange && (
+          <Box sx={{ mb: 5 }}>
+            <Typography 
+              variant="subtitle1"
+              sx={{
+                fontWeight: 600,
+                color: 'text.primary',
+                mb: 3,
+                letterSpacing: '0.5px',
+                fontSize: '1rem'
+              }}>
+              Goal Context Filter
+            </Typography>
+            
+            <Autocomplete
+              multiple
+              options={goals}
+              value={goals.filter(goal => selectedGoalIds.includes(goal.id))}
+              onChange={(_, newValue) => {
+                onGoalFilterChange(newValue.map(goal => goal.id));
+              }}
+              getOptionLabel={(option) => option.title}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  {...props}
+                  key={option.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    py: 1
+                  }}
+                >
+                  <GoalIcon 
+                    sx={{ 
+                      color: option.status === 'active' ? 'primary.main' : 'text.secondary',
+                      fontSize: '18px' 
+                    }} 
+                  />
+                  {option.is_primary && (
+                    <PrimaryIcon 
+                      sx={{ 
+                        color: 'warning.main',
+                        fontSize: '16px' 
+                      }} 
+                    />
+                  )}
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {option.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {option.status} • {option.category?.replace('_', ' ') || 'other'}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    key={option.id}
+                    variant="outlined"
+                    label={option.title}
+                    icon={option.is_primary ? <PrimaryIcon fontSize="small" /> : <GoalIcon fontSize="small" />}
+                    {...getTagProps({ index })}
+                    sx={{
+                      borderColor: 'primary.main',
+                      color: 'primary.main',
+                      backgroundColor: 'primary.50',
+                      '& .MuiChip-icon': {
+                        color: 'primary.main'
+                      }
+                    }}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={selectedGoalIds.length === 0 ? "Filter by goals..." : ""}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 'var(--radius-medium)',
+                      backgroundColor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'grey.300',
+                      transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: 'primary.main',
+                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
+                      }
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      fontSize: '14px',
+                      '&::placeholder': {
+                        color: 'text.secondary',
+                        fontStyle: 'italic'
+                      }
+                    }
+                  }}
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <GoalIcon sx={{ color: 'text.secondary', fontSize: '20px' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+              sx={{
+                '& .MuiAutocomplete-popupIndicator': {
+                  color: 'text.secondary'
+                },
+                '& .MuiAutocomplete-clearIndicator': {
+                  color: 'text.secondary'
+                }
+              }}
+            />
+            
+            {selectedGoalIds.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="caption" sx={{ 
+                  color: 'text.secondary',
+                  fontStyle: 'italic',
+                  fontSize: '12px'
+                }}>
+                  🎯 Showing artifacts associated with {selectedGoalIds.length} selected goal{selectedGoalIds.length > 1 ? 's' : ''}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        )}
+
         {/* View Mode Selector */}
         {onViewModeChange && (
           <Box sx={{ mb: 5 }}>
@@ -499,13 +658,16 @@ export const EnhancedTimelineFilters: React.FC<EnhancedTimelineFiltersProps> = (
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-              {filterTypes.length === 0 
+              {filterTypes.length === 0 && selectedGoalIds.length === 0
                 ? 'All intelligence types visible' 
-                : `${filterTypes.length} intelligence ${filterTypes.length === 1 ? 'type' : 'types'} selected`
+                : [
+                    filterTypes.length > 0 ? `${filterTypes.length} intelligence ${filterTypes.length === 1 ? 'type' : 'types'}` : '',
+                    selectedGoalIds.length > 0 ? `${selectedGoalIds.length} goal${selectedGoalIds.length === 1 ? '' : 's'}` : ''
+                  ].filter(Boolean).join(' • ') + ' selected'
               }
             </Typography>
             
-            {filterTypes.length > 0 && (
+            {(filterTypes.length > 0 || selectedGoalIds.length > 0) && (
               <Button
                 variant="text"
                 onClick={clearAllFilters}

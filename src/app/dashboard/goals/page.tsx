@@ -80,16 +80,16 @@ const getUserFriendlyErrorMessage = (error: unknown): string => {
 interface Goal {
   id: string;
   title: string;
-  description?: string;
-  category?: string;
-  timeline?: string;
-  success_criteria?: string;
-  target_contact_count?: number;
-  progress_percentage?: number;
-  target_date?: string;
+  description?: string | null;
+  category?: string | null;
+  timeline?: string | null;
+  success_criteria?: string | null;
+  target_contact_count?: number | null;
+  progress_percentage?: number | null;
+  target_date?: string | null;
   status: 'active' | 'completed' | 'paused' | 'archived';
-  priority?: number;
-  is_primary?: boolean;
+  priority?: number | null;
+  is_primary?: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -98,8 +98,8 @@ interface GoalContact {
   id: string;
   contact_id: string;
   goal_id: string;
-  relationship_type: string;
-  relevance_score: number;
+  relationship_type: string | null;
+  relevance_score: number | null;
   notes?: string;
   contacts: {
     id: string;
@@ -228,7 +228,7 @@ export default function GoalsPage() {
         // Only include goal contacts that have valid goal_ids
         if (gc.goal_id) {
           if (!acc[gc.goal_id]) acc[gc.goal_id] = [];
-          acc[gc.goal_id].push(gc);
+          acc[gc.goal_id].push(gc as GoalContact);
         }
         return acc;
       }, {} as Record<string, GoalContact[]>);
@@ -267,7 +267,7 @@ export default function GoalsPage() {
               console.error('Error fetching artifacts:', artifactsError);
             }
           } else {
-            allArtifactsData = artifactsData || [];
+            allArtifactsData = (artifactsData as unknown) as ArtifactStats[];
           }
         } catch (error) {
           console.warn('Artifacts query failed, using default values:', error);
@@ -317,7 +317,7 @@ export default function GoalsPage() {
       }
 
       return {
-        goals: goals || [],
+        goals: (goals || []) as Goal[],
         goalContacts: goalContactsGrouped,
         goalStats,
       };

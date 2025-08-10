@@ -88,11 +88,14 @@ interface GoalContactWithDetails {
 interface Action {
   id: string;
   goal_id: string;
+  user_id: string;
   title: string;
   description?: string;
-  status: string;
-  priority: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  priority: number;
   due_date?: string;
+  action_type?: string;
+  contact_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -100,25 +103,40 @@ interface Action {
 interface Milestone {
   id: string;
   goal_id: string;
+  user_id: string;
   title: string;
-  description?: string;
-  target_date?: string;
-  status: string;
-  order_index?: number;
-  created_at: string;
-  updated_at: string;
+  description?: string | null;
+  target_date?: string | null;
+  completed_at?: string | null;
+  status: string | null;
+  order_index?: number | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface ArtifactWithContent {
   id: string;
-  goal_id: string;
+  user_id: string;
+  contact_id: string;
+  goal_id?: string | null;
   type: string;
-  title?: string;
-  description?: string;
-  tags?: string;
-  loop_status: string;
+  content: string;
+  metadata: any;
+  ai_insights: any;
+  ai_parsing_status: string | null;
+  ai_processing_started_at: string | null;
+  ai_processing_completed_at: string | null;
   created_at: string;
   updated_at: string;
+  title?: string | null;
+  description?: string;
+  tags?: string;
+  loop_status: string | null;
+  priority?: string | null;
+  due_date?: string | null;
+  delivery_date?: string | null;
+  follow_up_date?: string | null;
+  audio_file_path?: string | null;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -586,7 +604,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
               <Grid size={{ xs: 6, md: 3 }}>
                 <Card sx={{ p: 2, bgcolor: '#EDE9FE' }}>
                   <Typography variant="h6" sx={{ color: '#7C3AED' }}>
-                    {actions.filter(a => a.priority === '1' || a.priority === 1).length}
+                    {actions.filter(a => a.priority === '1').length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     High Priority
@@ -608,7 +626,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
             {/* Actions List */}
             {actions.map((action) => {
               const isOverdue = action.due_date && new Date(action.due_date) < new Date();
-              const isHighPriority = action.priority === '1' || action.priority === 1;
+              const isHighPriority = action.priority === '1';
               
               return (
                 <Card 
@@ -832,7 +850,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <Box sx={{ display: 'flex', gap: 2, flex: 1 }}>
                         <Avatar
-                          alt={contact.name || contact.email}
+                          alt={contact.name || contact.email || ''}
                           sx={{
                             width: 48,
                             height: 48,
@@ -1188,12 +1206,12 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                         </Box>
                         
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                          {(artifact as ArtifactWithContent).title || `${isPOG ? 'POG' : 'Ask'} - ${new Date(artifact.created_at).toLocaleDateString()}`}
+                          {(artifact as any).title || `${isPOG ? 'POG' : 'Ask'} - ${new Date(artifact.created_at).toLocaleDateString()}`}
                         </Typography>
                         
-                        {(artifact as ArtifactWithContent).description && (
+                        {(artifact as any).description && (
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
-                            {(artifact as ArtifactWithContent).description}
+                            {(artifact as any).description}
                           </Typography>
                         )}
                         
@@ -1205,9 +1223,9 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                             </Typography>
                           </Box>
                           
-                          {(artifact as ArtifactWithContent).tags && (
+                          {(artifact as any).tags && (
                             <Chip 
-                              label={(artifact as ArtifactWithContent).tags}
+                              label={(artifact as any).tags}
                               size="small"
                               variant="outlined"
                               sx={{ fontSize: '0.75rem', height: 20 }}
@@ -1452,7 +1470,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                           )}
                           
                           <Chip 
-                            label={milestone.status.replace('_', ' ')}
+                            label={milestone.status?.replace('_', ' ') || 'pending'}
                             size="small"
                             sx={{ 
                               bgcolor: `${statusColor}20`,
@@ -1499,32 +1517,8 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                             </Box>
                           )}
                           
-                          {milestone.success_criteria && (
-                            <Chip 
-                              label="Has Success Criteria"
-                              size="small"
-                              variant="outlined"
-                              sx={{ fontSize: '0.75rem', height: 20 }}
-                            />
-                          )}
                         </Box>
                         
-                        {milestone.success_criteria && (
-                          <Box sx={{ 
-                            mt: 2, 
-                            p: 2, 
-                            bgcolor: '#F8F9FA', 
-                            borderRadius: 1,
-                            borderLeft: '3px solid #6B7280'
-                          }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#616161' }}>
-                              Success Criteria:
-                            </Typography>
-                            <Typography variant="body2" sx={{ mt: 0.5, color: '#616161' }}>
-                              {milestone.success_criteria}
-                            </Typography>
-                          </Box>
-                        )}
                       </Box>
                       
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1600,7 +1594,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
         }}
         goalId={resolvedParams.id}
         goalTitle={data?.goal?.title || 'Goal'}
-        existingAction={editingAction}
+        existingAction={editingAction as any}
         onSuccess={() => {
           setShowActionModal(false);
           setEditingAction(null);

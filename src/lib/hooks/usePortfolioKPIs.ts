@@ -222,31 +222,12 @@ async function calculateRelationshipDepth(userId: string) {
     interactionCounts.set(interaction.contact_id, count + 1);
   });
 
-  // Batch query 2: Get all loop analytics for all contacts at once
-  const { data: allLoopData } = await supabase
-    .from('loop_analytics')
-    .select('contact_id, reciprocity_impact, created_at')
-    .in('contact_id', contactIds)
-    .order('created_at', { ascending: false });
-
-  // Group loop data by contact and calculate averages
+  // Loop analytics was deprecated - skip reciprocity calculations
   const reciprocityByContact = new Map<string, number>();
-  const loopDataByContact = new Map<string, any[]>();
   
-  allLoopData?.forEach(loop => {
-    const contactLoops = loopDataByContact.get(loop.contact_id) || [];
-    if (contactLoops.length < 5) { // Only keep latest 5
-      contactLoops.push(loop);
-      loopDataByContact.set(loop.contact_id, contactLoops);
-    }
-  });
-
-  // Calculate average reciprocity for each contact
-  loopDataByContact.forEach((loops, contactId) => {
-    const avgReciprocity = loops.length > 0
-      ? loops.reduce((sum, l) => sum + (l.reciprocity_impact || 0), 0) / loops.length
-      : 5;
-    reciprocityByContact.set(contactId, avgReciprocity);
+  // Set default reciprocity score for all contacts since loop analytics is deprecated
+  contacts.forEach(contact => {
+    reciprocityByContact.set(contact.id, 5); // Default neutral score
   });
 
   // Calculate composite scores for all contacts

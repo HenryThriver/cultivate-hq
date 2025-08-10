@@ -53,18 +53,7 @@ export function useRecentAchievements() {
         .order('completed_at', { ascending: false })
         .limit(10);
 
-      // Fetch successful loop completions
-      const { data: loopAnalytics } = await supabase
-        .from('loop_analytics')
-        .select(`
-          *,
-          contact:contacts(id, name)
-        `)
-        .eq('user_id', user.id)
-        .gte('created_at', thirtyDaysAgo.toISOString())
-        .gte('success_score', 4.0)
-        .order('created_at', { ascending: false })
-        .limit(5);
+      // Loop analytics was deprecated - no longer fetching loop completion data
 
       // Fetch milestone artifacts
       const { data: milestoneArtifacts } = await supabase
@@ -126,25 +115,7 @@ export function useRecentAchievements() {
         }
       });
 
-      // Process loop analytics
-      loopAnalytics?.forEach(loop => {
-        // Ensure success score is bounded between 0-5 and format nicely
-        const boundedScore = Math.min(Math.max(loop.success_score || 0, 0), 5);
-        const scoreDisplay = boundedScore >= 4.5 ? 'Excellent' : 
-                           boundedScore >= 4.0 ? 'Great' : 
-                           boundedScore >= 3.0 ? 'Good' : 'Completed';
-        
-        achievements.push({
-          id: `loop-${loop.id}`,
-          type: 'loop_completed',
-          title: 'Loop Successfully Completed',
-          description: `${loop.loop_type} completed with excellent results`,
-          timestamp: formatTimestamp(loop.created_at),
-          value: scoreDisplay,
-          contact: loop.contact ? { id: loop.contact.id, name: loop.contact.name || '' } : undefined,
-          celebrationLevel: boundedScore >= 4.5 ? 'significant' : 'moderate'
-        });
-      });
+      // Loop analytics was deprecated - skip loop achievements
 
       // Process milestones
       milestoneArtifacts?.forEach(milestone => {

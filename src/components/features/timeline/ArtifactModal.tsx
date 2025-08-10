@@ -22,12 +22,12 @@ import {
 } from '@mui/icons-material';
 
 import { getArtifactConfig } from '@/config/artifactConfig';
-import type { BaseArtifact, LinkedInArtifact, VoiceMemoArtifact, LoopArtifact, LoopStatus, LoopArtifactContent } from '@/types';
+import type { BaseArtifact, LinkedInArtifact, VoiceMemoArtifact } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { UpdateSuggestionRecord } from '@/types/suggestions';
 import { formatFieldPathForDisplay } from '@/lib/utils/formatting';
 import { LinkedInProfileModal, LinkedInPostModal } from '@/components/features/linkedin';
-import { EnhancedLoopModal } from '../loops/EnhancedLoopModal';
+// Removed deprecated EnhancedLoopModal import
 import { EmailDetailModal } from '@/components/features/emails/EmailDetailModal';
 import { EmailArtifact } from '@/types/email';
 import type { LinkedInPostArtifact } from '@/types/artifact';
@@ -49,11 +49,7 @@ interface ArtifactModalProps {
   isDeleting?: boolean;
   isReprocessing?: boolean;
   error?: string | null;
-  onLoopStatusUpdate?: (loopId: string, newStatus: LoopStatus) => Promise<void>;
-  onLoopEdit?: (loopId: string, updates: Partial<LoopArtifactContent>) => Promise<void>;
-  onLoopDelete?: (loopId: string) => Promise<void>;
-  onLoopShare?: (loopId: string) => Promise<void>;
-  onLoopComplete?: (loopId: string, outcome: Record<string, unknown>) => Promise<void>;
+  // Loop functionality deprecated
 }
 
 const modalStyle = {
@@ -196,22 +192,7 @@ export const ArtifactModal: React.FC<ArtifactModalProps> = ({
     );
   }
 
-  if (artifact.type === 'loop') {
-    return (
-      <EnhancedLoopModal
-        open={open}
-        onClose={onClose}
-        artifact={artifact as unknown as LoopArtifact}
-        contactName={contactName || 'Contact'}
-        contactId={contactId}
-        onStatusUpdate={onLoopStatusUpdate || (async () => console.warn('onLoopStatusUpdate not provided'))}
-        onEdit={onLoopEdit || (async () => console.warn('onLoopEdit not provided'))}
-        onDelete={onLoopDelete || (async () => console.warn('onLoopDelete not provided'))}
-        onShare={onLoopShare || (async () => console.warn('onLoopShare not provided'))}
-        onComplete={onLoopComplete || (async () => console.warn('onLoopComplete not provided'))}
-      />
-    );
-  }
+  // Loop artifacts are deprecated and no longer supported
 
   if (artifact.type === 'email') {
     return (
@@ -331,7 +312,7 @@ export const ArtifactModal: React.FC<ArtifactModalProps> = ({
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                               <Typography variant="body2" sx={{fontWeight: 'medium'}}>
-                                {suggestion.field_paths.map(fp => formatFieldPathForDisplay(fp)).join(', ')}
+                                {(suggestion.field_paths || []).map(fp => formatFieldPathForDisplay(fp)).join(', ')}
                               </Typography>
                             </Box>
                           }
@@ -342,7 +323,7 @@ export const ArtifactModal: React.FC<ArtifactModalProps> = ({
                                 Created: {new Date(suggestion.created_at).toLocaleDateString()}
                                 {suggestion.status !== 'pending' && ` - Overall: ${suggestion.status}`}
                               </Typography>
-                              {suggestion.suggested_updates.suggestions.map((s_update, index) => {
+                              {(suggestion.suggested_updates?.suggestions || []).map((s_update, index) => {
                                 const individualStatus = getSubSuggestionStatus(suggestion.status, suggestion.user_selections, s_update.field_path);
                                 return (
                                   <Paper key={index} variant="outlined" sx={{p: 1, my: 0.5, bgcolor: 'grey.50'}}>

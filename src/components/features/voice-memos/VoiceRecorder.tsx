@@ -21,14 +21,19 @@ import { useVoiceMemos } from '@/lib/hooks/useVoiceMemos'; // Added for real-tim
 
 interface VoiceRecorderProps {
   contactId: string;
-  onRecordingComplete?: (artifact: Record<string, unknown>) => void; // Consider using a specific Artifact type
+  onRecordingComplete?: (artifact: Record<string, unknown>) => void;
+  onRecordingBlob?: (audioBlob: Blob) => void;
   onError?: (error: string) => void;
+  size?: 'small' | 'medium' | 'large';
+  mode?: 'artifact' | 'blob';
 }
 
 export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   contactId,
   onRecordingComplete,
-  onError
+  onRecordingBlob,
+  onError,
+  mode = 'artifact'
 }) => {
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -186,7 +191,25 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   }, [isRecording]);
 
+  // Security: Sanitize path components to prevent path traversal
+  const sanitizePathComponent = (input: string): string => {
+    // Remove any path traversal attempts and invalid characters
+    return input
+      .replace(/[\.\/\\]/g, '') // Remove dots, slashes, backslashes
+      .replace(/[^a-zA-Z0-9\-_]/g, '') // Only allow alphanumeric, dash, underscore
+      .substring(0, 100); // Limit length
+  };
+
   const handleRecordingComplete = async (blob: Blob) => {
+    // For blob mode, just return the blob without creating an artifact
+    if (mode === 'blob') {
+      onRecordingBlob?.(blob);
+      setIsUploading(false);
+      setUploadStatus('');
+      return;
+    }
+
+    // Artifact mode - create full voice memo artifact
     setIsUploading(true);
     setUploadStatus('Uploading voice memo...');
     
@@ -203,10 +226,16 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       // const { data: { user } } = await supabase.auth.getUser(); // No longer needed
       // if (!user) throw new Error('User not authenticated'); // Handled by useUser and the check above
 
-      // Generate unique filename
+      // Generate secure filename with sanitized inputs
       const timestamp = Date.now();
-      // Use contactId in the path for better organization if desired, or just user.id
-      const filename = `${user.id}/${contactId}-${timestamp}.webm`; 
+      const sanitizedUserId = sanitizePathComponent(user.id);
+      const sanitizedContactId = sanitizePathComponent(contactId);
+      
+      if (!sanitizedUserId || !sanitizedContactId) {
+        throw new Error('Invalid user ID or contact ID format');
+      }
+      
+      const filename = `${sanitizedUserId}/${sanitizedContactId}-${timestamp}.webm`; 
       
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage

@@ -965,34 +965,8 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
--- Create loop analytics for reciprocity tracking
-INSERT INTO public.loop_analytics (id, user_id, contact_id, loop_artifact_id, loop_type, status_transitions, completion_time_days, reciprocity_impact, success_score, created_at)
-VALUES
-  (
-    'aa111111-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'a1111111-89ab-cdef-0123-456789abcdef'::uuid,
-    'b3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    'INTRODUCTION',
-    '{"QUEUED": "2024-07-20", "ACTIVE": "2024-07-21", "COMPLETED": "2024-07-27"}'::jsonb,
-    6,
-    6.0,
-    9.0,
-    NOW() - INTERVAL '1 day'
-  ),
-  (
-    'aa222222-89ab-cdef-0123-456789abcdef'::uuid,
-    '051032c6-d1cd-4eb4-8b85-33e961fed18b'::uuid,
-    'a3333333-89ab-cdef-0123-456789abcdef'::uuid,
-    'b2222222-89ab-cdef-0123-456789abcdef'::uuid,
-    'ASK',
-    '{"QUEUED": "2024-07-01", "ACTIVE": "2024-07-02", "COMPLETED": "2024-07-18"}'::jsonb,
-    14,
-    5.2,
-    6.0,
-    NOW() - INTERVAL '10 days'
-  )
-ON CONFLICT (id) DO NOTHING;
+-- Loop analytics table was deprecated in migration 20250804212724_deprecate_loop_tables.sql
+-- No longer inserting loop analytics data
 
 -- ============================================================================
 -- EXPANDED CONTACT NETWORK (21 NEW CONTACTS)

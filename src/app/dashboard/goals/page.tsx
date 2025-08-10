@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -21,7 +21,7 @@ import {
   Alert,
   Skeleton,
   Stack,
-  Grid2 as Grid,
+  Grid,
 } from '@mui/material';
 import {
   TrackChanges as GoalsIcon,
@@ -169,8 +169,14 @@ export default function GoalsPage() {
       const contactIds = [...new Set(validGoalContacts.map(gc => gc.contact_id).filter(id => id))];
       
       // Fetch contact details (step 2: separate query for contacts)
-      let contactsData = [];
-      let contactsError = null;
+      let contactsData: Array<{
+        id: string;
+        name?: string;
+        email?: string;
+        title?: string;
+        company?: string;
+      }> = [];
+      // let contactsError = null;
       
       if (contactIds.length > 0) {
         const { data, error } = await supabase
@@ -183,7 +189,13 @@ export default function GoalsPage() {
           // Don't fail the entire query if contacts can't be fetched
           contactsData = [];
         } else {
-          contactsData = data || [];
+          contactsData = (data || []).map(contact => ({
+            id: contact.id,
+            name: contact.name || undefined,
+            email: contact.email || undefined,
+            title: contact.title || undefined,
+            company: contact.company || undefined,
+          }));
         }
       }
 
@@ -206,14 +218,14 @@ export default function GoalsPage() {
       });
 
       // Group goal contacts by goal_id
-      const goalContactsGrouped = goalContacts.reduce((acc: Record<string, GoalContact[]>, gc: GoalContact) => {
+      const goalContactsGrouped: Record<string, GoalContact[]> = goalContacts.reduce((acc, gc) => {
         // Only include goal contacts that have valid goal_ids
         if (gc.goal_id) {
           if (!acc[gc.goal_id]) acc[gc.goal_id] = [];
           acc[gc.goal_id].push(gc);
         }
         return acc;
-      }, {});
+      }, {} as Record<string, GoalContact[]>);
 
       // Fetch stats for each goal
       const goalStats: Record<string, GoalStats> = {};

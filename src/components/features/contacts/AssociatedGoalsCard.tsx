@@ -269,7 +269,7 @@ export const AssociatedGoalsCard: React.FC<AssociatedGoalsCardProps> = ({
                   </Box>
 
                   {/* Relationship Context */}
-                  <Box sx={{ display: 'flex', justify: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box sx={{ color: relationshipData.color }}>
                         {relationshipData.icon}

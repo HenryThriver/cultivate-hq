@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { EmailArtifact, EmailThread } from '@/types/email';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export interface EmailTimelineItemProps {
   artifacts: EmailArtifact[];
@@ -46,6 +47,7 @@ export const EmailTimelineItem: React.FC<EmailTimelineItemProps> = ({
   onThreadClick,
   className,
 }) => {
+  const { user } = useAuth();
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
 
   // Helper function to determine email direction
@@ -57,9 +59,8 @@ export const EmailTimelineItem: React.FC<EmailTimelineItemProps> = ({
     if (labels.includes('SENT')) return 'sent';
     if (labels.includes('INBOX')) return 'received';
     
-    // Fallback: check if sender email matches any known user emails
-    // This is a simplified version - in production you'd check against user's emails
-    if (fromEmail.includes('hfinkelstein@gmail.com') || fromEmail.includes('henry@')) {
+    // Use authenticated user context instead of hardcoded emails
+    if (user?.email && fromEmail.includes(user.email.toLowerCase())) {
       return 'sent';
     }
     

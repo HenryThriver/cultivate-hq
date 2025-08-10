@@ -17,8 +17,8 @@ async function createDevUser() {
     
     // Create user with admin API
     const { data, error } = await supabase.auth.admin.createUser({
-      email: 'henry@cultivatehq.com',
-      password: 'password123',
+      email: `${TEST_CONFIG.auth.email}`,
+      password: `${TEST_CONFIG.auth.password}`,
       email_confirm: true, // Auto-confirm email
       user_metadata: {
         name: 'Henry (Dev)',
@@ -32,8 +32,8 @@ async function createDevUser() {
     }
 
     console.log('✅ Dev user created successfully!');
-    console.log('📧 Email: henry@cultivatehq.com');
-    console.log('🔐 Password: password123');
+    console.log('📧 Email: ${TEST_CONFIG.auth.email}');
+    console.log('🔐 Password: ${TEST_CONFIG.auth.password}');
     console.log('🆔 User ID:', data.user.id);
 
     // Update the actions to use this user ID

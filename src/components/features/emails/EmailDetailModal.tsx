@@ -37,6 +37,7 @@ import type { EmailArtifact, EmailThread } from '@/types/email';
 import { useEmailThread } from '@/lib/hooks/useEmailThread';
 import { useParams } from 'next/navigation';
 import { cleanEmailText } from '@/lib/utils/textDecoding';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { SafeHtmlRenderer } from '@/components/ui/SafeHtmlRenderer';
 import { ArtifactSuggestions } from '@/components/features/suggestions/ArtifactSuggestions';
 
@@ -59,6 +60,7 @@ export const EmailDetailModal: React.FC<EmailDetailModalProps> = ({
   onArchive,
   onToggleStar,
 }) => {
+  const { user } = useAuth();
   const [expandedEmails, setExpandedEmails] = useState<Set<string>>(new Set());
   const [showFullHeaders, setShowFullHeaders] = useState<Set<string>>(new Set());
   
@@ -139,7 +141,8 @@ export const EmailDetailModal: React.FC<EmailDetailModalProps> = ({
     if (labels.includes('SENT')) return 'sent';
     if (labels.includes('INBOX')) return 'received';
     
-    if (fromEmail.includes('hfinkelstein@gmail.com') || fromEmail.includes('henry@')) {
+    // Use authenticated user context instead of hardcoded emails
+    if (user?.email && fromEmail.includes(user.email.toLowerCase())) {
       return 'sent';
     }
     

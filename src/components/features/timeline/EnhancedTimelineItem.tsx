@@ -16,6 +16,7 @@ import {
 import { BaseArtifact, VoiceMemoArtifact, MeetingArtifact } from '@/types/artifact';
 import { EmailArtifact } from '@/types/email';
 import { getArtifactConfig } from '@/config/artifactConfig';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface EnhancedTimelineItemProps {
   artifact: BaseArtifact<unknown>;
@@ -30,6 +31,8 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
   onClick,
   index = 0
 }) => {
+  const { user } = useAuth();
+  
   // Email artifact handling - continue with standard timeline treatment
 
   const config = getArtifactConfig(artifact.type);
@@ -43,7 +46,8 @@ export const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
     if (labels.includes('SENT')) return 'sent';
     if (labels.includes('INBOX')) return 'received';
     
-    if (fromEmail.includes('hfinkelstein@gmail.com') || fromEmail.includes('henry@')) {
+    // Use authenticated user context instead of hardcoded emails
+    if (user?.email && fromEmail.includes(user.email.toLowerCase())) {
       return 'sent';
     }
     

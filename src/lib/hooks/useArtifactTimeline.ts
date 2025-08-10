@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import type { BaseArtifact, ArtifactType, GroupedArtifact, TimelineStatsData } from '@/types';
 import { format, parseISO, differenceInDays, startOfDay } from 'date-fns';
@@ -264,7 +264,7 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
     options?.searchQuery || ''
   ];
 
-  // PERFORMANCE: Memoize expensive grouping operations
+  // PERFORMANCE: Memoize expensive operations with comprehensive dependencies
   const memoizedGrouping = useMemo(() => {
     return (filteredArtifacts: BaseArtifact[], groupingMode: GroupingMode) => {
       return groupAndFormatArtifacts(filteredArtifacts, groupingMode);
@@ -276,6 +276,44 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
       return calculateTimelineStats(filteredArtifacts);
     };
   }, []);
+
+  // PERFORMANCE: Memoize search filter function
+  const memoizedSearchFilter = useCallback(
+    (artifacts: BaseArtifact[], searchTerm: string) => {
+      if (!searchTerm.trim()) return artifacts;
+      
+      const lowerSearchTerm = searchTerm.toLowerCase().trim();
+      return artifacts.filter((artifact: BaseArtifact) => {
+        // Cache expensive JSON.stringify operations
+        const contentString = JSON.stringify(artifact.content || {}).toLowerCase();
+        const suggestionsString = JSON.stringify(artifact.ai_suggestions || []).toLowerCase();
+        const metadataString = JSON.stringify(artifact.metadata || {}).toLowerCase();
+        const basicFields = [
+          artifact.type,
+          artifact.title || '',
+          artifact.description || ''
+        ].join(' ').toLowerCase();
+
+        return contentString.includes(lowerSearchTerm) ||
+               suggestionsString.includes(lowerSearchTerm) ||
+               metadataString.includes(lowerSearchTerm) ||
+               basicFields.includes(lowerSearchTerm);
+      });
+    },
+    []
+  );
+
+  // PERFORMANCE: Memoize type filter function
+  const memoizedTypeFilter = useCallback(
+    (artifacts: BaseArtifact[], filterTypes: ArtifactType[]) => {
+      if (!filterTypes || filterTypes.length === 0) return artifacts;
+      
+      // Create a Set for O(1) lookup performance
+      const typeSet = new Set(filterTypes);
+      return artifacts.filter(artifact => typeSet.has(artifact.type));
+    },
+    []
+  );
 
   const queryFn = async (): Promise<BaseArtifact[]> => {
     const { data, error } = await supabase
@@ -308,39 +346,9 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
       const allArtifacts = data;
       let filteredArtifacts = allArtifacts;
       
-      // Apply type filters
-      if (options?.filterTypes && options.filterTypes.length > 0) {
-        filteredArtifacts = filteredArtifacts.filter((artifact: BaseArtifact) => 
-          options.filterTypes!.includes(artifact.type)
-        );
-      }
-
-      // Apply search filter
-      if (options?.searchQuery && options.searchQuery.trim() !== '') {
-        const searchTerm = options.searchQuery.toLowerCase().trim();
-        filteredArtifacts = filteredArtifacts.filter((artifact: BaseArtifact) => {
-          // Search in artifact content (varies by type)
-          const contentString = JSON.stringify(artifact.content || {}).toLowerCase();
-          
-          // Search in AI suggestions
-          const suggestionsString = JSON.stringify(artifact.ai_suggestions || []).toLowerCase();
-          
-          // Search in metadata
-          const metadataString = JSON.stringify(artifact.metadata || {}).toLowerCase();
-          
-          // Search in type and basic fields
-          const basicFields = [
-            artifact.type,
-            artifact.title || '',
-            artifact.description || ''
-          ].join(' ').toLowerCase();
-
-          return contentString.includes(searchTerm) ||
-                 suggestionsString.includes(searchTerm) ||
-                 metadataString.includes(searchTerm) ||
-                 basicFields.includes(searchTerm);
-        });
-      }
+      // PERFORMANCE: Apply filters using memoized functions
+      filteredArtifacts = memoizedTypeFilter(filteredArtifacts, options?.filterTypes || []);
+      filteredArtifacts = memoizedSearchFilter(filteredArtifacts, options?.searchQuery || '');
       // PERFORMANCE: Use memoized functions for expensive operations
       const groupedArtifacts = memoizedGrouping(filteredArtifacts, options?.groupingMode || 'chronological');
       const stats = memoizedStatsCalculation(filteredArtifacts);
@@ -352,5 +360,7 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
   });
 }; 

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import type { EmailArtifact, EmailThread } from '@/types/email';
 import type { Json } from '@/lib/supabase/types_db';
 
@@ -10,6 +11,8 @@ interface UseEmailThreadProps {
 }
 
 export const useEmailThread = ({ threadId, contactId, enabled = true }: UseEmailThreadProps) => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ['emailThread', threadId, contactId],
     queryFn: async (): Promise<EmailThread | null> => {
@@ -51,7 +54,8 @@ export const useEmailThread = ({ threadId, contactId, enabled = true }: UseEmail
         if (labels.includes('SENT')) return 'sent';
         if (labels.includes('INBOX')) return 'received';
         
-        if (fromEmail.includes('hfinkelstein@gmail.com') || fromEmail.includes('henry@')) {
+        // Use authenticated user context instead of hardcoded emails
+        if (user?.email && fromEmail.includes(user.email.toLowerCase())) {
           return 'sent';
         }
         

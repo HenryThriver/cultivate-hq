@@ -65,9 +65,10 @@ WHERE status = 'active';
 
 -- 10. Overdue actions (for dashboard alerts)
 -- This optimizes queries for overdue action detection
+-- Note: Removed CURRENT_DATE from WHERE clause as PostgreSQL doesn't allow non-immutable functions in partial indexes
 CREATE INDEX IF NOT EXISTS idx_actions_overdue 
 ON actions(user_id, goal_id, due_date) 
-WHERE status IN ('pending', 'in_progress') AND due_date < CURRENT_DATE;
+WHERE status IN ('pending', 'in_progress') AND due_date IS NOT NULL;
 
 -- ===============================================
 -- COMMENTS

@@ -21,6 +21,7 @@ export interface BaseArtifact<TContent = Record<string, unknown> | string | null
   created_at: string;
   updated_at?: string;
   ai_parsing_status?: 'pending' | 'processing' | 'completed' | 'failed' | null | undefined; // Added here
+  goal_id?: string | null; // Link to associated goal
 }
 
 // Database-compatible artifact type (what we get from Supabase)

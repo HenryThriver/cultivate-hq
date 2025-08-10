@@ -48,6 +48,8 @@ export default function ContactTimelinePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showDashboard, setShowDashboard] = useState<boolean>(false);
   const [expandedFilters, setExpandedFilters] = useState<boolean>(false);
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([]);
+
   
   const { contact, isLoading, error } = useContactProfile(contactId);
   // Removed deprecated useLoops hook
@@ -337,6 +339,8 @@ export default function ContactTimelinePage() {
         onViewModeChange={setViewMode}
         filterTypes={filterTypes}
         onFilterChange={setFilterTypes}
+        selectedGoalIds={selectedGoalIds}
+        onGoalFilterChange={setSelectedGoalIds}
         showDashboard={showDashboard}
         onDashboardToggle={() => setShowDashboard(!showDashboard)}
         expandedFilters={expandedFilters}
@@ -355,6 +359,7 @@ export default function ContactTimelinePage() {
           filterTypes={filterTypes}
           viewMode={viewMode}
           searchQuery={searchQuery}
+          selectedGoalIds={selectedGoalIds}
           showDashboard={showDashboard} // Pass dashboard state
           // Don't pass timelineData/isLoading - let component handle its own data fetching
         />

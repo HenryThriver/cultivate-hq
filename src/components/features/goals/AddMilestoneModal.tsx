@@ -40,12 +40,31 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+interface Milestone {
+  id: string;
+  goal_id: string;
+  user_id: string;
+  title: string;
+  description?: string | null;
+  target_date?: string | null;
+  completed_at?: string | null;
+  status: string | null;
+  order_index?: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+  // Additional fields that may be used in the form
+  success_criteria?: string | null;
+  weight?: number | null;
+  is_major_milestone?: boolean | null;
+  notes?: string | null;
+}
+
 interface AddMilestoneModalProps {
   open: boolean;
   onClose: () => void;
   goalId: string;
   goalTitle: string;
-  existingMilestone?: any;
+  existingMilestone?: Milestone | null;
   onSuccess?: () => void;
 }
 

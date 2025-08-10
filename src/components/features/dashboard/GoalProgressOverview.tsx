@@ -29,12 +29,23 @@ interface Goal {
   id: string;
   title: string;
   status: string;
-  category: string;
-  progress_percentage?: number;
-  is_primary: boolean;
-  target_date?: string;
-  target_contact_count?: number;
+  category: string | null;
+  progress_percentage?: number | null;
+  is_primary: boolean | null;
+  target_date?: string | null;
+  target_contact_count?: number | null;
   created_at: string;
+  updated_at: string;
+  user_id: string;
+  description?: string | null;
+  timeline?: string | null;
+  success_criteria?: string | null;
+  priority?: number | null;
+  tags?: string[] | null;
+  notes?: string | null;
+  voice_memo_id?: string | null;
+  created_from?: string | null;
+  completed_at?: string | null;
 }
 
 interface GoalStats {
@@ -66,49 +77,60 @@ export const GoalProgressOverview: React.FC = () => {
 
       if (goalsError) throw goalsError;
 
-      // Fetch stats for each goal
-      const goalsWithStats: Array<Goal & { stats: GoalStats }> = [];
+      // Batch fetch stats for all goals (fixing N+1 query anti-pattern)
+      const goalIds = (goals || []).map(g => g.id);
+      const goalStats: Record<string, GoalStats> = {};
       
-      for (const goal of goals || []) {
-        // Fetch goal contacts count
-        const { count: contactsCount } = await supabase
+      if (goalIds.length > 0) {
+        // Batch query 1: All goal contacts for all goals
+        const { data: allGoalContacts } = await supabase
           .from('goal_contacts')
-          .select('*', { count: 'exact', head: true })
-          .eq('goal_id', goal.id)
+          .select('goal_id')
           .eq('user_id', user.id)
+          .in('goal_id', goalIds)
           .eq('status', 'active');
-
-        // Fetch actions stats
-        const { data: actions } = await supabase
+        
+        // Batch query 2: All actions for all goals
+        const { data: allActions } = await supabase
           .from('actions')
-          .select('status')
-          .eq('goal_id', goal.id)
-          .eq('user_id', user.id);
-
-        const actionsTotal = actions?.length || 0;
-        const actionsCompleted = actions?.filter(a => a.status === 'completed').length || 0;
-
-        // Fetch milestones stats
-        const { data: milestones } = await supabase
+          .select('goal_id, status')
+          .eq('user_id', user.id)
+          .in('goal_id', goalIds);
+        
+        // Batch query 3: All milestones for all goals
+        const { data: allMilestones } = await supabase
           .from('goal_milestones')
-          .select('status')
-          .eq('goal_id', goal.id)
-          .eq('user_id', user.id);
-
-        const milestonesTotal = milestones?.length || 0;
-        const milestonesCompleted = milestones?.filter(m => m.status === 'completed').length || 0;
-
-        goalsWithStats.push({
-          ...goal,
-          stats: {
-            contactsCount: contactsCount || 0,
-            actionsCompleted,
-            actionsTotal,
-            milestonesCompleted,
-            milestonesTotal,
-          }
-        });
+          .select('goal_id, status')
+          .eq('user_id', user.id)
+          .in('goal_id', goalIds);
+        
+        // Process batch data for each goal
+        for (const goalId of goalIds) {
+          const goalContacts = (allGoalContacts || []).filter(gc => gc.goal_id === goalId);
+          const goalActions = (allActions || []).filter(a => a.goal_id === goalId);
+          const goalMilestones = (allMilestones || []).filter(m => m.goal_id === goalId);
+          
+          goalStats[goalId] = {
+            contactsCount: goalContacts.length,
+            actionsTotal: goalActions.length,
+            actionsCompleted: goalActions.filter(a => a.status === 'completed').length,
+            milestonesTotal: goalMilestones.length,
+            milestonesCompleted: goalMilestones.filter(m => m.status === 'completed').length,
+          };
+        }
       }
+      
+      // Create goals with stats
+      const goalsWithStats: Array<Goal & { stats: GoalStats }> = (goals || []).map(goal => ({
+        ...(goal as Goal),
+        stats: goalStats[goal.id] || {
+          contactsCount: 0,
+          actionsTotal: 0,
+          actionsCompleted: 0,
+          milestonesTotal: 0,
+          milestonesCompleted: 0,
+        }
+      }));
 
       return goalsWithStats;
     },
@@ -285,7 +307,7 @@ export const GoalProgressOverview: React.FC = () => {
                       </Box>
                       <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                         <Chip
-                          label={getCategoryLabel(goal.category)}
+                          label={getCategoryLabel(goal.category || 'other')}
                           size="small"
                           variant="outlined"
                           sx={{ fontSize: '0.7rem', height: '20px' }}

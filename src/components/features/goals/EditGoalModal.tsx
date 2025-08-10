@@ -41,10 +41,33 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+interface Goal {
+  id: string;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  timeline?: string | null;
+  success_criteria?: string | null;
+  target_contact_count?: number | null;
+  progress_percentage?: number | null;
+  target_date?: string | null;
+  status: 'active' | 'completed' | 'paused' | 'archived';
+  priority?: number | null;
+  is_primary?: boolean | null;
+  tags?: string[] | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  voice_memo_id?: string | null;
+  created_from?: string | null;
+  completed_at?: string | null;
+}
+
 interface EditGoalModalProps {
   open: boolean;
   onClose: () => void;
-  goal: any;
+  goal: Goal;
   onSuccess?: () => void;
 }
 

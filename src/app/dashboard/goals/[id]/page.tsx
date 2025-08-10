@@ -41,10 +41,17 @@ import {
   SwapHoriz as ExchangeIcon,
   Timeline as TimelineIcon,
   CheckCircleOutline as MilestoneIcon,
+  EditNote as EditNoteIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import AddActionModal from '@/components/features/goals/AddActionModal';
+import AssociateContactModal from '@/components/features/goals/AssociateContactModal';
+import AddPOGModal from '@/components/features/goals/AddPOGModal';
+import AddAskModal from '@/components/features/goals/AddAskModal';
+import AddMilestoneModal from '@/components/features/goals/AddMilestoneModal';
+import EditGoalModal from '@/components/features/goals/EditGoalModal';
 
 interface GoalDetailParams {
   params: Promise<{ id: string }>;
@@ -78,6 +85,14 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
   const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [editingAction, setEditingAction] = useState<any>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [showPOGModal, setShowPOGModal] = useState(false);
+  const [showAskModal, setShowAskModal] = useState(false);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<any>(null);
+  const [showEditGoalModal, setShowEditGoalModal] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['goal', resolvedParams.id, user?.id],
@@ -319,9 +334,23 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                 )}
               </Box>
               
-              <Typography variant="h4" sx={{ fontWeight: 600, mb: 2, color: '#212121' }}>
-                {goal.title}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 600, color: '#212121' }}>
+                  {goal.title}
+                </Typography>
+                <IconButton 
+                  onClick={() => setShowEditGoalModal(true)}
+                  sx={{ 
+                    color: 'text.secondary',
+                    '&:hover': { 
+                      color: 'primary.main',
+                      bgcolor: 'primary.50'
+                    }
+                  }}
+                >
+                  <EditNoteIcon fontSize="small" />
+                </IconButton>
+              </Box>
               
               {goal.description && (
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
@@ -442,6 +471,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            onClick={() => setShowActionModal(true)}
             sx={{
               textTransform: 'none',
               borderRadius: 2,
@@ -465,6 +495,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
+              onClick={() => setShowActionModal(true)}
               sx={{ textTransform: 'none', px: 3 }}
             >
               Create First Action
@@ -645,6 +676,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            onClick={() => setShowContactModal(true)}
             sx={{
               textTransform: 'none',
               borderRadius: 2,
@@ -668,6 +700,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
+              onClick={() => setShowContactModal(true)}
               sx={{ textTransform: 'none', px: 3 }}
             >
               Associate First Contact
@@ -875,6 +908,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
             <Button
               variant="outlined"
               startIcon={<POGIcon />}
+              onClick={() => setShowPOGModal(true)}
               sx={{
                 textTransform: 'none',
                 borderRadius: 2,
@@ -893,6 +927,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
             <Button
               variant="outlined"
               startIcon={<AskIcon />}
+              onClick={() => setShowAskModal(true)}
               sx={{
                 textTransform: 'none',
                 borderRadius: 2,
@@ -924,6 +959,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
               <Button
                 variant="contained"
                 startIcon={<POGIcon />}
+                onClick={() => setShowPOGModal(true)}
                 sx={{ 
                   textTransform: 'none', 
                   px: 3,
@@ -936,6 +972,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
               <Button
                 variant="contained"
                 startIcon={<AskIcon />}
+                onClick={() => setShowAskModal(true)}
                 sx={{ 
                   textTransform: 'none', 
                   px: 3,
@@ -1178,6 +1215,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            onClick={() => setShowMilestoneModal(true)}
             sx={{
               textTransform: 'none',
               borderRadius: 2,
@@ -1201,6 +1239,7 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
+              onClick={() => setShowMilestoneModal(true)}
               sx={{ textTransform: 'none', px: 3 }}
             >
               Create First Milestone
@@ -1447,6 +1486,10 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
                       <Button 
                         size="small" 
                         variant="outlined"
+                        onClick={() => {
+                          setEditingMilestone(milestone);
+                          setShowMilestoneModal(true);
+                        }}
                         sx={{ textTransform: 'none', fontSize: '0.75rem' }}
                       >
                         Edit Details
@@ -1482,10 +1525,80 @@ export default function GoalDetailPage({ params }: GoalDetailParams) {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleMenuClose}>Edit Goal</MenuItem>
+        <MenuItem onClick={() => {
+          handleMenuClose();
+          setShowEditGoalModal(true);
+        }}>Edit Goal</MenuItem>
         <MenuItem onClick={handleMenuClose}>Archive Goal</MenuItem>
         <MenuItem onClick={handleMenuClose}>Delete Goal</MenuItem>
       </Menu>
+
+      {/* Add Action Modal */}
+      <AddActionModal
+        open={showActionModal}
+        onClose={() => {
+          setShowActionModal(false);
+          setEditingAction(null);
+        }}
+        goalId={resolvedParams.id}
+        goalTitle={data?.goal?.title || 'Goal'}
+        existingAction={editingAction}
+        onSuccess={() => {
+          setShowActionModal(false);
+          setEditingAction(null);
+        }}
+      />
+
+      {/* Associate Contact Modal */}
+      <AssociateContactModal
+        open={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        goalId={resolvedParams.id}
+        goalTitle={data?.goal?.title || 'Goal'}
+        onSuccess={() => setShowContactModal(false)}
+      />
+
+      {/* Add POG Modal */}
+      <AddPOGModal
+        open={showPOGModal}
+        onClose={() => setShowPOGModal(false)}
+        goalId={resolvedParams.id}
+        goalTitle={data?.goal?.title || 'Goal'}
+        onSuccess={() => setShowPOGModal(false)}
+      />
+
+      {/* Add Ask Modal */}
+      <AddAskModal
+        open={showAskModal}
+        onClose={() => setShowAskModal(false)}
+        goalId={resolvedParams.id}
+        goalTitle={data?.goal?.title || 'Goal'}
+        onSuccess={() => setShowAskModal(false)}
+      />
+
+      {/* Add/Edit Milestone Modal */}
+      <AddMilestoneModal
+        open={showMilestoneModal}
+        onClose={() => {
+          setShowMilestoneModal(false);
+          setEditingMilestone(null);
+        }}
+        goalId={resolvedParams.id}
+        goalTitle={data?.goal?.title || 'Goal'}
+        existingMilestone={editingMilestone}
+        onSuccess={() => {
+          setShowMilestoneModal(false);
+          setEditingMilestone(null);
+        }}
+      />
+
+      {/* Edit Goal Modal */}
+      <EditGoalModal
+        open={showEditGoalModal}
+        onClose={() => setShowEditGoalModal(false)}
+        goal={data?.goal}
+        onSuccess={() => setShowEditGoalModal(false)}
+      />
     </Container>
   );
 }

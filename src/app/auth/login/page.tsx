@@ -28,8 +28,8 @@ export default function LoginPage(): React.JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDevLogin, setShowDevLogin] = useState(false);
-  const [email, setEmail] = useState('henry@cultivatehq.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const { user, signInWithGoogle, signInWithPassword } = useAuth();
   const router = useRouter();
   

@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import type { BaseArtifact, ArtifactType, GroupedArtifact, TimelineStatsData } from '@/types';
 import { format, parseISO, differenceInDays, startOfDay } from 'date-fns';
@@ -53,37 +54,44 @@ const groupByDate = (artifacts: BaseArtifact[]): GroupedArtifact[] => {
     .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()); // Sort groups by date (desc)
 };
 
-// Group by interaction intensity (frequency of communication)
+// PERFORMANCE: Optimized group by interaction intensity (single pass)
 const groupByIntensity = (artifacts: BaseArtifact[]): GroupedArtifact[] => {
-  // Calculate daily artifact counts to determine intensity periods
-  const dailyCounts = artifacts.reduce((acc, artifact) => {
+  if (!artifacts.length) return [];
+  
+  // PERFORMANCE: Single pass to calculate daily counts and store artifacts by date
+  const dailyArtifacts: Record<string, BaseArtifact[]> = {};
+  const dailyCounts: Record<string, number> = {};
+  let maxCount = 0;
+  
+  for (const artifact of artifacts) {
     const date = format(parseISO(artifact.timestamp), 'yyyy-MM-dd');
-    acc[date] = (acc[date] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+    if (!dailyArtifacts[date]) {
+      dailyArtifacts[date] = [];
+      dailyCounts[date] = 0;
+    }
+    dailyArtifacts[date].push(artifact);
+    dailyCounts[date]++;
+    maxCount = Math.max(maxCount, dailyCounts[date]);
+  }
 
-  const maxCount = Math.max(...Object.values(dailyCounts));
   const intensityThresholds = {
     high: Math.ceil(maxCount * 0.7), // Top 30% of activity
     medium: Math.ceil(maxCount * 0.3), // Middle range
     low: 1 // Any activity
   };
 
-  const grouped = artifacts.reduce((acc, artifact) => {
-    const date = format(parseISO(artifact.timestamp), 'yyyy-MM-dd');
+  // PERFORMANCE: Group artifacts by intensity in single pass
+  const grouped: Record<string, BaseArtifact[]> = { high: [], medium: [], low: [] };
+  
+  for (const [date, dayArtifacts] of Object.entries(dailyArtifacts)) {
     const count = dailyCounts[date];
-    
     let intensity: string;
     if (count >= intensityThresholds.high) intensity = 'high';
     else if (count >= intensityThresholds.medium) intensity = 'medium';
     else intensity = 'low';
     
-    if (!acc[intensity]) {
-      acc[intensity] = [];
-    }
-    acc[intensity].push(artifact);
-    return acc;
-  }, {} as Record<string, BaseArtifact[]>);
+    grouped[intensity].push(...dayArtifacts);
+  }
 
   const intensityLabels = {
     high: '🔥 Peak Engagement',
@@ -256,6 +264,19 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
     options?.searchQuery || ''
   ];
 
+  // PERFORMANCE: Memoize expensive grouping operations
+  const memoizedGrouping = useMemo(() => {
+    return (filteredArtifacts: BaseArtifact[], groupingMode: GroupingMode) => {
+      return groupAndFormatArtifacts(filteredArtifacts, groupingMode);
+    };
+  }, [options?.groupingMode]);
+
+  const memoizedStatsCalculation = useMemo(() => {
+    return (filteredArtifacts: BaseArtifact[]) => {
+      return calculateTimelineStats(filteredArtifacts);
+    };
+  }, []);
+
   const queryFn = async (): Promise<BaseArtifact[]> => {
     const { data, error } = await supabase
       .from('artifacts')
@@ -320,8 +341,9 @@ export const useArtifactTimeline = (contactId: string, options?: UseArtifactTime
                  basicFields.includes(searchTerm);
         });
       }
-      const groupedArtifacts = groupAndFormatArtifacts(filteredArtifacts, options?.groupingMode);
-      const stats = calculateTimelineStats(filteredArtifacts);
+      // PERFORMANCE: Use memoized functions for expensive operations
+      const groupedArtifacts = memoizedGrouping(filteredArtifacts, options?.groupingMode || 'chronological');
+      const stats = memoizedStatsCalculation(filteredArtifacts);
       return {
         allArtifacts,
         filteredArtifacts,

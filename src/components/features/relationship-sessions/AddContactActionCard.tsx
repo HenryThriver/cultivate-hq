@@ -232,19 +232,34 @@ export const AddContactActionCard: React.FC<AddContactActionCardProps> = ({
     }}>
       {/* Header */}
       <Box sx={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        p: 3,
+        background: 'linear-gradient(135deg, #6366F1 0%, #7C3AED 100%)',
+        p: 4,
         color: 'white',
         position: 'relative'
       }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <PersonAddIcon sx={{ fontSize: 32 }} />
+          <Box display="flex" alignItems="center" gap={3}>
+            <PersonAddIcon sx={{ fontSize: 28 }} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  fontWeight: 600,
+                  fontSize: '1.25rem',
+                  lineHeight: 1.2,
+                  mb: 0.5
+                }}
+              >
                 Add Contact
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.9,
+                  fontSize: '0.875rem',
+                  fontWeight: 400
+                }}
+              >
                 Expand your network • {currentCount}/{targetCount} contacts
               </Typography>
             </Box>
@@ -255,25 +270,31 @@ export const AddContactActionCard: React.FC<AddContactActionCardProps> = ({
             disabled={isLoading}
             sx={{ 
               color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
+              p: 1.5,
+              '&:hover': { 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                transform: 'scale(1.05)',
+              },
+              transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
-            <CloseIcon />
+            <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </Box>
         
         {/* Progress Bar */}
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 3 }}>
           <LinearProgress 
             variant="determinate" 
             value={progress} 
             sx={{ 
-              height: 8, 
-              borderRadius: 4,
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              height: 6, 
+              borderRadius: 3,
+              backgroundColor: 'rgba(255, 255, 255, 0.25)',
               '& .MuiLinearProgress-bar': {
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #43a047 0%, #66bb6a 100%)'
+                borderRadius: 3,
+                background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
+                transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
               }
             }}
           />

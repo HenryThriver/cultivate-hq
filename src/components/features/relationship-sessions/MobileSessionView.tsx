@@ -23,17 +23,19 @@ import {
   Celebration as CelebrationIcon,
   SwipeLeft as SwipeLeftIcon,
   SwipeRight as SwipeRightIcon,
-  Skip as SkipIcon,
+  SkipNext as SkipIcon,
   CheckCircle as CompleteIcon,
 } from '@mui/icons-material';
 import { useSwipeable } from 'react-swipeable';
 import { AddContactActionCard } from './AddContactActionCard';
 import { AddMeetingNotesActionCard } from './AddMeetingNotesActionCard';
+import { SessionErrorBoundary } from './SessionErrorBoundary';
 import type { MeetingArtifactContent } from '@/types/artifact';
+import type { RelationshipSession, SessionAction } from '@/lib/hooks/useRelationshipSessions';
 
 interface MobileSessionViewProps {
-  session: any;
-  currentAction: any;
+  session: RelationshipSession;
+  currentAction: SessionAction;
   currentActionIndex: number;
   totalActions: number;
   completedActions: Set<string>;
@@ -105,7 +107,7 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #6366F1 0%, #7C3AED 50%, #1976D2 100%)',
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
@@ -123,24 +125,35 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
           color: 'white',
         }}
       >
-        <Box display="flex" alignItems="center" gap={1}>
-          <AccessTimeIcon sx={{ 
-            fontSize: 24,
-            color: getTimerColor() === 'success' ? 'white' : 
-                   getTimerColor() === 'warning' ? '#FFD700' : '#FF6B6B'
-          }} />
-          <Typography
-            variant="h6"
-            sx={{
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
+        <SessionErrorBoundary
+          fallback={
+            <Box display="flex" alignItems="center" gap={1}>
+              <AccessTimeIcon sx={{ fontSize: 24, color: 'white' }} />
+              <Typography variant="h6" sx={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'white' }}>
+                --:--
+              </Typography>
+            </Box>
+          }
+        >
+          <Box display="flex" alignItems="center" gap={1}>
+            <AccessTimeIcon sx={{ 
+              fontSize: 24,
               color: getTimerColor() === 'success' ? 'white' : 
-                     getTimerColor() === 'warning' ? '#FFD700' : '#FF6B6B',
-            }}
-          >
-            {formatTime(timeRemaining)}
-          </Typography>
-        </Box>
+                     getTimerColor() === 'warning' ? '#FFD700' : '#FF6B6B'
+            }} />
+            <Typography
+              variant="h6"
+              sx={{
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                color: getTimerColor() === 'success' ? 'white' : 
+                       getTimerColor() === 'warning' ? '#FFD700' : '#FF6B6B',
+              }}
+            >
+              {formatTime(timeRemaining)}
+            </Typography>
+          </Box>
+        </SessionErrorBoundary>
 
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton
@@ -174,12 +187,13 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
           variant="determinate"
           value={progress}
           sx={{
-            height: 6,
-            borderRadius: 3,
+            height: 8,
+            borderRadius: 4,
             bgcolor: 'rgba(255,255,255,0.2)',
             '& .MuiLinearProgress-bar': {
-              borderRadius: 3,
-              background: 'linear-gradient(90deg, #4caf50 0%, #81c784 100%)',
+              borderRadius: 4,
+              background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
+              transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
             },
           }}
         />
@@ -187,17 +201,37 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
 
       {/* Goal Context */}
       {goal && (
-        <Box sx={{ px: 2, pb: 2 }}>
+        <Box sx={{ px: 3, pb: 3 }}>
           <Card sx={{ 
-            bgcolor: 'rgba(255,255,255,0.95)', 
-            borderRadius: 2,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+            bgcolor: 'rgba(255,255,255,0.98)', 
+            borderRadius: 3,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            backdropFilter: 'blur(10px)',
           }}>
-            <CardContent sx={{ p: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Current Goal
+            <CardContent sx={{ p: 4 }}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'text.secondary', 
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  mb: 1,
+                  display: 'block'
+                }}
+              >
+                Strategic Focus
               </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontWeight: 600, 
+                  lineHeight: 1.2,
+                  color: 'text.primary',
+                  fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                }}
+              >
                 {goal.title}
               </Typography>
             </CardContent>
@@ -208,33 +242,56 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
       {/* Current Action */}
       <Box sx={{ flex: 1, px: 2, pb: 2 }}>
         {currentAction ? (
-          <Box
-            {...swipeHandlers}
-            sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+          <SessionErrorBoundary 
+            onReset={() => setSwipeDirection(null)}
+            fallback={
+              <Alert severity="error" sx={{ mt: 2 }}>
+                Swipe gestures are temporarily unavailable. Please use the buttons below to continue.
+              </Alert>
+            }
           >
+            <Box
+              {...swipeHandlers}
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
             {/* Swipe Instructions */}
             <Card sx={{ 
-              mb: 2,
-              bgcolor: 'rgba(255,255,255,0.9)',
+              mb: 3,
+              bgcolor: 'rgba(255,255,255,0.95)',
               borderRadius: 2,
+              border: '1px solid rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(8px)',
             }}>
-              <CardContent sx={{ p: 2, textAlign: 'center' }}>
+              <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: 'text.secondary',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    mb: 2,
+                    display: 'block'
+                  }}
+                >
+                  Navigation
+                </Typography>
                 <Box display="flex" justifyContent="space-around" alignItems="center">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <SwipeLeftIcon sx={{ color: 'warning.main' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      Swipe left to skip
+                  <Box display="flex" alignItems="center" gap={1.5}>
+                    <SwipeLeftIcon sx={{ color: 'warning.main', fontSize: 24 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                      Skip
                     </Typography>
                   </Box>
-                  <Divider orientation="vertical" flexItem />
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <SwipeRightIcon sx={{ color: 'success.main' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      Swipe right to complete
+                  <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                  <Box display="flex" alignItems="center" gap={1.5}>
+                    <SwipeRightIcon sx={{ color: 'success.main', fontSize: 24 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                      Complete
                     </Typography>
                   </Box>
                 </Box>
@@ -243,18 +300,19 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
 
             {/* Action Card with Swipe Animation */}
             <Paper
-              elevation={12}
+              elevation={0}
               sx={{
                 flex: 1,
-                borderRadius: 3,
+                borderRadius: 4,
                 overflow: 'hidden',
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                border: '2px solid rgba(33, 150, 243, 0.2)',
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
-                transform: swipeDirection === 'right' ? 'translateX(100px) rotate(10deg)' :
-                          swipeDirection === 'left' ? 'translateX(-100px) rotate(-10deg)' : 'none',
-                transition: 'all 0.3s ease-in-out',
-                opacity: swipeDirection ? 0.7 : 1,
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(20px)',
+                transform: swipeDirection === 'right' ? 'translateX(100px) rotate(8deg)' :
+                          swipeDirection === 'left' ? 'translateX(-100px) rotate(-8deg)' : 'none',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                opacity: swipeDirection ? 0.8 : 1,
               }}
             >
               {currentAction.action_type === 'add_contact_to_goal' ? (
@@ -284,37 +342,68 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
               )}
             </Paper>
           </Box>
+          </SessionErrorBoundary>
         ) : (
           // No more actions
           <Card sx={{ 
-            bgcolor: 'rgba(255,255,255,0.95)', 
-            borderRadius: 3,
+            bgcolor: 'rgba(255,255,255,0.98)', 
+            borderRadius: 4,
             textAlign: 'center',
             height: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            backdropFilter: 'blur(20px)',
           }}>
-            <CardContent>
-              <CelebrationIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
-              <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
-                🎉 Session Complete!
+            <CardContent sx={{ p: 5 }}>
+              <CelebrationIcon sx={{ fontSize: 72, color: '#10B981', mb: 3 }} />
+              <Typography 
+                variant="h3" 
+                gutterBottom 
+                sx={{ 
+                  fontWeight: 600,
+                  color: 'text.primary',
+                  mb: 2,
+                  fontSize: { xs: '1.75rem', sm: '2rem' }
+                }}
+              >
+                Session Complete
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                Amazing work! You've completed all relationship building actions.
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'text.secondary',
+                  mb: 4,
+                  fontSize: '1.0625rem',
+                  lineHeight: 1.6,
+                  maxWidth: '280px',
+                  mx: 'auto'
+                }}
+              >
+                Strategic connections systematically advanced. Your relationship intelligence grows stronger.
               </Typography>
               <Button
                 variant="contained"
                 size="large"
                 onClick={onClose}
                 sx={{ 
-                  borderRadius: 3,
-                  px: 4,
+                  borderRadius: 2,
+                  px: 5,
                   py: 1.5,
-                  fontSize: '1.1rem'
+                  fontSize: '1.0625rem',
+                  fontWeight: 500,
+                  minWidth: 160,
+                  boxShadow: '0 4px 20px rgba(33, 150, 243, 0.25)',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                    boxShadow: '0 6px 24px rgba(33, 150, 243, 0.35)',
+                  },
+                  transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
-                Finish Session
+                Complete Session
               </Button>
             </CardContent>
           </Card>
@@ -326,10 +415,11 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
         <Box
           sx={{
             display: 'flex',
-            gap: 2,
-            p: 2,
-            bgcolor: 'rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(10px)',
+            gap: 3,
+            p: 3,
+            bgcolor: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(15px)',
+            borderTop: '1px solid rgba(255,255,255,0.2)',
           }}
         >
           <Button
@@ -340,13 +430,19 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
             startIcon={<SkipIcon />}
             sx={{
               color: 'white',
-              borderColor: 'rgba(255,255,255,0.5)',
+              borderColor: 'rgba(255,255,255,0.6)',
+              borderWidth: '1.5px',
+              fontWeight: 500,
+              fontSize: '1.0625rem',
               '&:hover': {
-                borderColor: 'rgba(255,255,255,0.8)',
-                bgcolor: 'rgba(255,255,255,0.1)',
+                borderColor: 'rgba(255,255,255,0.9)',
+                bgcolor: 'rgba(255,255,255,0.15)',
+                transform: 'scale(1.02)',
               },
-              borderRadius: 3,
+              borderRadius: 2,
               py: 1.5,
+              minHeight: 52,
+              transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
             Skip
@@ -358,12 +454,19 @@ export const MobileSessionView: React.FC<MobileSessionViewProps> = ({
             onClick={() => onActionComplete(currentAction.id)}
             startIcon={<CompleteIcon />}
             sx={{
-              bgcolor: 'success.main',
+              bgcolor: '#10B981',
+              fontWeight: 500,
+              fontSize: '1.0625rem',
               '&:hover': {
-                bgcolor: 'success.dark',
+                bgcolor: '#059669',
+                transform: 'scale(1.02)',
+                boxShadow: '0 6px 24px rgba(16, 185, 129, 0.35)',
               },
-              borderRadius: 3,
+              borderRadius: 2,
               py: 1.5,
+              minHeight: 52,
+              boxShadow: '0 4px 20px rgba(16, 185, 129, 0.25)',
+              transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
             Complete

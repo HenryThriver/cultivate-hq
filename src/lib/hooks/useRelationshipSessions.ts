@@ -19,40 +19,40 @@ interface CreateSessionAction {
   action_id?: string; // For existing actions
 }
 
-// interface SessionAction {
-//   id: string;
-//   session_id: string;
-//   action_type: string;
-//   status: string;
-//   contact_id?: string;
-//   goal_id?: string;
-//   meeting_artifact_id?: string;
-//   action_data: Record<string, unknown>;
-//   completed_at?: string;
-//   created_at: string;
-//   // Relations
-//   contact?: {
-//     id: string;
-//     name: string;
-//     goal_id?: string;
-//   };
-//   meeting_artifact?: {
-//     id: string;
-//     metadata: Record<string, unknown>;
-//     created_at: string;
-//   };
-// }
+export interface SessionAction {
+  id: string;
+  session_id: string;
+  action_type: string;
+  status: string;
+  contact_id?: string;
+  goal_id?: string;
+  meeting_artifact_id?: string;
+  action_data: Record<string, unknown>;
+  completed_at?: string;
+  created_at: string;
+  // Relations
+  contact?: {
+    id: string;
+    name: string;
+    goal_id?: string;
+  };
+  meeting_artifact?: {
+    id: string;
+    metadata: Record<string, unknown>;
+    created_at: string;
+  };
+}
 
-// interface RelationshipSession {
-//   id: string;
-//   user_id: string;
-//   session_type: string;
-//   status: string;
-//   started_at: string;
-//   completed_at?: string;
-//   created_at: string;
-//   actions: SessionAction[];
-// }
+export interface RelationshipSession {
+  id: string;
+  user_id: string;
+  session_type: string;
+  status: string;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
+  actions: SessionAction[];
+}
 
 // ===============================================
 // PENDING ACTIONS ROLL-UP

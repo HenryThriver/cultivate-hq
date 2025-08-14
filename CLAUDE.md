@@ -2,8 +2,6 @@
 
 My name is Handsome Hank
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Git Flow & CI/CD Workflow
 
 ### Branch Progression Strategy
@@ -45,9 +43,6 @@ local feature → feature/* (push) → develop (PR) → staging (PR) → main (P
    - If user requests "pr to main" from a feature branch, explain the git flow
    - Suggest they first merge to develop, then staging, then main
    - Only create main PRs when current branch is `staging`
-
-### Development Server Note
-**IMPORTANT**: The user typically has a development server running on port 3000 in a separate terminal. DO NOT run `npm run dev` automatically. Instead, when changes need testing, simply remind: "Please ensure your dev server is running on port 3000 to test these changes."
 
 ### PR Feedback Loop Workflow
 After pushing to a PR, follow this systematic approach:

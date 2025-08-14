@@ -18,6 +18,8 @@ import {
   Grow,
   Paper,
   Divider,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -36,6 +38,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/lib/hooks/useRelationshipSessions';
 import { AddContactActionCard } from './AddContactActionCard';
 import { AddMeetingNotesActionCard } from './AddMeetingNotesActionCard';
+import { MobileSessionView } from './MobileSessionView';
 import type { MeetingArtifactContent } from '@/types/artifact';
 
 interface RelationshipSessionInterfaceProps {
@@ -56,6 +59,8 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
   const [showCompletionDialog, setShowCompletionDialog] = useState<boolean>(false);
   const [showInitialCelebration, setShowInitialCelebration] = useState<boolean>(true);
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const { data: session, isLoading, error } = useSession(sessionId);
   // const completeAction = useCompleteSessionAction();
@@ -224,6 +229,29 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
   // Calculate current and target counts for the goal
   const currentCount = goal?.goal_contacts?.length || 0;
   const targetCount = goal?.target_contact_count || 50;
+  
+  // Get current action for mobile view
+  const currentAction = remainingActions[0] || null;
+  const currentActionIndex = totalActions - remainingActions.length + 1;
+  
+  // Use mobile view for small screens
+  if (isMobile) {
+    return (
+      <MobileSessionView
+        session={session}
+        currentAction={currentAction}
+        currentActionIndex={currentActionIndex}
+        totalActions={totalActions}
+        completedActions={completedActions}
+        timeRemaining={timeRemaining}
+        isPaused={isPaused}
+        onActionComplete={handleActionComplete}
+        onActionSkip={handleActionSkip}
+        onPauseResume={handlePauseResume}
+        onClose={onClose}
+      />
+    );
+  }
   
   return (
     <Box
@@ -483,7 +511,7 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                         }
                       }}
                     >
-                      {currentAction.action_type === 'add_contact' ? (
+                      {currentAction.action_type === 'add_contact_to_goal' ? (
                         <AddContactActionCard
                           actionId={currentAction.id}
                           goalId={currentAction.goal_id || ''}

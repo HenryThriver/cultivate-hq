@@ -10,7 +10,7 @@ import type { Json } from '@/lib/supabase/database.types';
 // ===============================================
 
 interface CreateSessionAction {
-  type: 'add_contact' | 'add_meeting_notes';
+  type: 'add_contact_to_goal' | 'add_meeting_notes';
   goal_id?: string;
   meeting_artifact_id?: string;
   contact_id?: string;
@@ -403,7 +403,7 @@ export function useGoalSessionActions(goalId: string) {
       // Always include "add contact" action if below target
       if (currentCount < targetCount) {
         actions.push({
-          type: 'add_contact',
+          type: 'add_contact_to_goal',
           goal_id: goalId,
           goal_title: goal.title,
           current_count: currentCount,
@@ -435,7 +435,7 @@ export function useGoalSessionActions(goalId: string) {
           const actionData = action.action_data;
           
           actions.push({
-            type: action.action_type as 'add_contact' | 'add_meeting_notes',
+            type: action.action_type as 'add_contact_to_goal' | 'add_meeting_notes',
             action_id: action.id, // Track the existing action
             meeting_artifact_id: action.artifact_id || undefined,
             contact_id: action.contact_id || undefined,
@@ -576,9 +576,9 @@ export function useCreateSession() {
           contact_id?: string;
           goal_id?: string;
           artifact_id?: string;
-          estimated_duration_minutes: number;
-          action_data: Json;
-          created_source: string;
+          estimated_duration_minutes?: number;
+          action_data?: Json;
+          created_source?: string;
         }> = [];
         const orphanedActionsToUpdate: string[] = [];
         

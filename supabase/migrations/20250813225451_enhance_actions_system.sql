@@ -182,7 +182,7 @@ INSERT INTO system_action_templates (template_key, action_type, title_template, 
 
 ('schedule_followup', 'schedule_meeting', 'Schedule Follow-up with {{contact_name}}', 'Your last interaction with {{contact_name}} went well. Schedule a follow-up meeting to continue building the relationship.', 'medium', 5, '{"trigger": "positive_interaction", "condition": "recent_successful_interaction"}'),
 
-('send_followup', 'send_follow_up', 'Follow Up with {{contact_name}}', 'Send a thoughtful follow-up message to {{contact_name}} to maintain momentum from your recent interaction.', 'medium', 10, '{"trigger": "interaction_followup", "condition": "interaction_needs_followup"}}')
+('send_followup', 'send_follow_up', 'Follow Up with {{contact_name}}', 'Send a thoughtful follow-up message to {{contact_name}} to maintain momentum from your recent interaction.', 'medium', 10, '{"trigger": "interaction_followup", "condition": "interaction_needs_followup"}')
 
 ON CONFLICT (template_key) DO UPDATE SET
     action_type = EXCLUDED.action_type,

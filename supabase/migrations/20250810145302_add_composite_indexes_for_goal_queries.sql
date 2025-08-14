@@ -6,11 +6,12 @@
 -- COMPOSITE INDEXES FOR GOAL QUERIES
 -- ===============================================
 
--- 1. Artifacts table: user_id + goal_id (for goal-specific artifact queries)
--- This optimizes queries like: WHERE user_id = ? AND goal_id = ?
-CREATE INDEX IF NOT EXISTS idx_artifacts_user_goal 
-ON artifacts(user_id, goal_id) 
-WHERE goal_id IS NOT NULL;
+-- 1. Artifacts table: user_id + contact_id (for contact-specific artifact queries)
+-- Note: artifacts table doesn't have goal_id, using contact_id instead
+-- This optimizes queries like: WHERE user_id = ? AND contact_id = ?
+CREATE INDEX IF NOT EXISTS idx_artifacts_user_contact 
+ON artifacts(user_id, contact_id) 
+WHERE contact_id IS NOT NULL;
 
 -- 2. Actions table: user_id + goal_id + status (for dashboard widgets and goal details)
 -- This optimizes queries like: WHERE user_id = ? AND goal_id = ? AND status = ?
@@ -74,7 +75,7 @@ WHERE status IN ('pending', 'in_progress') AND due_date IS NOT NULL;
 -- COMMENTS
 -- ===============================================
 
-COMMENT ON INDEX idx_artifacts_user_goal IS 'Composite index for goal-specific artifact queries, filtered to non-null goal_id';
+COMMENT ON INDEX idx_artifacts_user_contact IS 'Composite index for contact-specific artifact queries, filtered to non-null contact_id';
 COMMENT ON INDEX idx_actions_user_goal_status IS 'Composite index for action status filtering within goals';
 COMMENT ON INDEX idx_goal_contacts_user_goal_status IS 'Composite index for active goal contact queries';
 COMMENT ON INDEX idx_goal_milestones_user_goal_status IS 'Composite index for milestone completion tracking';

@@ -63,14 +63,15 @@ ALTER TABLE actions DROP CONSTRAINT IF EXISTS actions_created_source_check;
 ALTER TABLE actions ADD CONSTRAINT actions_created_source_check 
     CHECK (created_source IN ('manual', 'ai_suggestion', 'ai_generated', 'calendar_sync', 'backup_automation', 'artifact_processing', 'session_creation', 'system_intelligence'));
 
--- Update action_type constraint to include relationship session actions
+-- Update action_type constraint to include all existing and new action types
 ALTER TABLE actions DROP CONSTRAINT IF EXISTS actions_action_type_check;
 ALTER TABLE actions ADD CONSTRAINT actions_action_type_check 
     CHECK (action_type IN (
-        'send_message', 'schedule_meeting', 'make_introduction', 'send_follow_up', 
-        'deliver_pog', 'follow_up_ask', 'reconnect_with_contact', 'add_meeting_notes',
-        'add_contact_to_goal', 'review_goal_progress', 'reach_out_to_contact',
-        'discover_new_contacts', 'strengthen_relationship'
+        'deliver_pog', 'follow_up_ask', 'add_meeting_notes', 'add_contact_to_goal',
+        'reconnect_with_contact', 'review_goal', 'schedule_meeting', 'send_follow_up',
+        'make_introduction', 'share_content', 'other', 'send_message',
+        'review_goal_progress', 'reach_out_to_contact', 'discover_new_contacts',
+        'strengthen_relationship'
     ));
 
 -- ===============================================

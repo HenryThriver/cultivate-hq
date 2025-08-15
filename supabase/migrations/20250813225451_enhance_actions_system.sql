@@ -156,6 +156,7 @@ CREATE INDEX IF NOT EXISTS idx_actions_session_id ON actions(session_id);
 -- ===============================================
 -- SEED SYSTEM ACTION TEMPLATES
 -- ===============================================
+-- Fixed: JSON syntax error in trigger_conditions field
 
 INSERT INTO system_action_templates (template_key, action_type, title_template, description_template, priority, estimated_duration_minutes, trigger_conditions) VALUES
 

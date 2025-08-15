@@ -59,7 +59,35 @@ ALTER TABLE actions ADD COLUMN IF NOT EXISTS trigger_context JSONB DEFAULT '{}';
 ALTER TABLE actions ADD COLUMN IF NOT EXISTS session_id UUID REFERENCES relationship_sessions(id) ON DELETE SET NULL;
 
 -- Update the created_source constraint to include new values while preserving existing ones
+-- First, drop any existing named constraint
 ALTER TABLE actions DROP CONSTRAINT IF EXISTS actions_created_source_check;
+
+-- PostgreSQL doesn't allow easy dropping of inline CHECK constraints,
+-- so we need to work around this by temporarily removing all constraints on the column
+-- We do this by creating a new column, copying data, dropping old, and renaming
+DO $$ 
+BEGIN
+    -- Only do the column recreation if the constraint needs updating
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname LIKE '%created_source%' 
+        AND conrelid = 'actions'::regclass
+    ) THEN
+        -- Add temporary column
+        ALTER TABLE actions ADD COLUMN created_source_new TEXT DEFAULT 'manual';
+        
+        -- Copy existing data
+        UPDATE actions SET created_source_new = created_source;
+        
+        -- Drop old column
+        ALTER TABLE actions DROP COLUMN created_source;
+        
+        -- Rename new column
+        ALTER TABLE actions RENAME COLUMN created_source_new TO created_source;
+    END IF;
+END $$;
+
+-- Now add the comprehensive constraint with all values
 ALTER TABLE actions ADD CONSTRAINT actions_created_source_check 
     CHECK (created_source IN ('manual', 'ai_suggestion', 'ai_generated', 'calendar_sync', 'backup_automation', 'artifact_processing', 'session_creation', 'system_intelligence'));
 

@@ -58,10 +58,10 @@ ALTER TABLE actions ADD COLUMN IF NOT EXISTS template_key TEXT;
 ALTER TABLE actions ADD COLUMN IF NOT EXISTS trigger_context JSONB DEFAULT '{}';
 ALTER TABLE actions ADD COLUMN IF NOT EXISTS session_id UUID REFERENCES relationship_sessions(id) ON DELETE SET NULL;
 
--- Update the created_source constraint to include new values
+-- Update the created_source constraint to include new values while preserving existing ones
 ALTER TABLE actions DROP CONSTRAINT IF EXISTS actions_created_source_check;
 ALTER TABLE actions ADD CONSTRAINT actions_created_source_check 
-    CHECK (created_source IN ('manual', 'ai_generated', 'calendar_sync', 'session_creation', 'system_intelligence'));
+    CHECK (created_source IN ('manual', 'ai_suggestion', 'ai_generated', 'calendar_sync', 'backup_automation', 'artifact_processing', 'session_creation', 'system_intelligence'));
 
 -- Update action_type constraint to include relationship session actions
 ALTER TABLE actions DROP CONSTRAINT IF EXISTS actions_action_type_check;

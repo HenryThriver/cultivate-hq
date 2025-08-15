@@ -38,15 +38,6 @@ _(Goal: All artifact types should inform contact profiles, POGs, Asks, Conversat
 -   [ ] **Screenshot Imports:**
     -   [ ] Allow uploading screenshots as image artifacts (e.g., for conversations on platforms like Circle).
 
-## 🔄 Loop Management (POGs, Asks, Conversation Topics)
-
--   [ ] **Deep Dive:** Thoroughly review and refine the concepts of:
-    -   Packets of Generosity (POGs)
-    -   Asks
-    -   Conversation Topics
--   [ ] **Status Tracking:** Ensure robust status management and transitions for all loop types.
--   [ ] **Integration:** Define and implement how new artifact imports (emails, meetings, posts, etc.) inform, create, or update existing loops.
-
 ## 🧠 Relationship Intelligence & Workflow
 
 -   [ ] **Connection Preparation:**

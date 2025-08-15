@@ -93,7 +93,7 @@ export const SessionStartModal: React.FC<SessionStartModalProps> = ({
     if (!selectedGoalId || !actions || actions.length === 0) return;
     
     const actionsToCreate = actions.map((action) => ({
-      type: action.type as 'add_contact' | 'add_meeting_notes',
+      type: action.type as 'add_contact_to_goal' | 'add_meeting_notes',
       goal_id: action.goal_id,
       meeting_artifact_id: action.meeting_artifact_id,
       contact_id: action.contact_id,

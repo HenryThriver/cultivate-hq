@@ -10,7 +10,7 @@ import type { Json } from '@/lib/supabase/database.types';
 // ===============================================
 
 interface CreateSessionAction {
-  type: 'add_contact' | 'add_meeting_notes';
+  type: 'add_contact_to_goal' | 'add_meeting_notes';
   goal_id?: string;
   meeting_artifact_id?: string;
   contact_id?: string;
@@ -19,40 +19,40 @@ interface CreateSessionAction {
   action_id?: string; // For existing actions
 }
 
-// interface SessionAction {
-//   id: string;
-//   session_id: string;
-//   action_type: string;
-//   status: string;
-//   contact_id?: string;
-//   goal_id?: string;
-//   meeting_artifact_id?: string;
-//   action_data: Record<string, unknown>;
-//   completed_at?: string;
-//   created_at: string;
-//   // Relations
-//   contact?: {
-//     id: string;
-//     name: string;
-//     goal_id?: string;
-//   };
-//   meeting_artifact?: {
-//     id: string;
-//     metadata: Record<string, unknown>;
-//     created_at: string;
-//   };
-// }
+export interface SessionAction {
+  id: string;
+  session_id: string;
+  action_type: string;
+  status: string;
+  contact_id?: string;
+  goal_id?: string;
+  meeting_artifact_id?: string;
+  action_data: Record<string, unknown>;
+  completed_at?: string;
+  created_at: string;
+  // Relations
+  contact?: {
+    id: string;
+    name: string;
+    goal_id?: string;
+  };
+  meeting_artifact?: {
+    id: string;
+    metadata: Record<string, unknown>;
+    created_at: string;
+  };
+}
 
-// interface RelationshipSession {
-//   id: string;
-//   user_id: string;
-//   session_type: string;
-//   status: string;
-//   started_at: string;
-//   completed_at?: string;
-//   created_at: string;
-//   actions: SessionAction[];
-// }
+export interface RelationshipSession {
+  id: string;
+  user_id: string;
+  session_type: string;
+  status: string;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
+  actions: SessionAction[];
+}
 
 // ===============================================
 // PENDING ACTIONS ROLL-UP
@@ -403,7 +403,7 @@ export function useGoalSessionActions(goalId: string) {
       // Always include "add contact" action if below target
       if (currentCount < targetCount) {
         actions.push({
-          type: 'add_contact',
+          type: 'add_contact_to_goal',
           goal_id: goalId,
           goal_title: goal.title,
           current_count: currentCount,
@@ -435,7 +435,7 @@ export function useGoalSessionActions(goalId: string) {
           const actionData = action.action_data;
           
           actions.push({
-            type: action.action_type as 'add_contact' | 'add_meeting_notes',
+            type: action.action_type as 'add_contact_to_goal' | 'add_meeting_notes',
             action_id: action.id, // Track the existing action
             meeting_artifact_id: action.artifact_id || undefined,
             contact_id: action.contact_id || undefined,

@@ -18,6 +18,8 @@ import {
   Grow,
   Paper,
   Divider,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -36,6 +38,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/lib/hooks/useRelationshipSessions';
 import { AddContactActionCard } from './AddContactActionCard';
 import { AddMeetingNotesActionCard } from './AddMeetingNotesActionCard';
+import { MobileSessionView } from './MobileSessionView';
 import type { MeetingArtifactContent } from '@/types/artifact';
 
 interface RelationshipSessionInterfaceProps {
@@ -56,6 +59,8 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
   const [showCompletionDialog, setShowCompletionDialog] = useState<boolean>(false);
   const [showInitialCelebration, setShowInitialCelebration] = useState<boolean>(true);
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const { data: session, isLoading, error } = useSession(sessionId);
   // const completeAction = useCompleteSessionAction();
@@ -225,11 +230,34 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
   const currentCount = goal?.goal_contacts?.length || 0;
   const targetCount = goal?.target_contact_count || 50;
   
+  // Get current action for mobile view
+  const currentAction = remainingActions[0] || null;
+  const currentActionIndex = totalActions - remainingActions.length + 1;
+  
+  // Use mobile view for small screens
+  if (isMobile) {
+    return (
+      <MobileSessionView
+        session={session}
+        currentAction={currentAction}
+        currentActionIndex={currentActionIndex}
+        totalActions={totalActions}
+        completedActions={completedActions}
+        timeRemaining={timeRemaining}
+        isPaused={isPaused}
+        onActionComplete={handleActionComplete}
+        onActionSkip={handleActionSkip}
+        onPauseResume={handlePauseResume}
+        onClose={onClose}
+      />
+    );
+  }
+  
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #6366F1 0%, #7C3AED 50%, #1976D2 100%)',
         position: 'relative',
         overflow: 'auto',
       }}
@@ -263,12 +291,11 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
               }}
             >
               <TrophyIcon sx={{ fontSize: 80, mb: 2, color: '#FFD700' }} />
-              <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
-                🎉 Relationship Building Time! 🎉
+              <Typography variant="h3" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1.75rem', sm: '2rem' } }}>
+                Strategic Connection Session
               </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: 500, mx: 'auto' }}>
-                Time to strengthen your professional network and advance your goal. 
-                Let&apos;s build meaningful connections that matter!
+              <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: 500, mx: 'auto', fontWeight: 400, lineHeight: 1.6 }}>
+                Time to systematically strengthen your professional network. Each connection builds strategic advantage.
               </Typography>
             </Box>
           </Fade>
@@ -294,53 +321,69 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
       </IconButton>
 
       {/* Main Content */}
-      <Box sx={{ p: 4, pt: 8, maxWidth: 1000, mx: 'auto' }}>
-        {/* Goal Display Card */}
-        {goal && (
-          <Card
-            sx={{
-              mb: 4,
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '2px solid rgba(255, 255, 255, 0.8)',
-              borderRadius: 3,
-              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.2)',
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" gap={2} mb={2}>
-                <GoalIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                  Current Goal
-                </Typography>
-              </Box>
-              <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.4 }}>
-                {goal.title}
-              </Typography>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Session Status Card */}
+      <Box sx={{ p: 4, pt: 6, maxWidth: 1000, mx: 'auto' }}>
+        {/* Combined Header Card */}
         <Card
           sx={{
-            mb: 4,
+            mb: 3,
             background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            border: '2px solid rgba(255, 255, 255, 0.8)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
             borderRadius: 3,
-            boxShadow: '0 16px 48px rgba(0, 0, 0, 0.2)',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+            backdropFilter: 'blur(10px)',
           }}
         >
-          <CardContent sx={{ p: 3 }}>
-            {/* Timer Section */}
+          <CardContent sx={{ p: 4 }}>
+            {/* Top Row: Goal and Actions Count */}
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+              <Box>
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: 'text.secondary', 
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    mb: 0.5,
+                    display: 'block'
+                  }}
+                >
+                  Strategic Focus
+                </Typography>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 600, 
+                    lineHeight: 1.2,
+                    color: 'text.primary',
+                  }}
+                >
+                  {goal?.title || 'Session Active'}
+                </Typography>
+              </Box>
+              <Chip
+                label={`${completedCount} of ${totalActions} actions`}
+                color="primary"
+                variant="outlined"
+                sx={{ 
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  height: 32,
+                }}
+              />
+            </Box>
+
+            {/* Bottom Row: Timer and Progress */}
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              {/* Timer Section */}
               <Box display="flex" alignItems="center" gap={2}>
-                <AccessTimeIcon sx={{ fontSize: 32, color: getTimerColor() === 'success' ? 'success.main' : getTimerColor() === 'warning' ? 'warning.main' : 'error.main' }} />
+                <AccessTimeIcon sx={{ fontSize: 24, color: getTimerColor() === 'success' ? '#10B981' : getTimerColor() === 'warning' ? '#F59E0B' : '#EF4444' }} />
                 <Typography
-                  variant="h4"
+                  variant="h5"
                   sx={{
                     fontFamily: 'monospace',
-                    fontWeight: 'bold',
-                    color: getTimerColor() === 'success' ? 'success.main' : getTimerColor() === 'warning' ? 'warning.main' : 'error.main',
+                    fontWeight: 600,
+                    color: getTimerColor() === 'success' ? '#10B981' : getTimerColor() === 'warning' ? '#F59E0B' : '#EF4444',
                     animation: timeRemaining <= 60 ? 'pulse 1s ease-in-out infinite' : 'none',
                   }}
                 >
@@ -348,46 +391,55 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                 </Typography>
                 <Button
                   variant="outlined"
+                  size="small"
                   onClick={handlePauseResume}
                   startIcon={isPaused ? <PlayArrowIcon /> : <PauseIcon />}
-                  sx={{ ml: 2 }}
+                  sx={{ 
+                    ml: 1,
+                    borderRadius: 2,
+                    px: 2,
+                    fontWeight: 500,
+                    fontSize: '0.875rem',
+                    borderColor: 'rgba(0,0,0,0.12)',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      bgcolor: 'rgba(33, 150, 243, 0.04)',
+                    },
+                  }}
                 >
                   {isPaused ? 'Resume' : 'Pause'}
                 </Button>
               </Box>
-            </Box>
 
-            {/* Progress Section */}
-            <Box>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  Session Progress
-                </Typography>
-                <Chip
-                  label={`${completedCount} of ${totalActions} actions`}
-                  color="primary"
-                  variant="filled"
-                  sx={{ fontWeight: 'bold' }}
+              {/* Progress Section */}
+              <Box sx={{ width: 200 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={progress}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    bgcolor: 'rgba(0,0,0,0.08)',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 3,
+                      background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
+                      transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    },
+                  }}
                 />
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    mt: 0.5, 
+                    textAlign: 'center',
+                    color: 'text.secondary',
+                    fontWeight: 500,
+                    display: 'block'
+                  }}
+                >
+                  {progress.toFixed(0)}% Complete
+                </Typography>
               </Box>
-
-              <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{
-                  height: 12,
-                  borderRadius: 6,
-                  bgcolor: 'grey.200',
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 6,
-                    background: 'linear-gradient(90deg, #4caf50 0%, #81c784 100%)',
-                  },
-                }}
-              />
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
-                {progress.toFixed(0)}% Complete
-              </Typography>
             </Box>
 
             {showCelebration && (
@@ -406,13 +458,13 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                   }}
                   icon={<CelebrationIcon />}
                 >
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    🎉 Outstanding! Action completed successfully!
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: '1.125rem' }}>
+                    Action completed successfully
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                     {remainingActions.length > 0 
-                      ? `${remainingActions.length} more action${remainingActions.length > 1 ? 's' : ''} to go. You&apos;re building momentum!`
-                      : 'All actions completed! You&apos;re crushing it!'
+                      ? `${remainingActions.length} more strategic connection${remainingActions.length > 1 ? 's' : ''} to build.`
+                      : 'Strategic session complete. Relationship intelligence enhanced.'
                     }
                   </Typography>
                 </Alert>
@@ -432,21 +484,9 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
               return (
                 <Fade in={true} timeout={500} key={currentAction.id}>
                   <Box sx={{ mb: 3 }}>
-                    {/* Action Number Indicator */}
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <Chip
-                        label={`Action ${currentActionIndex} of ${totalActions}`}
-                        size="medium"
-                        color="primary"
-                        variant="filled"
-                        sx={{ 
-                          fontWeight: 'bold',
-                          fontSize: '0.9rem',
-                          px: 2,
-                          py: 1
-                        }}
-                      />
-                      {recentlyCompleted === currentAction.id && showCelebration && (
+                    {/* Only show completion celebration if needed */}
+                    {recentlyCompleted === currentAction.id && showCelebration && (
+                      <Box display="flex" alignItems="center" mb={2}>
                         <Grow in={true} timeout={300}>
                           <Chip
                             label="✓ Completed!"
@@ -463,27 +503,28 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                             }}
                           />
                         </Grow>
-                      )}
-                    </Box>
+                      </Box>
+                    )}
                     
                     {/* Enhanced Action Card */}
                     <Paper
-                      elevation={12}
+                      elevation={0}
                       sx={{
-                        borderRadius: 3,
+                        borderRadius: 4,
                         overflow: 'hidden',
                         background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                        border: '2px solid',
-                        borderColor: 'primary.200',
-                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(33, 150, 243, 0.2)',
-                        transition: 'all 0.3s ease-in-out',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+                        backdropFilter: 'blur(20px)',
+                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                         '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 16px 48px rgba(0, 0, 0, 0.2), 0 6px 16px rgba(33, 150, 243, 0.3)',
+                          transform: 'translateY(-4px) scale(1.01)',
+                          boxShadow: '0 32px 80px rgba(0, 0, 0, 0.2)',
+                          border: '1px solid rgba(99, 102, 241, 0.3)',
                         }
                       }}
                     >
-                      {currentAction.action_type === 'add_contact' ? (
+                      {currentAction.action_type === 'add_contact_to_goal' ? (
                         <AddContactActionCard
                           actionId={currentAction.id}
                           goalId={currentAction.goal_id || ''}
@@ -514,20 +555,38 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
           ) : (
             !showCompletionDialog && (
               <Card sx={{ 
-                bgcolor: 'success.50', 
-                border: '3px solid', 
-                borderColor: 'success.main',
-                borderRadius: 3,
-                boxShadow: '0 16px 48px rgba(76, 175, 80, 0.3)'
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: 2,
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(10px)',
               }}>
                 <CardContent sx={{ textAlign: 'center', py: 6 }}>
-                  <CelebrationIcon color="success" sx={{ fontSize: 80, mb: 3 }} />
-                  <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                    🎉 Incredible Work!
+                  <CelebrationIcon sx={{ fontSize: 72, color: '#10B981', mb: 3 }} />
+                  <Typography 
+                    variant="h3" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: 'text.primary',
+                      mb: 2,
+                      fontSize: { xs: '1.75rem', sm: '2rem' }
+                    }}
+                  >
+                    Session Complete
                   </Typography>
-                  <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: 500, mx: 'auto' }}>
-                    You&apos;ve successfully completed all relationship building actions in this session. 
-                    This is how meaningful connections are built!
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      color: 'text.secondary', 
+                      mb: 4, 
+                      maxWidth: 500, 
+                      mx: 'auto',
+                      fontSize: '1.0625rem',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Strategic connections systematically advanced. Your relationship intelligence grows stronger with each purposeful interaction.
                   </Typography>
                   <Box display="flex" justifyContent="center" gap={2}>
                     <Button
@@ -535,9 +594,22 @@ export const RelationshipSessionInterface: React.FC<RelationshipSessionInterface
                       size="large"
                       onClick={() => setShowCompletionDialog(true)}
                       startIcon={<ArrowForwardIcon />}
-                      sx={{ px: 4, py: 1.5 }}
+                      sx={{ 
+                        px: 5, 
+                        py: 1.5,
+                        borderRadius: 2,
+                        fontWeight: 500,
+                        fontSize: '1.0625rem',
+                        minHeight: 52,
+                        boxShadow: '0 4px 20px rgba(33, 150, 243, 0.25)',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                          boxShadow: '0 6px 24px rgba(33, 150, 243, 0.35)',
+                        },
+                        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
                     >
-                      What&apos;s Next?
+                      Continue Building
                     </Button>
                   </Box>
                 </CardContent>
